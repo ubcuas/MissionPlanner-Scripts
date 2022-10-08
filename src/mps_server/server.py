@@ -5,10 +5,10 @@ from missions import Waypoint, Mission
 
 #create a test mission
 test_mission = Mission()
-test_mission.add_wp(Waypoint(-35.3633499, 149.1652374, 10))
+test_mission.add_wp(Waypoint(-35.3627798, 149.1651830, 10))
 test_mission.add_wp(Waypoint(-35.3631439, 149.1647033, 10))
 test_mission.add_wp(Waypoint(-35.3637428, 149.1647949, 10))
-test_mission.add_wp(Waypoint(-35.3633499, 149.1652374, 10))
+test_mission.add_wp(Waypoint(-35.3638713, 149.1659743, 10))
 
 class UDPHandler(socketserver.BaseRequestHandler):
     """
@@ -31,12 +31,16 @@ class UDPHandler(socketserver.BaseRequestHandler):
         print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
         current_wp = Waypoint(current_lat, current_lng, current_alt)
 
-        #check progress
-        if (test_mission.mission_check_wp(current_wp)):
-            print("Waypoint Reached!")
+        #check if current mission has completed
+        if (test_mission.mission_complete()):
+            socket.sendto(bytes("IDLE 0 0 0", "utf-8"), self.client_address)
+        else:
+            #check progress
+            if (test_mission.mission_check_wp(current_wp)):
+                print("Waypoint Reached!")
 
-        #send waypoint to UAV
-        socket.sendto(bytes(str(test_mission.mission_current_wp()), "utf-8"), self.client_address)
+            #send waypoint to UAV
+            socket.sendto(bytes("NEXT " + str(test_mission.mission_current_wp()), "utf-8"), self.client_address)
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 4000

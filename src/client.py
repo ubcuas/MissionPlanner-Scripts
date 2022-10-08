@@ -34,23 +34,28 @@ while 1:
     msg = rsock.recv(1024)
     parameters = msg.split()
 
-    float_lat = float(parameters[0])
-    float_lng = float(parameters[1])
-    float_alt = float(parameters[2])
+    state = parameters[0]
+    float_lat = float(parameters[1])
+    float_lng = float(parameters[2])
+    float_alt = float(parameters[3])
 
     if cs.mode == 'MANUAL': #Safety Manual Mode Switch
         Script.ChangeMode("Manual")
         break
     else:
-        #waypoint creation
-        item = MissionPlanner.Utilities.Locationwp() # creating waypoint
-        MissionPlanner.Utilities.Locationwp.lat.SetValue(item,float_lat)
-        MissionPlanner.Utilities.Locationwp.lng.SetValue(item,float_lng)
-        MissionPlanner.Utilities.Locationwp.alt.SetValue(item,float_alt)
-        MAV.setGuidedModeWP(item) #set waypoint
+        if state == "NEXT":
+            #waypoint creation
+            item = MissionPlanner.Utilities.Locationwp() # creating waypoint
+            MissionPlanner.Utilities.Locationwp.lat.SetValue(item,float_lat)
+            MissionPlanner.Utilities.Locationwp.lng.SetValue(item,float_lng)
+            MissionPlanner.Utilities.Locationwp.alt.SetValue(item,float_alt)
+            MAV.setGuidedModeWP(item) #set waypoint
 
-        print("Waypoint set at lat: {:} lng: {:} alt: {:}".format(float_lat, float_lng, float_alt))
-    
+            print("Waypoint set at lat: {:} lng: {:} alt: {:}".format(float_lat, float_lng, float_alt))
+        
+        elif state == "IDLE":
+            pass #do nothing
+
     #timing
     time.sleep(1)
 

@@ -27,6 +27,7 @@ class Mission():
     def __init__(self):
         self._wplist = []
         self._index = 0
+        self._done = False
     
     def add_wp(self, wp):
         self._wplist.append(wp)
@@ -38,10 +39,15 @@ class Mission():
         #check distance to current wp
         if self._wplist[self._index].distance(current) <= 0.1:
             #update to next waypoint
-            if (self._index < len(self._wplist) - 1):
+            if (self._index == len(self._wplist) - 1):
+                self._done = True
+            else:
                 self._index += 1
             return True
         return False
+
+    def mission_complete(self):
+        return self._done
 
     def mission_current_wp(self):
         return self._wplist[self._index]
