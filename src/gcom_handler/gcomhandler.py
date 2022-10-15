@@ -1,13 +1,23 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import time
-from ..mps_server.missions import Mission
-from ..common.wpqueue import WaypointQueue, Waypoint
-from ..common.sharedobject import SharedObject
+from src.common.wpqueue import WaypointQueue, Waypoint
+from src.common.sharedobject import SharedObject
 
-WpQueue1 = WaypointQueue([Waypoint(-35.3627798, 149.1651830, 10), Waypoint(-35.3631439, 149.1647033, 10), Waypoint(-35.3637428, 149.1647949, 10), Waypoint(-35.3638713, 149.1659743, 10)])
-WpQueue2 = WaypointQueue([Waypoint(-35.3687798, 149.1651830, 10), Waypoint(-35.3691439, 149.1647033, 10), Waypoint(-35.3697428, 149.1647949, 10), Waypoint(-35.3698713, 149.1659743, 10)])
+wpq1 = WaypointQueue([
+    Waypoint(-35.3627798, 149.1651830, 10),
+    Waypoint(-35.3631439, 149.1647033, 10),
+    Waypoint(-35.3637428, 149.1647949, 10),
+    Waypoint(-35.3638713, 149.1659743, 10)
+])
 
-queue = [WpQueue1,WpQueue2]
+wpq2 = WaypointQueue([
+    Waypoint(-35.3647798, 149.1651830, 10),
+    Waypoint(-35.3651439, 149.1647033, 10),
+    Waypoint(-35.3657428, 149.1647949, 10),
+    Waypoint(-35.3658713, 149.1659743, 10)
+])
+
+queue = [wpq1, wpq2]
 
 
 class GCom_Handler(BaseHTTPRequestHandler):
@@ -18,15 +28,16 @@ class GCom_Handler(BaseHTTPRequestHandler):
     #             pass
 
 
-class GCom_Server(BaseHTTPRequestHandler):
+class GCom_Server():
     def __init__(self, so):
         self._so = so
-        pass
+        print("GCom_Server Initialized")
 
     def serve_forever(self):
         for q in queue:
-            while(self._so.gcom_newmission_set(self, q) == False):
-                pass
+            while(self._so.gcom_newmission_set(q) == False):
+                time.sleep(0.1)
+            print("Mission added")
     
         # PORT = 9000
         # server = HTTPServer(('', PORT), GCom_Handler)

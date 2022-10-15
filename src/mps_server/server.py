@@ -1,7 +1,7 @@
 import math
 import socketserver
 
-from missions import Mission
+from src.mps_server.missions import Mission
 from src.common.wpqueue import Waypoint, WaypointQueue
 from src.common.sharedobject import SharedObject
 
@@ -69,7 +69,7 @@ class MPS_Internal_Server(socketserver.UDPServer):
     def __init__(self, hptuple, handler, so):
         self._so = so
 
-        self._current_mission = first_mission #empty mission
+        self._current_mission = Mission() #empty mission
 
         #superclass constructor
         super().__init__(hptuple, handler)

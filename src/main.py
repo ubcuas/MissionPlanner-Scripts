@@ -1,7 +1,7 @@
 import threading
 
 from common.sharedobject import SharedObject
-from gcom_handler.gcomhandler import gcomhandler
+from gcom_handler.gcomhandler import GCom_Server
 from mps_server.server import MPS_Server
 
 #instantiate shared object
@@ -9,13 +9,13 @@ so = SharedObject()
 
 #create server
 mps = MPS_Server(so)
-gch = gcomhandler(so)
+gcm = GCom_Server(so)
 
-#mps thread
-mps_thread = threading.Thread(target=mps.serve_forever)
+#mpss thread
+mpss_thread = threading.Thread(target=mps.serve_forever)
 
-#gcomh thread
-gch_thread = threading.Thread(target=gch.serve_forever)
+#gcmh thread
+gcmh_thread = threading.Thread(target=gcm.serve_forever)
 
-mps_thread.start()
-gch_thread.start()
+mpss_thread.start()
+gcmh_thread.start()

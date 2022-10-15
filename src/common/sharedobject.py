@@ -14,7 +14,7 @@ class SharedObject():
         return self._newmission_flag
     
     def gcom_newmission_set(self, wpq):
-        if self._newmission == True:
+        if self._newmission_flag == True:
             return False
         
         self._newmission_flag_lk.acquire()
