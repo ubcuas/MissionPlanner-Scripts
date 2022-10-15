@@ -1,5 +1,6 @@
 from math import sqrt, pow
-from conversion import convert_gps_to_utm
+
+from src.common.conversion import convert_gps_to_utm
 
 class Waypoint():
     def __init__(self, lat, lng, alt):
@@ -26,6 +27,9 @@ class Waypoint():
 class WaypointQueue():
     def __init__(self, wplist=[]):
         self._wplist = wplist
+    
+    def clear(self):
+        self._wplist = []
     
     def front(self):
         return self._wplist[0]
