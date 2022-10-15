@@ -1,6 +1,7 @@
+import copy
 from threading import Lock
 
-from wpqueue import WaypointQueue
+from src.common.wpqueue import WaypointQueue
 
 class SharedObject():
     def __init__(self):

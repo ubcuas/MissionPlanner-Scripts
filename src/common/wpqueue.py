@@ -38,7 +38,7 @@ class WaypointQueue():
         return self._wplist[-1]
 
     def empty(self):
-        return len(self._wplist) == 0
+        return (len(self._wplist) == 0)
     
     def size(self):
         return len(self._wplist)
@@ -47,4 +47,4 @@ class WaypointQueue():
         self._wplist.append(wp)
 
     def pop(self):
-        self._wplist.pop()
+        return self._wplist.pop(0)
