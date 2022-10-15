@@ -26,6 +26,7 @@ print("Entered Guided Mode")
 
 #keep talking with the Mission Planner server 
 while 1: 
+    print("Loop begin")
     #send location to server
     location = "{:} {:} {:}".format(cs.lat, cs.lng, cs.alt)
     rsock.sendto(location, (HOST, RPORT))

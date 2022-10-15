@@ -5,7 +5,6 @@ distance between two UTM coordiantes.
 """
 
 from math import *
-import requests
 
 def convert_gps_to_utm(latitude, longitude):
     """
