@@ -10,6 +10,7 @@ test_mission.add_wp(Waypoint(-35.3631439, 149.1647033, 10))
 test_mission.add_wp(Waypoint(-35.3637428, 149.1647949, 10))
 test_mission.add_wp(Waypoint(-35.3638713, 149.1659743, 10))
 
+#define request handler
 class UDPHandler(socketserver.BaseRequestHandler):
     """
     This class works similar to the TCP handler class, except that
@@ -42,7 +43,16 @@ class UDPHandler(socketserver.BaseRequestHandler):
             #send waypoint to UAV
             socket.sendto(bytes("NEXT " + str(test_mission.mission_current_wp()), "utf-8"), self.client_address)
 
+class MPS_Server():
+    def __init__(self, so):
+        self._so = so
+        pass
+
+    def serve_forever(self):
+        HOST, PORT = "localhost", 4000
+        self._server = socketserver.UDPServer((HOST, PORT), UDPHandler)
+        self._server.serve_forever()  
+
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 4000
-    server = socketserver.UDPServer((HOST, PORT), UDPHandler)
-    server.serve_forever()  
+    server = MPS_Server(None)
+    server.serve_forever()
