@@ -16,6 +16,7 @@ class GComHandler(BaseHTTPRequestHandler):
         for task in self.queue:
             for terms in task:
                 output += str(terms) + " "
+
             output += "</br>"
         
         output += "</body></html>"
