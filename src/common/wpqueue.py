@@ -28,6 +28,12 @@ class WaypointQueue():
     def __init__(self, wplist=[]):
         self._wplist = wplist
     
+    def __str__(self):
+        ret = ""
+        for i in range(0, len(self._wplist)):
+            ret += f"{i} : {str(self._wplist[i])}\n"
+        return ret
+    
     def clear(self):
         self._wplist = []
     

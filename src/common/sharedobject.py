@@ -5,7 +5,7 @@ from src.common.wpqueue import WaypointQueue
 
 class SharedObject():
     def __init__(self):
-        self._newmission = WaypointQueue()
+        self._newmission = []
         self._newmission_lk = Lock()
         self._newmission_flag = False
         self._newmission_flag_lk = Lock()
@@ -14,14 +14,11 @@ class SharedObject():
         return self._newmission_flag
     
     def gcom_newmission_set(self, wpq):
-        if self._newmission_flag == True:
-            return False
-        
         self._newmission_flag_lk.acquire()
         self._newmission_flag = True
         
         self._newmission_lk.acquire()
-        self._newmission = wpq
+        self._newmission.append(wpq)
         
         self._newmission_lk.release()
         self._newmission_flag_lk.release()
@@ -34,8 +31,7 @@ class SharedObject():
             self._newmission_flag = False
 
             self._newmission_lk.acquire()
-            ret = self._newmission
-            self._newmission = WaypointQueue() #TODO check mutability
+            ret = self._newmission.pop(0)
             
             self._newmission_lk.release()
             self._newmission_flag_lk.release()

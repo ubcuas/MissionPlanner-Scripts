@@ -1,5 +1,6 @@
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import time
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
 from src.common.wpqueue import WaypointQueue, Waypoint
 from src.common.sharedobject import SharedObject
 
@@ -22,11 +23,51 @@ queue = [wpq1, wpq2]
 #define handler
 class GCom_Handler(BaseHTTPRequestHandler):
     
-    def do_GET():
-        pass
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('content-type', 'text/html')
+        self.end_headers()
 
-    def do_POST():
-        pass
+        output = "alive"
+        self.wfile.write(output.encode())
+
+    def do_POST(self):
+        if self.path.endswith('/newmission'):
+            content_len = int(self.headers['Content-Length'])
+            post_body = self.rfile.read(content_len)
+            post_data = post_body.decode('utf-8')
+
+            payload = post_data.split('&')
+            for i in range(0, len(payload)):
+                pair = payload[i].split('=')
+                payload[i] = (pair[0], pair[1])
+
+            print(payload)
+
+            wpq = []
+            
+            print("WPQ before\n", wpq, sep='')
+
+            for pair in payload:
+                location = pair[1].split("+")
+                if len(location) != 3:
+                    print("Incomplete waypoint")
+                wp = Waypoint(location[0], location[1], location[2])
+                wpq.append(wp)
+
+            print("WPQ after\n", wpq, sep='')
+
+            self.server._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
+
+            wpq.clear()
+
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+
+            output = "ok"
+            self.wfile.write(output.encode())
+
 
 class GCom_Internal_Server(HTTPServer):
     def __init__(self, hptuple, handler, so):
@@ -44,7 +85,7 @@ class GCom_Server():
 
     def serve_forever(self):
         HOST, PORT = "localhost", 9000
-        server = HTTPServer((HOST, PORT), GCom_Handler, self._so)
+        server = GCom_Internal_Server((HOST, PORT), GCom_Handler, self._so)
         server.serve_forever()
 
         # for q in queue:
@@ -52,7 +93,11 @@ class GCom_Server():
         #         time.sleep(0.1)
         #     print("Mission added")
 
+if __name__ == "__main__":
+    testobj = SharedObject()
 
+    server = GCom_Server(testobj)
+    server.serve_forever()
 
 """
 class GComHandler(BaseHTTPRequestHandler):
