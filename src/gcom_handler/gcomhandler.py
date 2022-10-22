@@ -19,30 +19,38 @@ wpq2 = WaypointQueue([
 
 queue = [wpq1, wpq2]
 
-
+#define handler
 class GCom_Handler(BaseHTTPRequestHandler):
-    pass 
-    # def so_push(self):
-    #     for q in self.queue:
-    #         while(self._so.gcom_newmission_set(self, q) == False):
-    #             pass
+    
+    def do_GET():
+        pass
 
+    def do_POST():
+        pass
+
+class GCom_Internal_Server(HTTPServer):
+    def __init__(self, hptuple, handler, so):
+        self._so = so
+
+        #superclass constructor
+        super().__init__(hptuple, handler)
+        print("GCom_Internal_Server initialized")
 
 class GCom_Server():
     def __init__(self, so):
         self._so = so
+
         print("GCom_Server Initialized")
 
     def serve_forever(self):
-        for q in queue:
-            while(self._so.gcom_newmission_set(q) == False):
-                time.sleep(0.1)
-            print("Mission added")
-    
-        # PORT = 9000
-        # server = HTTPServer(('', PORT), GCom_Handler)
-        # print("Server running on port %s" % PORT)
-        # server.serve_forever()
+        HOST, PORT = "localhost", 9000
+        server = HTTPServer((HOST, PORT), GCom_Handler, self._so)
+        server.serve_forever()
+
+        # for q in queue:
+        #     while(self._so.gcom_newmission_set(q) == False):
+        #         time.sleep(0.1)
+        #     print("Mission added")
 
 
 
