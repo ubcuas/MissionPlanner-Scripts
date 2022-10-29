@@ -50,9 +50,9 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         self.server._so.mps_status_set({"velocity":current_vel, "latitude":current_lat, "longitude":current_lng, "altitude":current_alt, "heading":current_hdg})
 
         #send instruction to UAV
-        socket.sendto(bytes(self.next_instruction(), "utf-8"), self.client_address)
+        socket.sendto(bytes(self.next_instruction(current_wp), "utf-8"), self.client_address)
     
-    def next_instruction(self):
+    def next_instruction(self, current_wp):
         instruction = "IDLE 0 0 0" #default instr is to idle
 
         #check if we should lock
