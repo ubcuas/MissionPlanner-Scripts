@@ -51,7 +51,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             nextwpq = self.server._so.mps_newmission_get()
             if nextwpq != None:
                 print("New Mission Found!")
-                self.server._current_mission = Mission(nextwpq)
+                self.server._current_mission = Mission(nextwpq) #TODO overwrite the queue instead
         else:
             #check progress
             if (self.server._current_mission.mission_check_wp(current_wp)):
