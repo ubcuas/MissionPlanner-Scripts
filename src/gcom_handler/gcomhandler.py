@@ -5,22 +5,6 @@ import json
 from src.common.wpqueue import WaypointQueue, Waypoint
 from src.common.sharedobject import SharedObject
 
-wpq1 = WaypointQueue([
-    Waypoint(-35.3627798, 149.1651830, 10),
-    Waypoint(-35.3631439, 149.1647033, 10),
-    Waypoint(-35.3637428, 149.1647949, 10),
-    Waypoint(-35.3638713, 149.1659743, 10)
-])
-
-wpq2 = WaypointQueue([
-    Waypoint(-35.3647798, 149.1651830, 10),
-    Waypoint(-35.3651439, 149.1647033, 10),
-    Waypoint(-35.3657428, 149.1647949, 10),
-    Waypoint(-35.3658713, 149.1659743, 10)
-])
-
-queue = [wpq1, wpq2]
-
 #define handler
 class GCom_Handler(BaseHTTPRequestHandler):
     
@@ -109,10 +93,18 @@ class GCom_Handler(BaseHTTPRequestHandler):
             post_data = post_body.decode('utf-8')
             payload = json.loads(post_data)
 
+            ret = self.server._so.gcom_status_get()
+            last_altitude = ret['altitude'] if ret != () else 50
+
             wpq = []
             for wpdict in payload:
-                wp = Waypoint(wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
-                wpq.append(wp)
+                if wpdict['altitude'] != None:
+                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
+                    wpq.append(wp)
+                    last_altitude = wpdict['altitude']
+                else:
+                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
+                    wpq.append(wp)
             
             self.server._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
 

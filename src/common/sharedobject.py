@@ -30,6 +30,13 @@ class SharedObject():
         ret = self._currentmission
         self._currentmission_lk.release()
         return ret
+    
+    def mps_currentmission_removewp(self):
+        print("SHARED OBJ: removed wp")
+        self._currentmission_lk.acquire()
+        if (len(self._currentmission) != 0):
+            self._currentmission.pop(0)
+        self._currentmission_lk.release()
 
     #newmission methods
     def gcom_newmission_flagcheck(self):

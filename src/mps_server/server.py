@@ -5,22 +5,6 @@ from src.mps_server.missions import Mission
 from src.common.wpqueue import Waypoint, WaypointQueue
 from src.common.sharedobject import SharedObject
 
-#create a test mission
-wpq1 = WaypointQueue([
-    Waypoint(-35.3627798, 149.1651830, 10),
-    Waypoint(-35.3631439, 149.1647033, 10),
-    Waypoint(-35.3637428, 149.1647949, 10),
-    Waypoint(-35.3638713, 149.1659743, 10)
-])
-first_mission = Mission(wpq1)
-
-wpq2 = WaypointQueue([
-    Waypoint(-35.3647798, 149.1651830, 10),
-    Waypoint(-35.3651439, 149.1647033, 10),
-    Waypoint(-35.3657428, 149.1647949, 10),
-    Waypoint(-35.3658713, 149.1659743, 10)
-])
-
 #define request handler
 class MPS_Handler(socketserver.BaseRequestHandler):
     """
@@ -44,7 +28,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
         print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
         print(f"                  hdg: {current_hdg} vel: {current_vel}")
-        current_wp = Waypoint(current_lat, current_lng, current_alt)
+        current_wp = Waypoint("", current_lat, current_lng, current_alt)
 
         #updated shared obj with location data
         self.server._so.mps_status_set({"velocity":current_vel, "latitude":current_lat, "longitude":current_lng, "altitude":current_alt, "heading":current_hdg})
@@ -86,6 +70,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                     #check progress
                     if (self.server._current_mission.mission_check_wp(current_wp)):
                         print("Waypoint Reached!")
+                        self.server._so.mps_currentmission_removewp()
                         #IDLE instruction
 
                     #send waypoint to UAV
@@ -125,8 +110,6 @@ class MPS_Server():
 
 if __name__ == "__main__":
     testobj = SharedObject()
-    while(testobj.gcom_newmission_set(wpq2) == False):
-        pass
 
     server = MPS_Server(testobj)
     server.serve_forever()
