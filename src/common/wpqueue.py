@@ -24,33 +24,36 @@ class Waypoint():
 
         return sqrt(pow(other_utm[0] - this_utm[0], 2) + pow(other_utm[1] - this_utm[1], 2) + pow(other_utm[2] - this_utm[2], 2))
 
-class WaypointQueue():
-    def __init__(self, wplist=[]):
-        self._wplist = wplist
+class Queue():
+    def __init__(self, inlist=[]):
+        self._list = inlist
     
     def __str__(self):
         ret = ""
-        for i in range(0, len(self._wplist)):
-            ret += f"{i} : {str(self._wplist[i])}\n"
+        for i in range(0, len(self._list)):
+            ret += f"{i} : {str(self._list[i])}\n"
         return ret
     
     def clear(self):
-        self._wplist = []
+        self._list = []
     
     def front(self):
-        return self._wplist[0]
+        return self._list[0]
 
     def back(self):
-        return self._wplist[-1]
+        return self._list[-1]
 
     def empty(self):
-        return (len(self._wplist) == 0)
+        return (len(self._list) == 0)
     
     def size(self):
-        return len(self._wplist)
+        return len(self._list)
     
     def push(self, wp):
-        self._wplist.append(wp)
+        self._list.append(wp)
 
     def pop(self):
-        return self._wplist.pop(0)
+        return self._list.pop(0)
+
+class WaypointQueue(Queue):
+    pass
