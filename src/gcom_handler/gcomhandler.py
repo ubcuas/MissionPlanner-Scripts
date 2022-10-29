@@ -1,5 +1,6 @@
 import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
 
 from src.common.wpqueue import WaypointQueue, Waypoint
 from src.common.sharedobject import SharedObject
@@ -30,6 +31,73 @@ class GCom_Handler(BaseHTTPRequestHandler):
 
         output = "alive"
         self.wfile.write(output.encode())
+
+        if self.path.endswith('/queue'):
+            ret = self.server._so.gcom_currentmission_get() # this is a dict of wpq (hopefully)
+            retJSON = json.dumps(ret) # this should convert the dict to JSON
+
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+
+            self.wfile.write(ret.encode())
+
+            print("Queue sent to GCom")
+
+        elif self.path.endswith('/status'):
+            ret = self.server._so.gcom_status_get() # this should be a dict of status (hopefully)
+            retJSON = json.dumps(ret) # this should convert the dict to JSON
+
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+
+            self.wfile.write(ret.encode())
+
+            print("Status sent to GCom")
+
+        elif self.path.endswith('/lock'):
+            status = self.server._so.gcom_lock_set(True)
+            if status:
+                print("Locked by GCom")
+
+                self.send_response(200)
+                self.send_header('content-type', 'text/html')
+                self.end_headers()
+
+                output = "Mission Queue Locked"
+                self.wfile.write(output.encode())
+            else:
+                print("Lock failed")
+
+                self.send_response(400)
+                self.send_header('content-type', 'text/html')
+                self.end_headers()
+
+                output = "Mission Queue Lock Error: Already Locked"
+                self.wfile.write(output.encode())
+
+        elif self.path.endswith('/unlock'):
+            status = self.server._so.gcom_lock_set(False)
+            if not status:
+                print("unlocked by GCom")
+
+                self.send_response(200)
+                self.send_header('content-type', 'text/html')
+                self.end_headers()
+
+                output = "Mission Queue unlocked"
+                self.wfile.write(output.encode())
+            else:
+                print("Unlock failed")
+
+                self.send_response(400)
+                self.send_header('content-type', 'text/html')
+                self.end_headers()
+
+                output = "Mission Queue Unlock Error: Already Unlocked"
+                self.wfile.write(output.encode())
+
 
     def do_POST(self):
         if self.path.endswith('/newmission'):
