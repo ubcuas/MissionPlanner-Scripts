@@ -61,4 +61,4 @@ class Queue():
 
 class WaypointQueue(Queue):
     def aslist(self):
-        return self._list
+        return self._list.copy()

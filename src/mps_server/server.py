@@ -70,6 +70,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                     #check progress
                     if (self.server._current_mission.mission_check_wp(current_wp)):
                         print("Waypoint Reached!")
+                        self.server._so.mps_currentmission_removewp()
                         #IDLE instruction
 
                     #send waypoint to UAV
