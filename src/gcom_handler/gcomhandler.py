@@ -93,10 +93,18 @@ class GCom_Handler(BaseHTTPRequestHandler):
             post_data = post_body.decode('utf-8')
             payload = json.loads(post_data)
 
+            ret = self.server._so.gcom_status_get()
+            last_altitude = ret['altitude'] if ret != () else 50
+
             wpq = []
             for wpdict in payload:
-                wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
-                wpq.append(wp)
+                if wpdict['altitude'] != None:
+                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
+                    wpq.append(wp)
+                    last_altitude = wpdict['altitude']
+                else:
+                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
+                    wpq.append(wp)
             
             self.server._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
 
