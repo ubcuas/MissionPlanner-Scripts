@@ -28,7 +28,7 @@ print("Entered Guided Mode")
 while 1: 
     print("Loop begin")
     #send location to server
-    location = "{:} {:} {:}".format(cs.lat, cs.lng, cs.alt)
+    location = "{:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed)
     rsock.sendto(location, (HOST, RPORT))
 
     #recieve waypoint from server
@@ -36,15 +36,19 @@ while 1:
     parameters = msg.split()
 
     state = parameters[0]
-    float_lat = float(parameters[1])
-    float_lng = float(parameters[2])
-    float_alt = float(parameters[3])
-
+    arg1 = parameters[1]
+    arg2 = parameters[2]
+    arg3 = parameters[3]
+    
     if cs.mode == 'MANUAL': #Safety Manual Mode Switch
         Script.ChangeMode("Manual")
         break
     else:
         if state == "NEXT":
+            float_lat = float(arg1)
+            float_lng = float(arg2)
+            float_alt = float(arg3)
+
             #waypoint creation
             item = MissionPlanner.Utilities.Locationwp() # creating waypoint
             MissionPlanner.Utilities.Locationwp.lat.SetValue(item,float_lat)
@@ -56,6 +60,15 @@ while 1:
         
         elif state == "IDLE":
             pass #do nothing
+
+        elif state == "LOCK":
+            #extremely scuffed - set UAV to LOITER, then immediately switch back to GUIDED
+            #change once we find a better way to remove a guided mode wp
+            Script.ChangeMode("Loiter")
+            Script.ChangeMode("Guided")
+
+        else:
+            print("unrecognized commmand {:}".format(state))
 
     #timing
     time.sleep(1)

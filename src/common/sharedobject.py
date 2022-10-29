@@ -40,7 +40,7 @@ class SharedObject():
         self._newmission_flag = True
         
         self._newmission_lk.acquire()
-        self._newmission.append(wpq)
+        self._newmission = wpq
         
         self._newmission_lk.release()
         self._newmission_flag_lk.release()
@@ -53,7 +53,8 @@ class SharedObject():
             self._newmission_flag = False
 
             self._newmission_lk.acquire()
-            ret = self._newmission.pop(0)
+            ret = self._newmission
+            self._newmission = []
             
             self._newmission_lk.release()
             self._newmission_flag_lk.release()
@@ -61,7 +62,7 @@ class SharedObject():
             self._currentmission_lk.acquire()
             self._currentmission = ret 
             self._currentmission_lk.release()
-            
+
             return ret
         else:
             return None
@@ -81,9 +82,13 @@ class SharedObject():
 
     #lock methods
     def gcom_locked_set(self, locked):
+        ret = True
         self._locked_lk.acquire()
+        if self._locked == locked:
+            ret = False
         self._locked = locked 
         self._locked_lk.release()
+        return ret
     
     def mps_locked_get(self):
         ret = True 
