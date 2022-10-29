@@ -60,7 +60,7 @@ class SharedObject():
             self._newmission_flag_lk.release()
 
             self._currentmission_lk.acquire()
-            self._currentmission = ret 
+            self._currentmission = ret.aslist()
             self._currentmission_lk.release()
 
             return ret

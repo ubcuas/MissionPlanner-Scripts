@@ -25,22 +25,25 @@ queue = [wpq1, wpq2]
 class GCom_Handler(BaseHTTPRequestHandler):
     
     def do_GET(self):
-        self.send_response(200)
-        self.send_header('content-type', 'text/html')
-        self.end_headers()
+        # self.send_response(200)
+        # self.send_header('content-type', 'text/html')
+        # self.end_headers()
 
-        output = "alive"
-        self.wfile.write(output.encode())
+        # output = "alive"
+        # self.wfile.write(output.encode())
 
         if self.path.endswith('/queue'):
             ret = self.server._so.gcom_currentmission_get() # this is a dict of wpq (hopefully)
-            retJSON = json.dumps(ret) # this should convert the dict to JSON
+            formatted = []
+            for wp in ret:
+                formatted.append(wp.get_asdict())
+            retJSON = json.dumps(formatted) # this should convert the dict to JSON
 
             self.send_response(200)
             self.send_header('content-type', 'text/html')
             self.end_headers()
 
-            self.wfile.write(ret.encode())
+            self.wfile.write(retJSON.encode())
 
             print("Queue sent to GCom")
 
@@ -52,12 +55,12 @@ class GCom_Handler(BaseHTTPRequestHandler):
             self.send_header('content-type', 'text/html')
             self.end_headers()
 
-            self.wfile.write(ret.encode())
+            self.wfile.write(retJSON.encode())
 
             print("Status sent to GCom")
 
         elif self.path.endswith('/lock'):
-            status = self.server._so.gcom_lock_set(True)
+            status = self.server._so.gcom_locked_set(True)
             if status:
                 print("Locked by GCom")
 
@@ -78,8 +81,8 @@ class GCom_Handler(BaseHTTPRequestHandler):
                 self.wfile.write(output.encode())
 
         elif self.path.endswith('/unlock'):
-            status = self.server._so.gcom_lock_set(False)
-            if not status:
+            status = self.server._so.gcom_locked_set(False)
+            if status:
                 print("unlocked by GCom")
 
                 self.send_response(200)
@@ -100,31 +103,17 @@ class GCom_Handler(BaseHTTPRequestHandler):
 
 
     def do_POST(self):
-        if self.path.endswith('/newmission'):
+        if self.path.endswith('/queue'):
             content_len = int(self.headers['Content-Length'])
             post_body = self.rfile.read(content_len)
             post_data = post_body.decode('utf-8')
-
-            payload = post_data.split('&')
-            for i in range(0, len(payload)):
-                pair = payload[i].split('=')
-                payload[i] = (pair[0], pair[1])
-
-            print(payload)
+            payload = json.loads(post_data)
 
             wpq = []
-            
-            print("WPQ before\n", wpq, sep='')
-
-            for pair in payload:
-                location = pair[1].split("+")
-                if len(location) != 3:
-                    print("Incomplete waypoint")
-                wp = Waypoint(location[0], location[1], location[2])
+            for wpdict in payload:
+                wp = Waypoint(wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
                 wpq.append(wp)
-
-            print("WPQ after\n", wpq, sep='')
-
+            
             self.server._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
 
             wpq.clear()

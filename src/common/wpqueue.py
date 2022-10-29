@@ -14,6 +14,9 @@ class Waypoint():
     def get_coords_gps(self):
         return (self._lat, self._lng, self._alt)
     
+    def get_asdict(self):
+        return {'latitude':self._lat, 'longitude':self._lng, 'altitude':self._alt}
+    
     def get_coords_utm(self):
         this_utm = convert_gps_to_utm(self._lat, self._lng)
         return (this_utm[0], this_utm[1], self._alt)
@@ -56,4 +59,5 @@ class Queue():
         return self._list.pop(0)
 
 class WaypointQueue(Queue):
-    pass
+    def aslist(self):
+        return self._list

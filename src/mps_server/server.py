@@ -57,6 +57,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
         #check if we should lock
         if self.server._so.mps_locked_get():
+            print("Locking")
             if self.server._locked:
                 #still locked, idle
                 pass
@@ -92,6 +93,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                         print("Mission Complete!")
                         #IDLE instruction
                     else:
+                        print("NEXT")
                         #send the next waypoint to the UAV
                         instruction = "NEXT " + str(self.server._current_mission.mission_current_wp())
         
