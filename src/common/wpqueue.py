@@ -30,7 +30,7 @@ class Waypoint():
 
 class Queue():
     def __init__(self, inlist=[]):
-        self._list = inlist
+        self._list = inlist.copy()
     
     def __str__(self):
         ret = ""
@@ -62,3 +62,43 @@ class Queue():
 class WaypointQueue(Queue):
     def aslist(self):
         return self._list.copy()
+
+if __name__ == "__main__":
+    testq = Queue()
+
+    assert(testq.size() == 0)
+    assert(testq.empty())
+
+    for i in range(0, 5):
+        testq.push(i)
+        assert(testq.back() == i)
+
+    assert(testq.size() == 5)
+    assert(not testq.empty())
+    
+    for i in range(0, 5):
+        assert(testq.front() == i)
+        x = testq.pop()
+        assert(x == i)
+    
+    assert(testq.size() == 0)
+    assert(testq.empty())
+
+    lis2 = []
+
+    for i in range(10, 0, -1):
+        lis2.append(i)
+    
+    testq2 = Queue(lis2)
+
+    assert(testq2.size() == 10)
+    assert(testq2.front() == 10)
+    assert(testq2.back() == 1)
+
+    testq2.clear()
+
+    assert(testq2.size() == 0)
+    assert(testq2.empty())
+
+    print("All tests passed")
+    
