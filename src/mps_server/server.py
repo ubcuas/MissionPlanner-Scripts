@@ -1,8 +1,7 @@
-import math
 import socketserver
 
 from src.mps_server.missions import Mission
-from src.common.wpqueue import Waypoint, WaypointQueue
+from src.common.wpqueue import Waypoint
 from src.common.sharedobject import SharedObject
 
 #define request handler

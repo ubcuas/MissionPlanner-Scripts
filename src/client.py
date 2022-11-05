@@ -1,11 +1,8 @@
 #Python 2.7
 
 import socket
-import sys
-import math
 import clr
 import time
-import re, string
 clr.AddReference("MissionPlanner.Utilities")
 import MissionPlanner #import *
 clr.AddReference("MissionPlanner.Utilities") #includes the Utilities class
