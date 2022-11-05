@@ -1,6 +1,4 @@
-from math import sqrt, pow
-
-from src.common.wpqueue import WaypointQueue, Waypoint
+from src.common.wpqueue import WaypointQueue
 
 class Mission():
     def __init__(self, wpq=WaypointQueue()):
