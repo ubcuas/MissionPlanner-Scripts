@@ -19,6 +19,10 @@ class SharedObject():
         #lock fields
         self._locked = False 
         self._locked_lk = Lock()
+
+        #takeoff fields
+        self._takeoffalt = 0
+        self._takeoffalt_lk = Lock()
     
     #currentmission methods
     def gcom_currentmission_get(self):
@@ -100,3 +104,19 @@ class SharedObject():
         ret = self._locked 
         self._locked_lk.release()
         return ret 
+
+    #takeoff methods
+    def gcom_takeoffalt_set(self, alt):
+        self._takeoffalt_lk.acquire()
+        self._takeoffalt = alt
+        self._takeoffalt_lk.release()
+    
+    def mps_takeoffalt_get(self):
+        if (self._takeoffalt != 0):
+            self._takeoffalt_lk.acquire()
+            ret = self._takeoffalt
+            self._takeoffalt = 0
+            self._takeoffalt_lk.release()
+            return ret
+        else:
+            return 0
