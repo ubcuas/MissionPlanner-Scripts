@@ -112,7 +112,21 @@ while 1:
                 Script.ChangeMode("Loiter")
                 #set up takeoff waypoint
                 home = Locationwp()
-                Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.TAKEOFF))
+                Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
+                Locationwp.lat.SetValue(home, cs.lat)
+                Locationwp.lng.SetValue(home, cs.lng)
+                Locationwp.alt.SetValue(home, 0)
+                takeoff = Locationwp()
+                Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.TAKEOFF))
+                Locationwp.lat.SetValue(takeoff, cs.lat)
+                Locationwp.lng.SetValue(takeoff, cs.lng)
+                Locationwp.alt.SetValue(takeoff, takeoffalt)
+
+                MAV.setWPTotal(2)
+                MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+                MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+                MAV.setWPACK()
+                print("TOFF - takeoff to {:}m".format(takeoffalt))
             else:
                 print("TOFF - invalid command", msg)
 
