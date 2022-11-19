@@ -1,7 +1,7 @@
 import socketserver
 
 from src.mps_server.missions import Mission
-from src.common.wpqueue import Waypoint
+from src.common.wpqueue import Waypoint, Queue
 from src.common.sharedobject import SharedObject
 
 #define request handler
@@ -25,8 +25,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         current_hdg = str(parameters[3]).strip(' b\'')
         current_vel = str(parameters[4]).strip(' b\'')
 
-        print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
-        print(f"                  hdg: {current_hdg} vel: {current_vel}")
+        #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
+        #print(f"                  hdg: {current_hdg} vel: {current_vel}")
         current_wp = Waypoint("", current_lat, current_lng, current_alt)
 
         #updated shared obj with location data
@@ -36,51 +36,54 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         socket.sendto(bytes(self.next_instruction(current_wp), "utf-8"), self.client_address)
     
     def next_instruction(self, current_wp):
-        instruction = "IDLE 0 0 0" #default instr is to idle
+        #place new instructions onto the queue
+        instruction = ""
 
+        #check takeoff altitude
+        takeoffalt = self.server._so.mps_takeoffalt_get()
+        if takeoffalt != 0:
+            self.server._instructions.push(f"TOFF {takeoffalt}")
         #check if we should lock
-        if self.server._so.mps_locked_get():
-            print("Locking")
+        elif self.server._so.mps_locked_get():
+            print("Locking...")
             if self.server._locked:
                 #still locked, idle
+                #self.server._instructions.push("IDLE")
                 pass
             else:
-                #tell the UAV to remove the current waypoint
-                instruction = "LOCK 1 0 0"
-                self.server._locked = True
+                #send the lock instruction
+                self.server._instructions.push("LOCK 1")
         else:
             #reset _locked if coming out of locked state
             if self.server._locked:
+                self.serve._instructions.push("LOCK 0")
                 self.server._locked = False
 
             #check for a new mission
             nextwpq = self.server._so.mps_newmission_get()
-            if nextwpq != None: 
+            if nextwpq != None:
                 #overwrite the current mission with the new one
-                print("New Mission Found!")
+                print("New mission found!")
                 self.server._current_mission = Mission(nextwpq)
-                #IDLE instruction
+                
+                #place instructions for the new mission onto the queue
+                self.server._instructions.push("NEWM")
+                while (not nextwpq.empty()):
+                    curr = nextwpq.pop()
+                    self.server._instructions.push(f"NEXT {str(curr)}")
+                self.server._instructions.push("NEXT")
             else:
-                #check if current mission has completed
-                if (self.server._current_mission.mission_complete()):
-                    print("Idling...")
-                    #IDLE instruction
-                else:
-                    #check progress
-                    if (self.server._current_mission.mission_check_wp(current_wp)):
-                        print("Waypoint Reached!")
-                        self.server._so.mps_currentmission_removewp()
-                        #IDLE instruction
+                #keep going
+                #self.server._instructions.push("CONT")
+                pass
 
-                    #send waypoint to UAV
-                    if (self.server._current_mission.mission_complete()):
-                        print("Mission Complete!")
-                        #IDLE instruction
-                    else:
-                        print("NEXT")
-                        #send the next waypoint to the UAV
-                        instruction = "NEXT " + str(self.server._current_mission.mission_current_wp())
+        #retrieve an instruction
+        if (self.server._instructions.empty()):
+            instruction = "IDLE"
+        else:
+            instruction = self.server._instructions.pop()
         
+        print("instruction", instruction)
         return instruction
             
 
@@ -89,6 +92,7 @@ class MPS_Internal_Server(socketserver.UDPServer):
         self._so = so
 
         self._current_mission = Mission() #empty mission
+        self._instructions = Queue()
 
         self._locked = False
 

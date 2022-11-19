@@ -83,6 +83,12 @@ class GCom_Handler(BaseHTTPRequestHandler):
 
                 output = "Mission Queue Unlock Error: Already Unlocked"
                 self.wfile.write(output.encode())
+        
+        elif "/takeoff/" in self.path:
+            params = self.path.split("/takeoff/")
+            altitude = int(params[1])
+            print(f"Taking off to altitude {altitude}")
+            self.server._so.gcom_takeoffalt_set(altitude)
 
 
     def do_POST(self):
