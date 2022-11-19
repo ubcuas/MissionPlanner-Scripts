@@ -27,12 +27,12 @@ wp_array = []
 
 #keep talking with the Mission Planner server 
 while 1: 
-    print("Loop begin")
+    #print("Loop begin")
     #send location to server
     location = "{:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed)
     rsock.sendto(location, (HOST, RPORT))
 
-    print("Waypoint Count", MAV.getWPCount())
+    #print("Waypoint Count", MAV.getWPCount())
 
     #recieve waypoint from server
     msg = rsock.recv(1024)
@@ -48,7 +48,7 @@ while 1:
             #NEWM - newmission
             #enter stabilize and await new mission waypoints
 
-            Script.ChangeMode("Stabilize")
+            Script.ChangeMode("Guided")
             wp_array = []
             print("NEWM")
 
@@ -69,15 +69,21 @@ while 1:
                     print("NEXT - received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
             else: 
                 #set waypoint total
-                MAV.setWPTotal(len(wp_array))
+                MAV.setWPTotal(len(wp_array) + 1)
                 #upload waypoints
+                dummy = Locationwp()
+                Locationwp.lat.SetValue(dummy, 0)
+                Locationwp.lng.SetValue(dummy, 0)
+                Locationwp.alt.SetValue(dummy, 0)
+                Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
+                MAV.setWP(dummy, 0, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
                 for i in range(0, len(wp_array)):
                     wp = Locationwp()
                     Locationwp.lat.SetValue(wp, wp_array[i][0])
                     Locationwp.lng.SetValue(wp, wp_array[i][1])
                     Locationwp.alt.SetValue(wp, wp_array[i][2])
                     Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
-                    MAV.setWP(wp, i, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+                    MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
                 #final ack
                 MAV.setWPACK()
                 #empty array
@@ -88,18 +94,18 @@ while 1:
 
         elif cmd == "CONT":
             #CONT - continue
-            print("CONT")
-
+            #print("CONT")
+            pass
         elif cmd == "IDLE":
             #IDLE - do nothing
-            print("IDLE")
-
+            #print("IDLE")
+            pass
         elif cmd == "LOCK":
             #LOCK - lock/unlock the UAV
             flag = int(argv[0])
             if flag:
                 #lock the UAV
-                Script.ChangeMode("Stabilize")
+                Script.ChangeMode("Guided")
                 print("LOCK - locked the UAV")
             else:
                 #unlock the UAV
@@ -126,6 +132,10 @@ while 1:
                 MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
                 MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
                 MAV.setWPACK()
+
+                # while (cs.mode != 'AUTO'):
+                time.sleep(5)
+                #Script.ChangeMode("Auto")
                 print("TOFF - takeoff to {:}m".format(takeoffalt))
             else:
                 print("TOFF - invalid command", msg)

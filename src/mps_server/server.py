@@ -79,12 +79,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
         #retrieve an instruction
         if (self.server._instructions.empty()):
-            instruction = "IDLE"
+            return "IDLE"
         else:
             instruction = self.server._instructions.pop()
-        
-        print("instruction", instruction)
-        return instruction
+            print("instruction", instruction)
+            return instruction
             
 
 class MPS_Internal_Server(socketserver.UDPServer):
