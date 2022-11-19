@@ -110,9 +110,9 @@ while 1:
             if (len(argv) == 1):
                 takeoffalt = float(argv[0])
                 Script.ChangeMode("Loiter")
-
-                #set up takeoff waypoints
+                #set up takeoff waypoint
                 home = Locationwp()
+                Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.TAKEOFF))
             else:
                 print("TOFF - invalid command", msg)
 
