@@ -89,6 +89,11 @@ class GCom_Handler(BaseHTTPRequestHandler):
             altitude = int(params[1])
             print(f"Taking off to altitude {altitude}")
             self.server._so.gcom_takeoffalt_set(altitude)
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+            output = "Takeoff command received"
+            self.wfile.write(output.encode())
 
 
     def do_POST(self):
