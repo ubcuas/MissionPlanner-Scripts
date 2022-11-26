@@ -11,12 +11,14 @@ Example response body:
 {
     "queue": [
         {
+            "id": 1,
             "name": "Alpha",
             "longitude": 38.83731,
             "latitude": -20.48321,
             "altitude": 50.7
         },
         {
+            "id": 2,
             "name": "Beta",
             "longitude": 38.83731,
             "latitude": -20.48321,
@@ -40,12 +42,14 @@ Example request body:
 {
     "queue": [
         {
+            "id": 1,
             "name": "Alpha",
             "longitude": 38.83731,
             "latitude": -20.48321,
             "altitude": 50.7
         },
         {
+            "id": 2,
             "name": "Beta",
             "longitude": 38.83731,
             "latitude": -20.48321,
@@ -66,7 +70,8 @@ Example response:
     "longitude": 38.3182,
     "latitude":  82.111,
     "altitude": 28.1111,
-    "heading": 11.2
+    "heading": 11.2,
+    "batteryvoltage": 1.5
 }
 ```
 
@@ -81,3 +86,40 @@ This won't literally lock the aircraft either, i.e.
 we can still manually set waypoints with Mission Planner. This just pauses the loading functionality of the queue program. If currently moving toward a waypoint, stop moving toward it by removing it.
 ## (GET) /unlock
 Resume moving the aircraft based on the currently stored queue. Returns a Bad Request status code and an error message if the aircraft is already unlocked.
+
+## (POST) /takeoff
+POST request containing an altitude. 
+
+The altitude cannot be null. Returns a Bad Request status code and error message in that case. Altitude is in meters. Return status code 200 if successfully POSTed.
+
+Example request body:
+```
+{
+    "altitude": 50.7
+}
+
+```
+
+## (GET) /rtl
+Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Request status code and error message if the drone could not execute the operation.
+
+## (GET) /land
+Aircraft stops at its current position and lands. Returns a Bad Request status code and error message if the drone could not execute the operation.
+
+## (POST) /home
+POST request containing a waypoint whose longitude and latitude will be the basis for the new home waypoint. All other fields will be ignored.
+
+Longitude and latitude must not be null/empty. Returns a Bad Request status code and error message in that case.
+Longitude and latitude in degrees.
+Return status code 200 if successfully POSTed.
+
+Example request body:
+```
+{
+    "id": 1,
+    "name": "Alpha",
+    "longitude": 38.83731,
+    "latitude": -20.48321,
+    "altitude": 50.7
+}
+```
