@@ -32,6 +32,14 @@ while 1:
     location = "{:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed)
     rsock.sendto(location, (HOST, RPORT))
 
+    try:
+        wpcount = MAV.getWPCount()
+        print("WP Count: {:}".format(wpcount))
+        print(cs.wp_dist)
+        print(int(cs.wpno))
+    except:
+        print("Error getting waypoint count")
+
     #print("Waypoint Count", MAV.getWPCount())
 
     #recieve waypoint from server
