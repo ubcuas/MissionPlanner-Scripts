@@ -4,6 +4,7 @@ class SharedObject():
     def __init__(self):
         #current mission fields
         self._currentmission = []
+        self._currentmission_length = 0
         self._currentmission_lk = Lock()
 
         #new mission fields
@@ -32,11 +33,12 @@ class SharedObject():
         self._currentmission_lk.release()
         return ret
     
-    def mps_currentmission_removewp(self):
-        print("SHARED OBJ: removed wp")
+    def mps_currentmission_update(self, num):
         self._currentmission_lk.acquire()
-        if (len(self._currentmission) != 0):
+        target = self._currentmission_length - num + 1
+        while (len(self._currentmission) > target and len(self._currentmission) != 0):
             self._currentmission.pop(0)
+            print("SHAREDOBJ : popped", num, target)
         self._currentmission_lk.release()
 
     #newmission methods
@@ -69,6 +71,7 @@ class SharedObject():
 
             self._currentmission_lk.acquire()
             self._currentmission = ret.aslist()
+            self._currentmission_length = ret.size()
             self._currentmission_lk.release()
 
             return ret

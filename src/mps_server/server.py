@@ -24,18 +24,18 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         current_alt = str(parameters[2]).strip(' b\'')
         current_hdg = str(parameters[3]).strip(' b\'')
         current_vel = str(parameters[4]).strip(' b\'')
+        current_wpn = str(parameters[5]).strip(' b\'')
 
         #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
         #print(f"                  hdg: {current_hdg} vel: {current_vel}")
-        current_wp = Waypoint("", current_lat, current_lng, current_alt)
 
         #updated shared obj with location data
         self.server._so.mps_status_set({"velocity":current_vel, "latitude":current_lat, "longitude":current_lng, "altitude":current_alt, "heading":current_hdg})
 
         #send instruction to UAV
-        socket.sendto(bytes(self.next_instruction(current_wp), "utf-8"), self.client_address)
+        socket.sendto(bytes(self.next_instruction(int(float(current_wpn))), "utf-8"), self.client_address)
     
-    def next_instruction(self, current_wp):
+    def next_instruction(self, current_wpn):
         #place new instructions onto the queue
         instruction = ""
 
@@ -68,12 +68,18 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 
                 #place instructions for the new mission onto the queue
                 self.server._instructions.push("NEWM")
+                self.server._newmc = 1
                 while (not nextwpq.empty()):
                     curr = nextwpq.pop()
                     self.server._instructions.push(f"NEXT {str(curr)}")
+                    self.server._newmc += 1
                 self.server._instructions.push("NEXT")
             else:
-                #keep going
+                #keep going and send current wpno to shared obj
+                if (self.server._newmc == 0):
+                    self.server._so.mps_currentmission_update(current_wpn)
+                else:
+                    self.server._newmc -= 1
                 #self.server._instructions.push("CONT")
                 pass
 
@@ -94,6 +100,7 @@ class MPS_Internal_Server(socketserver.UDPServer):
         self._instructions = Queue()
 
         self._locked = False
+        self._newmc = 0
 
         #superclass constructor
         super().__init__(hptuple, handler)

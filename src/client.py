@@ -29,20 +29,13 @@ wp_array = []
 while 1: 
     #print("Loop begin")
     #send location to server
-    location = "{:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed)
+    location = "{:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.wpno)
+    print("Sent to server: {:} {:} {:.2f} {:.1f} {:.1f} {:.0f}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.wpno))
     rsock.sendto(location, (HOST, RPORT))
-
-    try:
-        wpcount = MAV.getWPCount()
-        print("WP Count: {:}".format(wpcount))
-        print(cs.wp_dist)
-        print(int(cs.wpno))
-    except:
-        print("Error getting waypoint count")
 
     #print("Waypoint Count", MAV.getWPCount())
 
-    #recieve waypoint from server
+    #recieve waypoint from server   
     msg = rsock.recv(1024)
 
     argv = msg.split()
