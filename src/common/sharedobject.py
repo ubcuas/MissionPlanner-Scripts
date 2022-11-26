@@ -38,7 +38,7 @@ class SharedObject():
         target = self._currentmission_length - num + 1
         while (len(self._currentmission) > target and len(self._currentmission) != 0):
             self._currentmission.pop(0)
-            print("SHAREDOBJ : popped", num, target)
+            #print("SHAREDOBJ : popped", num, target)
         self._currentmission_lk.release()
 
     #newmission methods

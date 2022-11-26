@@ -109,11 +109,11 @@ class GCom_Handler(BaseHTTPRequestHandler):
             wpq = []
             for wpdict in payload:
                 if wpdict['altitude'] != None:
-                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
+                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
                     wpq.append(wp)
                     last_altitude = wpdict['altitude']
                 else:
-                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
+                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
                     wpq.append(wp)
             
             self.server._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
