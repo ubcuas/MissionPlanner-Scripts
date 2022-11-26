@@ -29,8 +29,7 @@ wp_array = []
 while 1: 
     #print("Loop begin")
     #send location to server
-    location = "{:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.wpno)
-    print("Sent to server: {:} {:} {:.2f} {:.1f} {:.1f} {:.0f}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.wpno))
+    location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
     rsock.sendto(location, (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
