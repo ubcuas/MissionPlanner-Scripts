@@ -4,6 +4,7 @@ class SharedObject():
     def __init__(self):
         #current mission fields
         self._currentmission = []
+        self._currentmission_length = 0
         self._currentmission_lk = Lock()
 
         #new mission fields
@@ -19,6 +20,10 @@ class SharedObject():
         #lock fields
         self._locked = False 
         self._locked_lk = Lock()
+
+        #takeoff fields
+        self._takeoffalt = 0
+        self._takeoffalt_lk = Lock()
     
     #currentmission methods
     def gcom_currentmission_get(self):
@@ -28,11 +33,12 @@ class SharedObject():
         self._currentmission_lk.release()
         return ret
     
-    def mps_currentmission_removewp(self):
-        print("SHARED OBJ: removed wp")
+    def mps_currentmission_update(self, num):
         self._currentmission_lk.acquire()
-        if (len(self._currentmission) != 0):
+        target = self._currentmission_length - num + 1
+        while (len(self._currentmission) > target and len(self._currentmission) != 0):
             self._currentmission.pop(0)
+            #print("SHAREDOBJ : popped", num, target)
         self._currentmission_lk.release()
 
     #newmission methods
@@ -65,6 +71,7 @@ class SharedObject():
 
             self._currentmission_lk.acquire()
             self._currentmission = ret.aslist()
+            self._currentmission_length = ret.size()
             self._currentmission_lk.release()
 
             return ret
@@ -100,3 +107,19 @@ class SharedObject():
         ret = self._locked 
         self._locked_lk.release()
         return ret 
+
+    #takeoff methods
+    def gcom_takeoffalt_set(self, alt):
+        self._takeoffalt_lk.acquire()
+        self._takeoffalt = alt
+        self._takeoffalt_lk.release()
+    
+    def mps_takeoffalt_get(self):
+        if (self._takeoffalt != 0):
+            self._takeoffalt_lk.acquire()
+            ret = self._takeoffalt
+            self._takeoffalt = 0
+            self._takeoffalt_lk.release()
+            return ret
+        else:
+            return 0

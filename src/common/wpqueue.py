@@ -3,7 +3,8 @@ from math import sqrt, pow
 from src.common.conversion import convert_gps_to_utm
 
 class Waypoint():
-    def __init__(self, name, lat, lng, alt):
+    def __init__(self, id, name, lat, lng, alt):
+        self._id = id
         self._name = name
         self._lat = float(lat)
         self._lng = float(lng)
@@ -16,7 +17,7 @@ class Waypoint():
         return (self._lat, self._lng, self._alt)
     
     def get_asdict(self):
-        return {'name':self._name, 'latitude':self._lat, 'longitude':self._lng, 'altitude':self._alt}
+        return {'id':self._id, 'name':self._name, 'latitude':self._lat, 'longitude':self._lng, 'altitude':self._alt}
     
     def get_coords_utm(self):
         this_utm = convert_gps_to_utm(self._lat, self._lng)

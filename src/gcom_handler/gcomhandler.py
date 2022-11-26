@@ -83,6 +83,17 @@ class GCom_Handler(BaseHTTPRequestHandler):
 
                 output = "Mission Queue Unlock Error: Already Unlocked"
                 self.wfile.write(output.encode())
+        
+        elif "/takeoff/" in self.path:
+            params = self.path.split("/takeoff/")
+            altitude = int(params[1])
+            print(f"Taking off to altitude {altitude}")
+            self.server._so.gcom_takeoffalt_set(altitude)
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+            output = "Takeoff command received"
+            self.wfile.write(output.encode())
 
 
     def do_POST(self):
@@ -98,11 +109,11 @@ class GCom_Handler(BaseHTTPRequestHandler):
             wpq = []
             for wpdict in payload:
                 if wpdict['altitude'] != None:
-                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
+                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
                     wpq.append(wp)
                     last_altitude = wpdict['altitude']
                 else:
-                    wp = Waypoint(wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
+                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
                     wpq.append(wp)
             
             self.server._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
