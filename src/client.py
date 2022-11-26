@@ -132,16 +132,11 @@ while 1:
                 MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
                 MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
                 MAV.setWPACK()
-<<<<<<< Updated upstream
-
-                # while (cs.mode != 'AUTO'):
-                time.sleep(5)
-                #Script.ChangeMode("Auto")
-=======
+                Script.ChangeMode("Guided")
                 print("YOU HAVE 5 SECONDS TO ARM MOTORS")
                 time.sleep(5)
-                MAV.doCommand(300)
->>>>>>> Stashed changes
+                Script.ChangeMode("Auto")
+                MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) #arm motors
                 print("TOFF - takeoff to {:}m".format(takeoffalt))
             else:
                 print("TOFF - invalid command", msg)
