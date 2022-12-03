@@ -75,6 +75,18 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 self.serve._instructions.push("LOCK 0")
                 self.server._locked = False
 
+            #check for a new fence
+            nextfence = self.server._so.mps_fence_get()
+            if nextfence[0] != None:
+                print("New fence found!")
+
+                #place instructions for the new fence onto the queue
+                self.server._instructions.push(f"NEWF {'EXCLUSIVE' if nextfence[1] else 'INCLUSIVE'}")
+                while(not nextfence.empty()):
+                    curr = nextfence.pop()
+                    self.server._instructions.push(f"FENCE {str(curr)}")
+                self.server._instructions.push("FENCE")
+
             #check for a new mission
             nextwpq = self.server._so.mps_newmission_get()
             if nextwpq != None:

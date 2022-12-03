@@ -24,6 +24,7 @@ Script.ChangeMode("Guided") # changes mode to "Guided"
 print("Entered Guided Mode")
 
 wp_array = []
+fence_exclusive = False
 
 #keep talking with the Mission Planner server 
 while 1: 
@@ -153,6 +154,45 @@ while 1:
             MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("LAND - landing in place")
         
+        elif cmd == "NEWF":
+            Script.ChangeMode('Guided')
+            if argv[0] == "EXCLUSIVE":
+                fence_exclusive = True
+            elif argv[0] == "INCLUSIVE":
+                fence_exclusive = False
+            else:
+                Script.ChangeMode('Auto')
+                print("NEWF - unrecognized argument, should be INCLUSIVE or EXCLUSIVE")
+        
+        elif cmd == "FENCE":
+            #FENCE - next fenceopst
+            #receive another fencepost, or set the fence if no more fenceposts
+
+            if (len(argv) > 0):
+                #recieve fencepost
+                if (len(argv) != 3):
+                    print("FENCE - invalid fencepost {:}".format(msg))
+                else:
+                    float_lat = float(argv[0])
+                    float_lng = float(argv[1])
+                    float_alt = float(argv[2])
+
+                    wp_array.append((float_lat, float_lng, float_alt))
+                    print("FENCE - received fencepost {:} {:} {:}".format(float_lat, float_lng, float_alt))
+            else: 
+                #upload fenceposts
+                for fp in wp_array:
+                    if (fence_exclusive):
+                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
+                    else:
+                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
+
+                #empty array
+                wp_array = []
+                #enter auto mode
+                Script.ChangeMode("Auto")
+                print("FENCE - new fence set")
+
         else:
             print("unrecognized command", cmd, argv)
 
