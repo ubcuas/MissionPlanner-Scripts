@@ -27,7 +27,7 @@ wp_array = []
 
 #keep talking with the Mission Planner server 
 while 1: 
-    #print("Loop begin")
+    print("Loop begin")
     #send location to server
     location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
     rsock.sendto(location, (HOST, RPORT))
@@ -76,14 +76,14 @@ while 1:
                 Locationwp.lng.SetValue(dummy, 0)
                 Locationwp.alt.SetValue(dummy, 0)
                 Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
-                MAV.setWP(dummy, 0, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+                MAV.setWP(dummy, 0, MAVLink.MAV_FRAME.GLOBAL)
                 for i in range(0, len(wp_array)):
                     wp = Locationwp()
                     Locationwp.lat.SetValue(wp, wp_array[i][0])
                     Locationwp.lng.SetValue(wp, wp_array[i][1])
                     Locationwp.alt.SetValue(wp, wp_array[i][2])
                     Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
-                    MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+                    MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL)
                 #final ack
                 MAV.setWPACK()
                 #empty array
@@ -129,8 +129,8 @@ while 1:
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
 
                 MAV.setWPTotal(2)
-                MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
-                MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+                MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
+                MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL)
                 MAV.setWPACK()
                 Script.ChangeMode("Guided")
                 print("YOU HAVE 5 SECONDS TO ARM MOTORS")
@@ -141,6 +141,18 @@ while 1:
             else:
                 print("TOFF - invalid command", msg)
 
+        elif cmd == "HOME":
+            MAV.doCommand(MAVLink.MAV_CMD.DO_SET_HOME,0,0,0,0,float(argv[0]),float(argv[1]),float(argv[2]))
+            print("HOME - set a new home")
+
+        elif cmd == "RTL":
+            MAV.doCommand(MAVLink.MAV_CMD.RETURN_TO_LAUNCH,0,0,0,0,0,0,0)
+            print("RTL - returning to launch")
+
+        elif cmd == "LAND":
+            MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
+            print("LAND - landing in place")
+        
         else:
             print("unrecognized command", cmd, argv)
 

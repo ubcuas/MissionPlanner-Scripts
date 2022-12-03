@@ -83,17 +83,29 @@ class GCom_Handler(BaseHTTPRequestHandler):
 
                 output = "Mission Queue Unlock Error: Already Unlocked"
                 self.wfile.write(output.encode())
-        
-        elif "/takeoff/" in self.path:
-            params = self.path.split("/takeoff/")
-            altitude = int(params[1])
-            print(f"Taking off to altitude {altitude}")
-            self.server._so.gcom_takeoffalt_set(altitude)
+
+        elif self.path.endswith('/rtl'):
+            print("RTL")
+            self.server._so.gcom_rtl_set(True)
+
             self.send_response(200)
             self.send_header('content-type', 'text/html')
             self.end_headers()
-            output = "Takeoff command received"
+
+            output = "Returning to Land"
             self.wfile.write(output.encode())
+
+        elif self.path.endswith('/land'):
+            print("Landing")
+            self.server._so.gcom_landing_set(True)
+
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+
+            output = "Landing in Place"
+            self.wfile.write(output.encode())
+
 
 
     def do_POST(self):
@@ -126,6 +138,38 @@ class GCom_Handler(BaseHTTPRequestHandler):
 
             output = "ok"
             self.wfile.write(output.encode())
+
+        elif self.path.endswith('/takeoff'):
+            content_len = int(self.headers['Content-Length'])
+            post_body = self.rfile.read(content_len)
+            post_data = post_body.decode('utf-8')
+            payload = json.loads(post_data)
+
+            altitude = int(payload['altitude'])
+            print(f"Taking off to altitude {altitude}")
+            self.server._so.gcom_takeoffalt_set(altitude)
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+            output = "Takeoff command received"
+            self.wfile.write(output.encode())
+
+        elif self.path.endswith('/home'):
+            print("Going home")
+            content_len = int(self.headers['Content-Length'])
+            post_body = self.rfile.read(content_len)
+            post_data = post_body.decode('utf-8')
+            home = json.loads(post_data)
+            self.server._so.gcom_newhome_set(home)
+
+            self.send_response(200)
+            self.send_header('content-type', 'text/html')
+            self.end_headers()
+
+            output = "Setting Home"
+            self.wfile.write(output.encode())
+        
+        
 
 
 class GCom_Internal_Server(HTTPServer):
