@@ -187,7 +187,7 @@ class GCom_Handler(BaseHTTPRequestHandler):
                         wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
                         wpq.append(wp)
 
-                self.server._so.gcom_fence_exclusive_set(WaypointQueue(wpq.copy()))
+                self.server._so.gcom_fence_set(WaypointQueue(wpq.copy()), True)
 
                 wpq.clear()
 
