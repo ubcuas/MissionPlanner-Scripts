@@ -132,6 +132,18 @@ class GCom_Handler(BaseHTTPRequestHandler):
             output = "Takeoff command received"
             self.wfile.write(output.encode())
 
+        elif self.path.endswith('/home'):
+            print("Going home")
+            content_len = int(self.headers['Content-Length'])
+            post_body = self.rfile.read(content_len)
+            post_data = post_body.decode('utf-8')
+            home = json.loads(post_data)
+            self.server._so.gcom_newhome_set(home)
+        
+        elif self.path.endswith('/rtl'):
+            print("RTL")
+            self.server._so.gcom_rtl_set(True)
+
 
 class GCom_Internal_Server(HTTPServer):
     def __init__(self, hptuple, handler, so):
