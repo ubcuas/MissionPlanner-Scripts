@@ -40,10 +40,25 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         #place new instructions onto the queue
         instruction = ""
 
+        #check if there is a new home
+        newhome = self.server._so.mps_newhome_get()
+        if newhome != 0:
+            wp = Waypoint(newhome['id'], newhome['name'], newhome['lat'], newhome['lng'], newhome['alt'])
+            self.server._instructions.push(f"HOME {str(wp)}")
+
         #check takeoff altitude
         takeoffalt = self.server._so.mps_takeoffalt_get()
         if takeoffalt != 0:
             self.server._instructions.push(f"TOFF {takeoffalt}")
+
+        #check if we should rtl
+        elif self.server._so.mps_rtl_get():
+            self.server._instructions.push("RTL")
+        
+        #check if we should land
+        elif self.server._so.mps_landing_get():
+            self.server._instructions.push("LAND")
+
         #check if we should lock
         elif self.server._so.mps_locked_get():
             print("Locking...")

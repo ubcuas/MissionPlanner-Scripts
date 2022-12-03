@@ -141,6 +141,31 @@ while 1:
             else:
                 print("TOFF - invalid command", msg)
 
+        elif cmd == "HOME":
+            home = Locationwp()
+            Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
+            Locationwp.lat.SetValue(home, float(argv[0]))
+            Locationwp.lng.SetValue(home, float(argv[1]))
+            Locationwp.alt.SetValue(home, 0)
+            MAV.setWP(home, 0, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+
+        elif cmd == "RTL":
+            rtl = Locationwp()
+            Locationwp.id.SetValue(rtl, int(MAVLink.MAV_CMD.RETURN_TO_LAUNCH))
+            MAV.setWP(rtl, 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+            MAV.setWPTotal(2)
+            MAV.setWPACK()
+
+        elif cmd == "LAND":
+            land = Locationwp()
+            Locationwp.id.SetValue(land, int(MAVLink.MAV_CMD.LAND))
+            Locationwp.lat.SetValue(land, cs.lat)
+            Locationwp.lng.SetValue(land, cs.lng)
+            Locationwp.alt.SetValue(land, 0)
+            MAV.setWP(land, 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+            MAV.setWPTotal(2)
+            MAV.setWPACK()
+        
         else:
             print("unrecognized command", cmd, argv)
 

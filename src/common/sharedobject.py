@@ -24,6 +24,16 @@ class SharedObject():
         #takeoff fields
         self._takeoffalt = 0
         self._takeoffalt_lk = Lock()
+
+        #new home fields
+        self._newhome = {}
+        self._newhome_flag = False
+        self._newhome_lk = Lock()
+
+        #rtl and landing flags
+        self._rtl_flag = False
+        self._landing_flag = False
+        self._rtl_land_lk = Lock()
     
     #currentmission methods
     def gcom_currentmission_get(self):
@@ -123,3 +133,38 @@ class SharedObject():
             return ret
         else:
             return 0
+    
+    #new home methods
+    def gcom_newhome_set(self, wp):
+        self._newhome_lk.acquire()
+        self._newhome = wp
+        self._newhome_flag = True
+        self._newhome_lk.release()
+    
+    def mps_newhome_get(self):
+        if self._newhome_flag:
+            self._newhome_lk.acquire()
+            ret = self._newhome
+            self._newhome_flag = False
+            self._newhome = None
+            self._newhome_lk.release()
+            return ret
+        else:
+            return None
+
+    #rtl/landing methods
+    def gcom_rtl_set(self, val):
+        self._rtl_land_lk.acquire()
+        self._rtl_flag = val
+        self._rtl_land_lk.release()
+    
+    def mps_rtl_get(self):
+        return self._rtl_flag
+    
+    def gcom_landing_set(self, val):
+        self._rtl_land_lk.acquire()
+        self._landing_flag = val
+        self._rtl_land_lk.release()
+    
+    def mps_landing_set(self):
+        return self._landing_flag
