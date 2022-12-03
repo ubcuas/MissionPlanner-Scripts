@@ -43,7 +43,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         #check if there is a new home
         newhome = self.server._so.mps_newhome_get()
         if newhome != None:
-            wp = Waypoint(newhome['id'], newhome['name'], newhome['lat'], newhome['lng'], newhome['alt'])
+            wp = Waypoint(newhome['id'], newhome['name'], newhome['latitude'], newhome['longitude'], newhome['altitude'])
             self.server._instructions.push(f"HOME {str(wp)}")
 
         #check takeoff altitude

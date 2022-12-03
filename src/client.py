@@ -27,7 +27,7 @@ wp_array = []
 
 #keep talking with the Mission Planner server 
 while 1: 
-    # print("Loop begin")
+    print("Loop begin")
     #send location to server
     location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
     rsock.sendto(location, (HOST, RPORT))

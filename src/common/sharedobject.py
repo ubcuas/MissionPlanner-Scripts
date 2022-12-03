@@ -169,7 +169,7 @@ class SharedObject():
         self._landing_flag = val
         self._rtl_land_lk.release()
     
-    def mps_landing_set(self):
+    def mps_landing_get(self):
         if self._landing_flag:
             self._landing_flag = False
             return True
