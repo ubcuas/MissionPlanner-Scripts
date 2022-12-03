@@ -6,6 +6,8 @@ Returns the current list of waypoints in the queue, in the order of their names.
 
 Waypoints that have been passed and removed from the queue, obviously, should not be displayed here either.
 
+Altitude is measured relative to sea level.
+
 Example response body:
 ```
 {
@@ -35,6 +37,9 @@ Previous queue should be overwritten if there is already one in place.
 
 Longitude, name, and latitude must not be null/empty. Returns a Bad Request status code and error message in that case.
 Longitude and latitude in degrees, altitude in meters.
+
+Altitude is measured relative to sea level.
+
 Return status code 200 if successfully POSTed.
 
 Example request body:
@@ -61,7 +66,7 @@ Example request body:
 
 ## (GET) /status
 GET request returns the aircraft status.
-Velocity in m/s. Altitude in meters. Longitude, latitude, heading in degrees.
+Velocity in m/s. Altitude in meters and is relative to sea level. Longitude, latitude, heading in degrees.
 
 Example response:
 ```
@@ -88,7 +93,7 @@ we can still manually set waypoints with Mission Planner. This just pauses the l
 Resume moving the aircraft based on the currently stored queue. Returns a Bad Request status code and an error message if the aircraft is already unlocked.
 
 ## (POST) /takeoff
-POST request containing an altitude. 
+POST request containing an altitude that is measured relative to sea level. 
 
 The altitude cannot be null. Returns a Bad Request status code and error message in that case. Altitude is in meters. Return status code 200 if successfully POSTed.
 
@@ -107,10 +112,12 @@ Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Re
 Aircraft stops at its current position and lands. Returns a Bad Request status code and error message if the drone could not execute the operation.
 
 ## (POST) /home
-POST request containing a waypoint whose longitude and latitude will be the basis for the new home waypoint. All other fields will be ignored.
+POST request containing a waypoint whose longitude, latitiude and altitiude will be the basis for the new home waypoint. All other fields will be ignored.
 
-Longitude and latitude must not be null/empty. Returns a Bad Request status code and error message in that case.
+Longitude, latitude and altitude must not be null/empty. Returns a Bad Request status code and error message in that case.
+
 Longitude and latitude in degrees.
+Altitude in meters and is relative to sea level.
 Return status code 200 if successfully POSTed.
 
 Example request body:
