@@ -77,11 +77,12 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
             #check for a new fence
             nextfence = self.server._so.mps_fence_get()
-            if nextfence[0] != None:
+            if nextfence != None:
                 print("New fence found!")
 
                 #place instructions for the new fence onto the queue
                 self.server._instructions.push(f"NEWF {'EXCLUSIVE' if nextfence[1] else 'INCLUSIVE'}")
+                nextfence = nextfence[0]
                 while(not nextfence.empty()):
                     curr = nextfence.pop()
                     self.server._instructions.push(f"FENCE {str(curr)}")
