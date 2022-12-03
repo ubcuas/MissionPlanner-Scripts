@@ -168,6 +168,35 @@ class GCom_Handler(BaseHTTPRequestHandler):
 
             output = "Setting Home"
             self.wfile.write(output.encode())
+
+        elif ('/fence/' in self.path):
+            if self.path.endswith('exclusive'):
+                print("Setting fence to exclusive")
+                content_len = int(self.headers['Content-Length'])
+                post_body = self.rfile.read(content_len)
+                post_data = post_body.decode('utf-8')
+                fence = json.loads(post_data)
+
+                wpq = []
+                for wpdict in fence:
+                    if wpdict['altitude'] != None:
+                        wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
+                        wpq.append(wp)
+                        last_altitude = wpdict['altitude']
+                    else:
+                        wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
+                        wpq.append(wp)
+
+                self.server._so.gcom_fence_exclusive_set(WaypointQueue(wpq.copy()))
+
+                wpq.clear()
+
+                self.send_response(200)
+                self.send_header('content-type', 'text/html')
+                self.end_headers()
+
+                output = "Fence set to exclusive"
+                self.wfile.write(output.encode())
         
         
 
