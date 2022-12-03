@@ -150,21 +150,25 @@ while 1:
             MAV.setWP(home, 0, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
 
         elif cmd == "RTL":
-            rtl = Locationwp()
-            Locationwp.id.SetValue(rtl, int(MAVLink.MAV_CMD.RETURN_TO_LAUNCH))
-            MAV.setWP(rtl, 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
-            MAV.setWPTotal(2)
-            MAV.setWPACK()
+            # rtl = Locationwp()
+            # Locationwp.id.SetValue(rtl, int(MAVLink.MAV_CMD.RETURN_TO_LAUNCH))
+            # MAV.setWP(rtl, 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+            # MAV.setWPTotal(2)
+            # MAV.setWPACK()
+            MAV.doCommand(MAVLink.MAV_CMD.RETURN_TO_LAUNCH,0,0,0,0,0,0,0)
+            print("RTL - returning to launch")
 
         elif cmd == "LAND":
-            land = Locationwp()
-            Locationwp.id.SetValue(land, int(MAVLink.MAV_CMD.LAND))
-            Locationwp.lat.SetValue(land, cs.lat)
-            Locationwp.lng.SetValue(land, cs.lng)
-            Locationwp.alt.SetValue(land, 0)
-            MAV.setWP(land, 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
-            MAV.setWPTotal(2)
-            MAV.setWPACK()
+            # land = Locationwp()
+            # Locationwp.id.SetValue(land, int(MAVLink.MAV_CMD.LAND))
+            # Locationwp.lat.SetValue(land, cs.lat)
+            # Locationwp.lng.SetValue(land, cs.lng)
+            # Locationwp.alt.SetValue(land, 0)
+            # MAV.setWP(land, 1, MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT)
+            # MAV.setWPTotal(2)
+            # MAV.setWPACK()
+            MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,cs.alt)
+            print("LAND - landing in place")
         
         else:
             print("unrecognized command", cmd, argv)
