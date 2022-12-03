@@ -159,7 +159,10 @@ class SharedObject():
         self._rtl_land_lk.release()
     
     def mps_rtl_get(self):
-        return self._rtl_flag
+        if self._rtl_flag:
+            self._rtl_flag = False
+            return True
+        return False
     
     def gcom_landing_set(self, val):
         self._rtl_land_lk.acquire()
@@ -167,4 +170,7 @@ class SharedObject():
         self._rtl_land_lk.release()
     
     def mps_landing_set(self):
-        return self._landing_flag
+        if self._landing_flag:
+            self._landing_flag = False
+            return True
+        return False

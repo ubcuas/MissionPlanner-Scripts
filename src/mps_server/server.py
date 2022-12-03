@@ -42,7 +42,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
         #check if there is a new home
         newhome = self.server._so.mps_newhome_get()
-        if newhome != 0:
+        if newhome != None:
             wp = Waypoint(newhome['id'], newhome['name'], newhome['lat'], newhome['lng'], newhome['alt'])
             self.server._instructions.push(f"HOME {str(wp)}")
 
