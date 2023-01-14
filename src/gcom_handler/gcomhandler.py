@@ -170,8 +170,9 @@ class GCom_Handler(BaseHTTPRequestHandler):
             self.wfile.write(output.encode())
 
         elif ('/fence/' in self.path):
-            if self.path.endswith('exclusive'):
-                print("Setting fence to exclusive")
+            if ('/polygon/' in self.path):
+                print("Setting polygonal fence")
+
                 content_len = int(self.headers['Content-Length'])
                 post_body = self.rfile.read(content_len)
                 post_data = post_body.decode('utf-8')
@@ -187,7 +188,7 @@ class GCom_Handler(BaseHTTPRequestHandler):
                         wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
                         wpq.append(wp)
 
-                self.server._so.gcom_fence_set(WaypointQueue(wpq.copy()), True)
+                self.server._so.gcom_fence_set({"inex":self.path.endswith('exclusive'), "type":"polygon", "vertices":WaypointQueue(wpq.copy())})
 
                 wpq.clear()
 
@@ -195,8 +196,28 @@ class GCom_Handler(BaseHTTPRequestHandler):
                 self.send_header('content-type', 'text/html')
                 self.end_headers()
 
-                output = "Fence set to exclusive"
+                output = "Set polygonal fence"
                 self.wfile.write(output.encode())
+            elif ('/circle/' in self.path):
+                print("Setting circular fence")
+
+                content_len = int(self.headers['Content-Length'])
+                post_body = self.rfile.read(content_len)
+                post_data = post_body.decode('utf-8')
+                fence = json.loads(post_data)
+
+                self.server._so.gcom_fence_set({"inex":self.path.endswith('exclusive'), "type":"circle", "center":fence['center'], "radius":fence['radius']})
+
+                self.send_response(200)
+                self.send_header('content-type', 'text/html')
+                self.end_headers()
+
+                output = "Set circular fence"
+                self.wfile.write(output.encode())
+            else:
+                self.send_response_only(404)
+                self.send_header('content-type', 'text/html')
+                self.end_headers()
         
         
 

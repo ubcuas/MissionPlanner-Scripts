@@ -36,9 +36,8 @@ class SharedObject():
         self._rtl_land_lk = Lock()
 
         #fence fields
-        self._fence = []
+        self._fence = None
         self._fence_flag = False
-        self._fence_exclusive = False
         self._fence_lk = Lock()
     
     #currentmission methods
@@ -182,10 +181,9 @@ class SharedObject():
         return False
     
     #fence methods
-    def gcom_fence_set(self, wpq, exclusive):
+    def gcom_fence_set(self, obj):
         self._fence_lk.acquire()
-        self._fence = wpq
-        self._fence_exclusive = exclusive
+        self._fence = obj
         self._fence_flag = True
         self._fence_lk.release()
         return True
@@ -194,8 +192,8 @@ class SharedObject():
         if self._fence_flag:
             self._fence_lk.acquire()
             self._fence_flag = False
-            ret = (self._fence, self._fence_exclusive)
-            self._fence = []
+            ret = self._fence
+            self._fence = None
             self._fence_lk.release()
 
             return ret
