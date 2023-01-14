@@ -25,6 +25,7 @@ print("Entered Guided Mode")
 
 wp_array = []
 fence_exclusive = False
+fence_type = ""
 
 #keep talking with the Mission Planner server 
 while 1: 
@@ -163,35 +164,58 @@ while 1:
             else:
                 Script.ChangeMode('Auto')
                 print("NEWF - unrecognized argument, should be INCLUSIVE or EXCLUSIVE")
+
+            fence_type = argv[1]
+            if (fence_type != "POLYGON" and fence_type != "CIRCLE"):
+                Script.ChangeMode('Auto')
+                print("NEWF - unrecognized argument, should be POLYGON or CIRCLE")
         
         elif cmd == "FENCE":
-            #FENCE - next fenceopst
+            #FENCE - next fencepost
             #receive another fencepost, or set the fence if no more fenceposts
 
-            if (len(argv) > 0):
-                #recieve fencepost
-                if (len(argv) != 3):
+            if fence_type == "POLYGON":
+                if (len(argv) > 0):
+                    #recieve fencepost
+                    if (len(argv) != 3):
+                        print("FENCE - invalid fencepost {:}".format(msg))
+                    else:
+                        float_lat = float(argv[0])
+                        float_lng = float(argv[1])
+                        float_alt = float(argv[2])
+
+                        wp_array.append((float_lat, float_lng, float_alt))
+                        print("FENCE - received fencepost {:} {:} {:}".format(float_lat, float_lng, float_alt))
+                else: 
+                    #upload fenceposts
+                    for fp in wp_array:
+                        if (fence_exclusive):
+                            MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
+                        else:
+                            MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
+
+                    #empty array
+                    wp_array = []
+                    #enter auto mode
+                    Script.ChangeMode("Auto")
+                    print("FENCE - new fence set")
+                    fence_type = ""
+            else:
+                #CIRCLE fences are specified by a single FENCE instruction
+                if (len(argv) != 4):
                     print("FENCE - invalid fencepost {:}".format(msg))
                 else:
                     float_lat = float(argv[0])
                     float_lng = float(argv[1])
                     float_alt = float(argv[2])
+                    float_rad = float(argv[3])
 
-                    wp_array.append((float_lat, float_lng, float_alt))
-                    print("FENCE - received fencepost {:} {:} {:}".format(float_lat, float_lng, float_alt))
-            else: 
-                #upload fenceposts
-                for fp in wp_array:
                     if (fence_exclusive):
-                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
+                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_CIRCLE_EXCLUSION,float_rad,1,0,0,float_lat,float_lng,0)
                     else:
-                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
+                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_CIRCLE_INCLUSION,float_rad,1,0,0,float_lat,float_lng,0)
 
-                #empty array
-                wp_array = []
-                #enter auto mode
-                Script.ChangeMode("Auto")
-                print("FENCE - new fence set")
+                    print(f"FENCE - set circular fence with center {float_lat} {float_lng}, radius {float_rad}")
 
         else:
             print("unrecognized command", cmd, argv)
