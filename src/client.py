@@ -214,6 +214,8 @@ while 1:
                         MAV.doCommand(MAVLink.MAV_CMD.FENCE_CIRCLE_EXCLUSION,float_rad,1,0,0,float_lat,float_lng,0)
                     else:
                         MAV.doCommand(MAVLink.MAV_CMD.FENCE_CIRCLE_INCLUSION,float_rad,1,0,0,float_lat,float_lng,0)
+                    
+                    MAV.doCommand(MAVLink.MAV_CMD.DO_FENCE_ENABLE,1,0,0,0,0,0,0)
 
                     print("FENCE - set circular fence with center {:} {:}, radius {:}".format(float_lat, float_lng, float_rad))
 
