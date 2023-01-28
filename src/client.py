@@ -215,7 +215,7 @@ while 1:
                     else:
                         MAV.doCommand(MAVLink.MAV_CMD.FENCE_CIRCLE_INCLUSION,float_rad,1,0,0,float_lat,float_lng,0)
 
-                    print(f"FENCE - set circular fence with center {float_lat} {float_lng}, radius {float_rad}")
+                    print("FENCE - set circular fence with center {:} {:}, radius {:}".format(float_lat, float_lng, float_rad))
 
         else:
             print("unrecognized command", cmd, argv)

@@ -69,6 +69,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             else:
                 #send the lock instruction
                 self.server._instructions.push("LOCK 1")
+                self.server._locked = True
         else:
             #reset _locked if coming out of locked state
             if self.server._locked:
@@ -89,7 +90,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                         self.server._instructions.push(f"FENCE {str(curr)}")
                     self.server._instructions.push("FENCE")
                 else:
-                    self.server._instructions.push(f"FENCE {str(fence_dict['center'])} {str(fence_dict['radius'])}")
+                    self.server._instructions.push(f"FENCE {str(fence_dict['center']['latitude'])} {str(fence_dict['center']['longitude'])} {str(fence_dict['center']['altitude'])} {str(fence_dict['radius'])}")
 
             #check for a new mission
             nextwpq = self.server._so.mps_newmission_get()
