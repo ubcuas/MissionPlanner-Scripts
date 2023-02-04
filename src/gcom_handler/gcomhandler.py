@@ -120,6 +120,24 @@ class GCom_Server():
 
             return "Setting New Home"
         
+        #Fence inclusion/exclusion methods...
+
+        @app.route("/fence/inclusive", methods=["POST"])
+        def fence_inclusive():
+            fence = request.get_json()
+
+            self.server._so.gcom_fence_set({"inex":False, "type":"circle", "center":fence['center'], "radius":fence['radius']})
+
+            return "Inclusive Fence Set"
+        
+        @app.route("/fence/exclusive", methods=["POST"])
+        def fence_exclusive():
+            fence = request.get_json()
+
+            self.server._so.gcom_fence_set({"inex":True, "type":"circle", "center":fence['center'], "radius":fence['radius']})
+
+            return "Exclusive Fence Set"
+        
         #end of endpoints
 
         #run server

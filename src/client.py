@@ -27,6 +27,32 @@ wp_array = []
 fence_exclusive = False
 fence_type = ""
 
+def upload_mission(wp_array):
+    """
+    Uploads a mission to the aircraft based on a given set of waypoints.
+
+    Parameters:
+        - wp_array: ordered list of waypoints
+    """
+    #set waypoint total
+    MAV.setWPTotal(len(wp_array) + 1)
+    #upload waypoints
+    dummy = Locationwp()
+    Locationwp.lat.SetValue(dummy, 0)
+    Locationwp.lng.SetValue(dummy, 0)
+    Locationwp.alt.SetValue(dummy, 0)
+    Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
+    MAV.setWP(dummy, 0, MAVLink.MAV_FRAME.GLOBAL)
+    for i in range(0, len(wp_array)):
+        wp = Locationwp()
+        Locationwp.lat.SetValue(wp, wp_array[i][0])
+        Locationwp.lng.SetValue(wp, wp_array[i][1])
+        Locationwp.alt.SetValue(wp, wp_array[i][2])
+        Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
+        MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL)
+    #final ack
+    MAV.setWPACK()
+
 #keep talking with the Mission Planner server 
 while 1: 
     print("Loop begin")
@@ -69,25 +95,16 @@ while 1:
 
                     wp_array.append((float_lat, float_lng, float_alt))
                     print("NEXT - received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
+
+                    if (len(wp_array) == 1):
+                        #set immediate mission - aircraft reacts immediately to first waypoint
+                        upload_mission(wp_array)
+                        #enter auto mode
+                        Script.ChangeMode("Auto")
+                        print("NEXT - moving to first waypoint")
+
             else: 
-                #set waypoint total
-                MAV.setWPTotal(len(wp_array) + 1)
-                #upload waypoints
-                dummy = Locationwp()
-                Locationwp.lat.SetValue(dummy, 0)
-                Locationwp.lng.SetValue(dummy, 0)
-                Locationwp.alt.SetValue(dummy, 0)
-                Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
-                MAV.setWP(dummy, 0, MAVLink.MAV_FRAME.GLOBAL)
-                for i in range(0, len(wp_array)):
-                    wp = Locationwp()
-                    Locationwp.lat.SetValue(wp, wp_array[i][0])
-                    Locationwp.lng.SetValue(wp, wp_array[i][1])
-                    Locationwp.alt.SetValue(wp, wp_array[i][2])
-                    Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
-                    MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL)
-                #final ack
-                MAV.setWPACK()
+                upload_mission(wp_array)
                 #empty array
                 wp_array = []
                 #enter auto mode
