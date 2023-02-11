@@ -1,8 +1,8 @@
 import socketserver
 
-from src.mps_server.missions import Mission
-from src.common.wpqueue import Waypoint, Queue
-from src.common.sharedobject import SharedObject
+from server.common.missions import Mission
+from server.common.wpqueue import Waypoint, Queue
+from server.common.sharedobject import SharedObject
 
 #define request handler
 class MPS_Handler(socketserver.BaseRequestHandler):
@@ -69,11 +69,28 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             else:
                 #send the lock instruction
                 self.server._instructions.push("LOCK 1")
+                self.server._locked = True
         else:
             #reset _locked if coming out of locked state
             if self.server._locked:
-                self.serve._instructions.push("LOCK 0")
+                self.server._instructions.push("LOCK 0")
                 self.server._locked = False
+
+            #check for a new fence
+            fence_dict = self.server._so.mps_fence_get()
+            if fence_dict != None:
+                print("New fence found!")
+
+                #place instructions for the new fence onto the queue
+                self.server._instructions.push(f"NEWF {'EXCLUSIVE' if fence_dict['inex'] else 'INCLUSIVE'} {'POLYGON' if (fence_dict['type'] == 'polygon') else 'CIRCLE'}")
+
+                if (fence_dict['type'] == 'polygon'):
+                    while(not fence_dict['vertices'].empty()):
+                        curr = fence_dict['vertices'].pop()
+                        self.server._instructions.push(f"FENCE {str(curr)}")
+                    self.server._instructions.push("FENCE")
+                else:
+                    self.server._instructions.push(f"FENCE {str(fence_dict['center']['latitude'])} {str(fence_dict['center']['longitude'])} {str(fence_dict['center']['altitude'])} {str(fence_dict['radius'])}")
 
             #check for a new mission
             nextwpq = self.server._so.mps_newmission_get()

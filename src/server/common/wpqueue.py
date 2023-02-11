@@ -1,6 +1,6 @@
 from math import sqrt, pow
 
-from src.common.conversion import convert_gps_to_utm
+from server.common.conversion import convert_gps_to_utm
 
 class Waypoint():
     def __init__(self, id, name, lat, lng, alt):
