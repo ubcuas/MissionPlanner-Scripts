@@ -1,3 +1,4 @@
+import wsgiserver
 from flask import Flask, jsonify, request
 import json
 
@@ -10,9 +11,12 @@ class GCom_Server():
 
         print("GCom_Server Initialized")
 
-    def serve_forever(self):
+    def serve_forever(self, production=True):
         HOST, PORT = "localhost", 9000
+        
         app = Flask(__name__)
+
+        production_server = wsgiserver.WSGIServer(app, host=HOST, port=PORT)
 
         #GET endpoints
 
@@ -126,7 +130,7 @@ class GCom_Server():
         def fence_inclusive():
             fence = request.get_json()
 
-            self.server._so.gcom_fence_set({"inex":False, "type":"circle", "center":fence['center'], "radius":fence['radius']})
+            self._so.gcom_fence_set({"inex":False, "type":"circle", "center":fence['center'], "radius":fence['radius']})
 
             return "Inclusive Fence Set"
         
@@ -134,11 +138,14 @@ class GCom_Server():
         def fence_exclusive():
             fence = request.get_json()
 
-            self.server._so.gcom_fence_set({"inex":True, "type":"circle", "center":fence['center'], "radius":fence['radius']})
+            self._so.gcom_fence_set({"inex":True, "type":"circle", "center":fence['center'], "radius":fence['radius']})
 
             return "Exclusive Fence Set"
         
         #end of endpoints
 
         #run server
-        app.run(port=PORT)
+        if production:
+            production_server.start()
+        else:
+            app.run(port=PORT)
