@@ -20,14 +20,8 @@ REMOTE = ''
 # Datagram (udp) socket 
 
 rsock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-
 timeout = 5
-
 rsock.settimeout(timeout)
-
-
-
-
 print("Sockets Created")
 
 Script.ChangeMode("Guided") # changes mode to "Guided"
@@ -73,12 +67,15 @@ while 1:
     #print("Waypoint Count", MAV.getWPCount())
 
     #recieve waypoint from server   
-
     try:
         msg = rsock.recv(1024)
     except socket.timeout:
         print("Socket timeout")
         time.sleep(DELAY)
+        continue
+    except socket.error:
+        print("Socket error - trying again in 10 seconds...")
+        time.sleep(10)
         continue
 
     argv = msg.split()
