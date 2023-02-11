@@ -1,8 +1,8 @@
 import socketserver
 
-from src.mps_server.missions import Mission
-from src.common.wpqueue import Waypoint, Queue
-from src.common.sharedobject import SharedObject
+from server.common.missions import Mission
+from server.common.wpqueue import Waypoint, Queue
+from server.common.sharedobject import SharedObject
 
 #define request handler
 class MPS_Handler(socketserver.BaseRequestHandler):

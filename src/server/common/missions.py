@@ -1,4 +1,4 @@
-from src.common.wpqueue import WaypointQueue
+from server.common.wpqueue import WaypointQueue
 
 class Mission():
     def __init__(self, wpq=WaypointQueue()):

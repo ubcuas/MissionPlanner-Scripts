@@ -1,8 +1,8 @@
 import threading
 
-from common.sharedobject import SharedObject
-from gcom_handler.gcomhandler import GCom_Server
-from mps_server.server import MPS_Server
+from server.common.sharedobject import SharedObject
+from server.gcomhandler import GCom_Server
+from server.mps_server import MPS_Server
 
 #instantiate shared object
 so = SharedObject()

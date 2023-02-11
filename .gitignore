@@ -2,3 +2,4 @@ __pycache__
 *.pyc
 venv
 src.egg-info
+src/fence_test.py

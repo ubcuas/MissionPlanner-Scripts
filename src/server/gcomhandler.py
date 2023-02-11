@@ -1,8 +1,8 @@
 from flask import Flask, jsonify, request
 import json
 
-from src.common.wpqueue import WaypointQueue, Waypoint
-from src.common.sharedobject import SharedObject
+from server.common.wpqueue import WaypointQueue, Waypoint
+from server.common.sharedobject import SharedObject
 
 class GCom_Server():
     def __init__(self, so):
