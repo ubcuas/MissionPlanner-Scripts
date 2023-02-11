@@ -14,10 +14,20 @@ HOST = 'localhost'   # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
 RPORT = 4000 # Arbitrary non-privileged port
 
+DELAY = 1 #seconds
+
 REMOTE = ''
 # Datagram (udp) socket 
 
 rsock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+
+timeout = 5
+
+rsock.settimeout(timeout)
+
+
+
+
 print("Sockets Created")
 
 Script.ChangeMode("Guided") # changes mode to "Guided"
@@ -63,7 +73,13 @@ while 1:
     #print("Waypoint Count", MAV.getWPCount())
 
     #recieve waypoint from server   
-    msg = rsock.recv(1024)
+
+    try:
+        msg = rsock.recv(1024)
+    except socket.timeout:
+        print("Socket timeout")
+        time.sleep(DELAY)
+        continue
 
     argv = msg.split()
     cmd = argv.pop(0)
@@ -240,7 +256,7 @@ while 1:
             print("unrecognized command", cmd, argv)
 
     #timing
-    time.sleep(1)
+    time.sleep(DELAY)
 
 # exit
 rsock.close()
