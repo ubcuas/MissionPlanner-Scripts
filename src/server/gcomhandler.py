@@ -11,9 +11,7 @@ class GCom_Server():
 
         print("GCom_Server Initialized")
 
-    def serve_forever(self, production=True):
-        HOST, PORT = "localhost", 9000
-        
+    def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         app = Flask(__name__)
 
         production_server = wsgiserver.WSGIServer(app, host=HOST, port=PORT)
