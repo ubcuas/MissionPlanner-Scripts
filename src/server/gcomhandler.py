@@ -11,9 +11,7 @@ class GCom_Server():
 
         print("GCom_Server Initialized")
 
-    def serve_forever(self, production=True):
-        HOST, PORT = "localhost", 9000
-        
+    def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         app = Flask(__name__)
 
         production_server = wsgiserver.WSGIServer(app, host=HOST, port=PORT)
@@ -51,7 +49,7 @@ class GCom_Server():
             else:
                 print("Lock failed")
 
-                return "Mission Queue Lock Error: Already Locked"
+                return "Mission Queue Lock Error: Already Locked", 400
 
 
         @app.route("/unlock", methods=["GET"])
@@ -64,7 +62,7 @@ class GCom_Server():
             else:
                 print("Unlock failed")
 
-                return "Mission Queue Unlock Error: Already Unlocked"
+                return "Mission Queue Unlock Error: Already Unlocked", 400
 
 
         @app.route("/rtl", methods=["GET"])
@@ -110,6 +108,9 @@ class GCom_Server():
         def takeoff():
             payload = request.get_json()
 
+            if not('altitude' in payload):
+                return "Altitude cannot be null", 400
+
             altitude = int(payload['altitude'])
             print(f"Taking off to altitude {altitude}")
             self._so.gcom_takeoffalt_set(altitude)
@@ -119,6 +120,9 @@ class GCom_Server():
         @app.route("/home", methods=["POST"])
         def home():
             home = request.get_json()
+
+            if 'longitude' not in home or 'latitude' not in home or 'altitude' not in home:
+                return "Long/lat/alt cannot be null", 400
 
             self._so.gcom_newhome_set(home)
 

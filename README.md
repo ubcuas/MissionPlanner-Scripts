@@ -1,5 +1,74 @@
 # MissionPlanner Scripts
 
+## Table of Contents
+
+1. [Instructions](#instructions)
+2. [Endpoints](#endpoints)
+
+# Instructions
+
+## SITL & MissionPlanner
+1. In order to run SITL on your local machine, you will need to have Docker installed. For installation instructions, refer to the
+following:
+
+    - [Windows Installation](https://docs.docker.com/desktop/install/windows-install/)
+    - [MacOS Installation](https://docs.docker.com/desktop/install/mac-install/)
+
+        > Note: You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
+
+2. If you are running Windows, you will need WSL installed on your computer. You can get it simply by running `wsl --install` with admin privileges on cmd. Please also see the documentation [here](https://learn.microsoft.com/en-us/windows/wsl/install).
+
+3. Once you have Docker, you will need to pull the SITL image from DockerHub. To do this, run the Docker application then run the following command:
+
+    - x86: `docker pull ubcuas/uasitl:latest`
+    - ARM64: `docker pull ubcuas/uasitl:arm`
+
+    If everything goes correctly, running `docker image ls` should contain an entry for `ubcuas/uasitl`.
+
+4. Run one of the following commands to get SITL running:
+
+    x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:latest`
+
+    ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:arm`
+
+5. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
+<p align="center">
+    <img src="figures/tcpdropdown.png" width="60%">
+</p>
+
+6. Press the `Connect` Button to the right of that pane. You will be prompted with two inputs: one for hostname, and another for the remote port you want to use. Enter the following for each:
+    
+    - Hostname: `host.docker.internal`
+    - Remote Port: `5760`
+
+        > Note: if you are getting errors, try entering `localhost` for the hostname instead
+
+7. If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
+
+
+
+## Using MissionPlanner-Scripts
+
+1. Install required dependencies:
+
+    ```
+    poetry install
+    ```
+
+2. Launch the application:
+
+    ```
+    poetry run src/main.py [--dev] [--port=9000]
+    ```
+
+    The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
+
+3. Start the client inside MissionPlanner:
+
+    Navigate to the 'Scripts' tab and select `client.py` to run, the press 'Run Scripts' to start.
+
+    <img src="figures/client_mps.png" width="60%">
+
 # Endpoints
 ## (GET) /queue
 Returns the current list of waypoints in the queue, in the order of their names. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
@@ -9,7 +78,7 @@ Waypoints that have been passed and removed from the queue, obviously, should no
 Altitude is measured relative to sea level.
 
 Example response body:
-```
+```json
 {
     "queue": [
         {
@@ -43,7 +112,7 @@ Altitude is measured relative to sea level.
 Return status code 200 if successfully POSTed.
 
 Example request body:
-```
+```json
 {
     "queue": [
         {
@@ -69,7 +138,7 @@ GET request returns the aircraft status.
 Velocity in m/s. Altitude in meters and is relative to sea level. Longitude, latitude, heading in degrees.
 
 Example response:
-```
+```json
 {
     "velocity": 22.2,
     "longitude": 38.3182,
@@ -98,7 +167,7 @@ POST request containing an altitude that is measured relative to sea level.
 The altitude cannot be null. Returns a Bad Request status code and error message in that case. Altitude is in meters. Return status code 200 if successfully POSTed.
 
 Example request body:
-```
+```json
 {
     "altitude": 50.7
 }
@@ -121,7 +190,7 @@ Altitude in meters and is relative to sea level.
 Return status code 200 if successfully POSTed.
 
 Example request body:
-```
+```json
 {
     "id": 1,
     "name": "Alpha",
