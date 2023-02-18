@@ -66,7 +66,6 @@ while 1:
 
     #print("Waypoint Count", MAV.getWPCount())
 
-    #recieve waypoint from server   
     try:
         msg = rsock.recv(1024)
     except socket.timeout:
