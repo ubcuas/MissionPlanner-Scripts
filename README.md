@@ -14,7 +14,7 @@ following:
     - [Windows Installation](https://docs.docker.com/desktop/install/windows-install/)
     - [MacOS Installation](https://docs.docker.com/desktop/install/mac-install/)
 
-> Note: You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
+        > Note: You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
 
 2. If you are running Windows, you will need WSL installed on your computer. You can get it simply by running `wsl --install` with admin privileges on cmd. Please also see the documentation [here](https://learn.microsoft.com/en-us/windows/wsl/install).
 
@@ -33,7 +33,7 @@ following:
 
 5. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
 <p align="center">
-    <img src="figures/tcpdropdown.png" width="80%">
+    <img src="figures/tcpdropdown.png" width="60%">
 </p>
 
 6. Press the `Connect` Button to the right of that pane. You will be prompted with two inputs: one for hostname, and another for the remote port you want to use. Enter the following for each:
@@ -41,7 +41,7 @@ following:
     - Hostname: `host.docker.internal`
     - Remote Port: `5760`
 
-    > Note: if you are getting errors, try entering `localhost` for the hostname instead
+        > Note: if you are getting errors, try entering `localhost` for the hostname instead
 
 7. If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
 
@@ -67,7 +67,7 @@ following:
 
     Navigate to the 'Scripts' tab and select `client.py` to run, the press 'Run Scripts' to start.
 
-    <img src="figures/client_mps.png" width="80%">
+    <img src="figures/client_mps.png" width="60%">
 
 # Endpoints
 ## (GET) /queue
