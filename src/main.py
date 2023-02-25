@@ -24,7 +24,8 @@ if __name__ == "__main__":
     
     if '--port' in arguments.keys():
         PORT = int(arguments['--port'][0])
-    print(f"HTTPServer listening on port {arguments['--port'][0]}")
+        
+    print(f"HTTPServer listening on port {PORT}")
 
 #instantiate shared object
 so = SharedObject()
