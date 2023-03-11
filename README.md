@@ -20,16 +20,20 @@ following:
 
 3. Once you have Docker, you will need to pull the SITL image from DockerHub. To do this, run the Docker application then run the following command:
 
-    - x86: `docker pull ubcuas/uasitl:latest`
-    - ARM64: `docker pull ubcuas/uasitl:arm`
+    - ArduPlane (VTOL):
+        - x86: `docker pull ubcuas/uasitl:plane`
+        - ARM64: `docker pull ubcuas/uasitl:plane-arm`
+    - ArduCopter (Quadcopter):
+        - x86: `docker pull ubcuas/uasitl:copter`
+        - ARM64: `docker pull ubcuas/uasitl:copter-arm`
 
     If everything goes correctly, running `docker image ls` should contain an entry for `ubcuas/uasitl`.
 
 4. Run one of the following commands to get SITL running:
 
-    x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:latest`
+    x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]`
 
-    ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:arm`
+    ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm`
 
 5. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
 <p align="center">
