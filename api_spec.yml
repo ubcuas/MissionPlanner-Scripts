@@ -1,0 +1,238 @@
+openapi: 3.0.2
+info:
+  title: MissionPlanner Scripts
+  version: 1.2.0
+  description: "This is the API that the MissionPlanner Scripts server exposes to GCOM."
+  contact:
+    name: Amin Fahiminia, Hansen Dan
+servers:
+  - url: http://localhost:9000
+tags:
+  - name: queue
+    description: Access to aircraft waypoint queue
+  - name: status
+    description: Current aircraft status
+  - name: lock
+    description: Toggle queue-based movement
+  - name: takeoff
+    description: Take off after motors are armed
+  - name: landing
+    description: Landing, RTL, and setting Home
+  - name: fence
+    description: Inclusion/Exclusion fences
+paths:
+  /queue:
+    get:
+      tags:
+        - queue
+      summary: Returns the current list of waypoints in the queue
+      description: >-
+        Returns the current list of waypoints in the queue, in the order of their names. 
+        Waypoints that have been passed and removed from the queue are not displayed.
+      operationId: api.queue_get
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Waypoint"
+    post: 
+      tags:
+        - queue
+      summary: Overwrite the queue with a new list of waypoints 
+      description: >-
+        POST request containing a list of waypoints with names and longitude, 
+        latitude, and altitude values. If altitude is nil, carry on with the 
+        same altitude as you had last waypoint.
+        Previous queue should be overwritten if there is already one in place.
+        Longitude, name, and latitude must not be null/empty. Returns a Bad 
+        Request status code and error message in that case. Longitude and 
+        latitude in degrees, altitude in meters.
+      operationId: api.queue_post
+      requestBody:
+        $ref: "#/components/requestBodies/Queue"
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: bad request
+  /status:
+    get:
+      tags:
+        - status
+      summary: Obtain the aircraft status
+      description: >-
+        GET request returns the aircraft status. Velocity in m/s. Altitude 
+        in meters and is relative to sea level. Longitude, latitude, heading 
+        in degrees.
+      operationId: api.status_get
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+  /lock:
+    get:
+      tags:
+        - lock
+      summary: Prevent the aircraft from moving based on the queue
+      description: >-
+        Stops the aircraft from moving based on the Mission Planner Scripts' 
+        waypoint queue loading functionality, maintaining the queue internally. 
+        Return Bad Request if the aircraft is already locked, or the queue is empty.
+      operationId: api.lock_get
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Aircraft already locked or queue empty
+  /unlock:
+    get:
+      tags:
+        - lock
+      summary: Resume aircraft movement based on the queue
+      description: >-
+        Resume moving the aircraft based on the currently stored queue. 
+        Returns a Bad Request status code and an error message if the aircraft 
+        is already unlocked.
+      operationId: api.unlock_get
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Aircraft already unlocked
+  /takeoff:
+    post:
+      tags:
+        - takeoff
+      summary: Lift off to a given altitude
+      description: >-
+        POST request containing an altitude to take off to that is measured 
+        relative to sea level. Don't put an altitude that would be underground.
+      operationId: api.takeoff_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                altitude:
+                  type: number
+                  format: float64
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Takeoff unsuccessful or motors disarmed
+  /rtl:
+    get:
+      tags:
+        - landing
+      summary: return to launch
+      description: >-
+        Aircraft returns to home waypoint and lands (return-to-launch). 
+        Returns a Bad Request status code and error message if the drone 
+        could not execute the operation.
+      operationId: api.rtl_get
+      responses:
+        "200":
+          description: Successful, drone has initiated RTL procedure
+        "400":
+          description: Initiating RTL unsuccessful
+  /land:
+    get:
+      tags:
+        - landing
+      summary: immediately descend and land
+      description: >-
+        Aircraft stops at its current position and lands. 
+        Returns a Bad Request status code and error message if the drone 
+        could not execute the operation.
+      operationId: api.land_get
+      responses:
+        "200":
+          description: Successful, drone has started landing procedure
+        "400":
+          description: Initiating landing unsuccessful
+  /home:
+    post:
+      tags:
+        - landing
+      summary: set the home waypoint of the drone
+      description: >-
+        POST request containing a waypoint whose longitude, latitiude and 
+        altitiude will be the basis for the new home waypoint. All other 
+        fields will be ignored.
+      operationId: api.home_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Waypoint"
+      responses:
+        "200":
+          description: Successfully set new home position
+        "400":
+          description: Home position could not be set
+components:
+  requestBodies:
+    Queue:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Queue"
+      description: Queue of waypoints
+      required: true
+  schemas:
+    Queue:
+      type: array
+      items:
+        $ref: "#/components/schemas/Waypoint"
+    Waypoint:
+      type: object
+      properties:
+        id:
+          type: number
+          format: integer
+        name:
+          type: string
+        longitude:
+          type: number
+          format: float64
+        latitude:
+          type: number
+          format: float64
+        altitude:
+          type: number
+          format: float64
+      xml:
+        name: Queue
+    Status:
+      type: object
+      properties:
+        velocity:
+          type: number
+          format: float64
+        longitude:
+          type: number
+          format: float64
+        latitude:
+          type: number
+          format: float64
+        altitude:
+          type: number
+          format: float64
+        heading:
+          type: number
+          format: float64
+        batteryvoltage:
+          type: number
+          format: float64
+      xml:
+        name: Status
