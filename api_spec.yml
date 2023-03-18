@@ -196,7 +196,10 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: object
+                properties: 
+                  mode: 
+                    type: integer
     post:
       tags:
         - takeoff

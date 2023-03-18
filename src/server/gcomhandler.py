@@ -132,13 +132,17 @@ class GCom_Server():
         @app.route("/vtol/transition", methods=["GET", "POST"])
         def vtol_transition():
             if request.method == "GET":
-                ret = self._so.mps_vtol_get()
-                return ret
+                return json.dumps({'mode': self._so.mps_vtol_get()})
+            
             elif request.method == "POST":
-                payload = request.get_json()
+                print(request)
+                payload = request.get_json(silent=True)
+                print(payload)
                 mode = int(payload['mode'])
                 self._so.gcom_vtol_set(mode)
                 return "Changing flight mode"
+            
+            return "Bad Request", 400
 
         #Fence inclusion/exclusion methods...
 

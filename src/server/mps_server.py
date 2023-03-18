@@ -58,6 +58,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         #check if we should land
         elif self.server._so.mps_landing_get():
             self.server._instructions.push("LAND")
+        
+        #check if we should change flight mode
+        elif self.server._so.mps_vtol_get() != self.server._flight_mode:
+            self.server._flight_mode = self.server._so.mps_vtol_get()
+            self.server._instructions.push(f"MODE {self.server._flight_mode}")
 
         #check if we should lock
         elif self.server._so.mps_locked_get():
@@ -140,6 +145,7 @@ class MPS_Internal_Server(socketserver.UDPServer):
 
         self._locked = False
         self._newmc = 0
+        self._flight_mode = 3
 
         #superclass constructor
         super().__init__(hptuple, handler)
