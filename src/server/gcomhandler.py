@@ -128,6 +128,18 @@ class GCom_Server():
 
             return "Setting New Home"
         
+        #VTOL endpoints
+        @app.route("/vtol/transition", methods=["GET", "POST"])
+        def vtol_transition():
+            if request.method == "GET":
+                ret = self._so.mps_vtol_get()
+                return ret
+            elif request.method == "POST":
+                payload = request.get_json()
+                mode = int(payload['mode'])
+                self._so.gcom_vtol_set(mode)
+                return "Changing flight mode"
+
         #Fence inclusion/exclusion methods...
 
         @app.route("/fence/inclusive", methods=["POST"])

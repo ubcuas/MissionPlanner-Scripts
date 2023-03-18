@@ -180,6 +180,44 @@ paths:
           description: Successfully set new home position
         "400":
           description: Home position could not be set
+  /vtol/transition: 
+    get:
+      tags:
+        - takeoff
+      summary: return whether the aircraft is in VTOL or fixed wing mode
+      description: >-
+        Returns the current flight mode of the aircraft. The values 
+        correspond to those in the MAV commands, so 3 indicates VTOL flight 
+        while 4 indicates fixed wing flight. 
+      operationId: api.vtol_transition_get
+      responses:
+        "200":
+          description: Returned flight mode 
+          content:
+            application/json:
+              schema:
+                type: integer
+    post:
+      tags:
+        - takeoff
+      summary: change the aircraft's flight mode
+      description: >-
+        Change the aircraft's flight mode. The mode to change to is 
+        specified by the mode property in the request body. As in 
+        the GET endpoint, use 3 to indicate VTOL and 4 to indicate 
+        fixed wing.
+      operationId: api.vtol_transition_post
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              type: object 
+              properties: 
+                mode: 
+                  type: integer 
+      responses:
+        "200": 
+          description: Flight mode changed
 components:
   requestBodies:
     Queue:
