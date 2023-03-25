@@ -135,12 +135,13 @@ class GCom_Server():
                 return json.dumps({'mode': self._so.mps_vtol_get()})
             
             elif request.method == "POST":
-                print(request)
                 payload = request.get_json(silent=True)
-                print(payload)
                 mode = int(payload['mode'])
-                self._so.gcom_vtol_set(mode)
-                return "Changing flight mode"
+                if mode == 3 or mode == 4:
+                    self._so.gcom_vtol_set(mode)
+                    return "Changing flight mode"
+                else:
+                    return "Invalid flight mode", 400
             
             return "Bad Request", 400
 

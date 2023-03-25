@@ -184,6 +184,9 @@ while 1:
             MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("LAND - landing in place")
         
+        elif cmd == "MODE":
+            MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)
+        
         elif cmd == "NEWF":
             Script.ChangeMode('Guided')
             if argv[0] == "EXCLUSIVE":
