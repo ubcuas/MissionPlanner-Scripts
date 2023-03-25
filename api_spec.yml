@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: MissionPlanner Scripts
-  version: 1.2.0
+  version: 1.3.0
   description: "This is the API that the MissionPlanner Scripts server exposes to GCOM."
   contact:
     name: Amin Fahiminia, Hansen Dan
@@ -221,6 +221,34 @@ paths:
       responses:
         "200": 
           description: Flight mode changed
+  /diversion:
+    post: 
+      tags: 
+        - queue
+      summary: divert the aircraft around an exclusion zone
+      description: >-
+        Include the waypoints that define the exclusion polygon in 
+        order in the exclude array, and the waypoint to rejoin the 
+        normal queue at in the rejoin_at property. The server will 
+        process the information, produce a diverted path, and pass 
+        that to the aircraft, returning 200. Note that 200 will be 
+        returned whether or not the new path is applied or not.
+      operationId: api.diversion_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object 
+              properties:
+                exclude:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Waypoint'
+                rejoin_at:
+                  $ref: '#/components/schemas/Waypoint'
+      responses:
+        "200":
+          description: Diversion processed
 components:
   requestBodies:
     Queue:
