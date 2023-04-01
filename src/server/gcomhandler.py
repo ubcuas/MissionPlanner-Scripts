@@ -163,6 +163,42 @@ class GCom_Server():
 
             return "Exclusive Fence Set"
         
+        #diversion algorithm endpoint
+        @app.route("/diversion", methods=["POST"])
+        def diversion():
+            payload = request.get_json()
+
+            exclusions = payload["exclude"]
+            
+            avg_lat: float = 0
+            avg_lon: float = 0
+
+            count: int = 0
+
+            for wp in exclusions:
+                avg_lat += wp['latitude']
+                avg_lon += wp['longitude']
+                count += 1
+            
+            avg_lat /= count
+            avg_lon /= count
+
+            #find waypoint that is furthest from the average
+            furthest = 0
+            furthest_wp = None
+            for wp in exclusions:
+                dist = ((wp['latitude'] - avg_lat)**2 + (wp['longitude'] - avg_lon)**2)**0.5
+                if dist > furthest:
+                    furthest = dist
+                    furthest_wp = wp
+
+            avg_lon = float(f"{avg_lon:.6f}") 
+            avg_lat = float(f"{avg_lat:.6f}")
+
+            return f"Diversion algorithm received - avg lng,lat = ({avg_lon},{avg_lat}) furthest_wp: {furthest_wp}"
+
+        app.config
+        
         #end of endpoints
 
         #run server
