@@ -79,6 +79,19 @@ class GCom_Server():
 
             return "Landing in Place"
 
+
+        #VTOL LAND ENDPOINT
+
+        @app.route("/land", methods=["POST"])
+        def vtol_land():
+            land = request.get_json()
+            if not 'latitude' in land or not 'longitude' in land:
+                return "Latitude and Longitude cannot be null", 400
+            
+            self._so.gcom_vtol_land_set(land)
+
+            return "Landing at specified location"
+
         #POST endpoints
 
         @app.route("/queue", methods=["POST"])

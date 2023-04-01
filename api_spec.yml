@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: MissionPlanner Scripts
-  version: 1.3.0
+  version: 1.3.1
   description: "This is the API that the MissionPlanner Scripts server exposes to GCOM."
   contact:
     name: Amin Fahiminia, Hansen Dan
@@ -160,6 +160,21 @@ paths:
           description: Successful, drone has started landing procedure
         "400":
           description: Initiating landing unsuccessful
+    post: 
+      tags: 
+        - landing 
+      summary: land at designated location (VTOL-compatible)
+      description: >-
+        VTOL compatible land at the location in the request.
+      operationId: api.land_post 
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/Waypoint"
+      responses:
+        "200":
+          description: Successful, drone has started landing procedure 
   /home:
     post:
       tags:
