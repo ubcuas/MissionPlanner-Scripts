@@ -1,6 +1,8 @@
 import wsgiserver
 from flask import Flask, jsonify, request
 import json
+from shapely.geometry import Point, Polygon, MultiPoint, MultiPolygon, LineString
+from matplotlib import pyplot as plt
 
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.sharedobject import SharedObject
@@ -175,6 +177,73 @@ class GCom_Server():
             self._so.gcom_fence_set({"inex":True, "type":"circle", "center":fence['center'], "radius":fence['radius']})
 
             return "Exclusive Fence Set"
+        
+
+        #FENCE DIVERSION METHOD (BIG BOY)
+        @app.route("/diversion", methods=["POST"])
+        def fence_diversion():
+            self._so.gcom_locked_set(True)
+            
+            fence = request.get_json()
+
+            exclude = fence['exclude']
+            target = fence['rejoin_at']
+
+            target_waypoint = Waypoint(0, "", target['latitude'], target['longitude'], 0).get_coords_utm() #get target waypoint in utm
+            target_waypoint = Point(target_waypoint[0], target_waypoint[1])
+
+            exclude_waypoints = []
+            for wp in exclude:
+                wp_utm = Waypoint(0, "", wp['latitude'], wp['longitude'], 0).get_coords_utm() #convert to utm
+                exclude_waypoints.append(Point(wp_utm[0], wp_utm[1]))
+
+            #create exclusion fence Multipoint
+            exclusion = MultiPoint(exclude_waypoints)
+            exclusion_polygon = Polygon(exclude_waypoints)
+
+            #find start_waypoint
+            start_waypoint = None
+            curr_wpq = [wp.get_coords_utm() for wp in self._so.gcom_currentmission_get()]
+            for i in range(len(curr_wpq) - 1):
+                path_between = LineString([[curr_wpq[i][0], curr_wpq[i][1]], 
+                                          [curr_wpq[i + 1][0], curr_wpq[i + 1][1]]])
+                if exclusion_polygon.distance(path_between) == 0:
+                    start_waypoint = Point((curr_wpq[i][0], curr_wpq[i][1]))
+                    break
+            if start_waypoint == None:
+                #no intersection
+                self._so.gcom_locked_set(False)
+                plt.scatter([ex[0] for ex in curr_wpq], [ex[1] for ex in curr_wpq], color='blue')
+                plt.scatter([ex.x for ex in exclude_waypoints], [ex.y for ex in exclude_waypoints], color='red')
+                plt.show()
+                return "No intersection", 200
+
+            #create augmented exclusion zone
+            buffered_exclusion = exclusion.buffer(15)
+            buffered_convex_verts = list(buffered_exclusion.convex_hull.exterior.coords)
+
+            buffered_convex_verts.append(target_waypoint)
+            buffered_convex_verts.append(start_waypoint)
+            augmented_exclusion = MultiPoint(buffered_convex_verts)
+        
+            #create convex hull, find vertices
+            convex_hull = augmented_exclusion.convex_hull
+            augmented_convex_verts = list(convex_hull.exterior.coords)
+
+            #calculate drone paths...
+            direct_path = LineString([start_waypoint, target_waypoint])
+
+            #plot drone paths with pyplot
+            x, y = direct_path.xy
+            plt.plot(x, y, color='blue', alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
+            plt.scatter([ex[0] for ex in curr_wpq], [ex[1] for ex in curr_wpq], color='blue')
+            plt.scatter([ex.x for ex in exclude_waypoints], [ex.y for ex in exclude_waypoints], color='red')
+            plt.scatter([aug[0] for aug in augmented_convex_verts], [aug[1] for aug in augmented_convex_verts], color='orange')
+            plt.show()
+
+
+            self._so.gcom_locked_set(False)
+            return "diverting"
         
         #end of endpoints
 
