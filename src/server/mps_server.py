@@ -46,6 +46,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             wp = Waypoint(newhome['id'], newhome['name'], newhome['latitude'], newhome['longitude'], newhome['altitude'])
             self.server._instructions.push(f"HOME {str(wp)}")
 
+        vtol_land = self.server._so.mps_vtol_land_get()
+        if vtol_land != None:
+            wp = Waypoint(vtol_land['id'], vtol_land['name'], vtol_land['latitude'], vtol_land['longitude'], vtol_land['altitude'])
+            self.server._instructions.push(f"VTOLLAND {str(wp)}")
+
         #check takeoff altitude
         takeoffalt = self.server._so.mps_takeoffalt_get()
         if takeoffalt != 0:

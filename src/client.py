@@ -181,8 +181,49 @@ while 1:
             print("RTL - returning to launch")
 
         elif cmd == "LAND":
-            MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
+            #set up landing waypoint
+            home = Locationwp()
+            Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
+            Locationwp.lat.SetValue(home, cs.lat)
+            Locationwp.lng.SetValue(home, cs.lng)
+            Locationwp.alt.SetValue(home, 0)
+            landing = Locationwp()
+            Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.VTOL_LAND))
+            Locationwp.lat.SetValue(landing, cs.lat)
+            Locationwp.lng.SetValue(landing, cs.lng)
+            Locationwp.alt.SetValue(landing, takeoffalt)
+
+            MAV.setWPTotal(2)
+            MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
+            MAV.setWP(landing,1,MAVLink.MAV_FRAME.GLOBAL)
+            MAV.setWPACK()
+            Script.ChangeMode("Auto")
+            # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("LAND - landing in place")
+        
+        elif cmd == "VTOLLAND":
+            landlat = float(argv[0])
+            landlng = float(argv[1])
+
+            #set up landing waypoint
+            home = Locationwp()
+            Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
+            Locationwp.lat.SetValue(home, landlat)
+            Locationwp.lng.SetValue(home, landlng)
+            Locationwp.alt.SetValue(home, 0)
+            landing = Locationwp()
+            Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.VTOL_LAND))
+            Locationwp.lat.SetValue(landing, landlat)
+            Locationwp.lng.SetValue(landing, landlng)
+            Locationwp.alt.SetValue(landing, takeoffalt)
+
+            MAV.setWPTotal(2)
+            MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
+            MAV.setWP(landing,1,MAVLink.MAV_FRAME.GLOBAL)
+            MAV.setWPACK()
+            Script.ChangeMode("Auto")
+            # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
+            print("LAND - landing at {:}, {:}".format(landlat, landlng))
         
         elif cmd == "MODE":
             MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)

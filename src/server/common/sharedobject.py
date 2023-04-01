@@ -35,6 +35,11 @@ class SharedObject():
         self._landing_flag = False
         self._rtl_land_lk = Lock()
 
+        #vtol land flags
+        self._vtol_land_flag = False 
+        self._vtol_land_pos = {}
+        self._vtol_land_lk = Lock()
+
         #vtol flags
         self._vtol_mode = 3 #start in VTOL
         self._vtol_lk = Lock()
@@ -183,6 +188,24 @@ class SharedObject():
             self._landing_flag = False
             return True
         return False
+
+    #vtol landing methods
+    def gcom_vtol_land_set(self, pos):
+        self._vtol_land_lk.acquire()
+        self._vtol_land_pos = pos 
+        self._vtol_land_flag = True 
+        self._vtol_land_lk.release()
+    
+    def mps_vtol_land_get(self):
+        if self._vtol_land_flag:
+            self._vtol_land_lk.acquire()
+            ret = self._vtol_land_pos
+            self._vtol_land_flag = False
+            self._vtol_land_pos = None
+            self._vtol_land_lk.release()
+            return ret
+        else:
+            return None
     
     #vtol methods
     def gcom_vtol_set(self, val):
