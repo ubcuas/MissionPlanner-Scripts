@@ -58,8 +58,7 @@ def upload_mission(wp_array):
     MAV.setWPACK()
 
 #keep talking with the Mission Planner server 
-while 1: 
-    print("Loop begin")
+while 1:
     #send location to server
     location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
     rsock.sendto(location, (HOST, RPORT))

@@ -56,13 +56,13 @@ following:
 1. Install required dependencies:
 
     ```
-    poetry install
+    poetry install --no-root
     ```
 
 2. Launch the application:
 
     ```
-    poetry run src/main.py [--dev] [--port=9000]
+    poetry run .\src\main.py [--dev] [--port=9000]
     ```
 
     The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
