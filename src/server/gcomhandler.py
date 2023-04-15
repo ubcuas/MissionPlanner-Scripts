@@ -6,6 +6,19 @@ from matplotlib import pyplot as plt
 
 from server.common.wpqueue import WaypointQueue, Waypoint
 
+def plot_shape(points, color, close=False, scatter=True):
+    adjust = 0 if close else 1
+
+    #plot points
+    if scatter:
+        plt.scatter([pt[0] for pt in points], [pt[1] for pt in points], color=color)
+
+    #plot connecting lines
+    for i in range(len(points) - adjust):
+        curr = points[i]
+        next = points[(i + 1) % len(points)]
+        plt.plot([curr[0], next[0]], [curr[1], next[1]], color=color, alpha=0.7, linewidth=1, zorder=2)
+
 class GCOM_Server():
     def __init__(self, so):
         self._so = so
@@ -212,9 +225,15 @@ class GCOM_Server():
             if start_waypoint == None:
                 #no intersection
                 self._so.gcom_locked_set(False)
-                plt.scatter([ex[0] for ex in curr_wpq], [ex[1] for ex in curr_wpq], color='blue')
-                plt.scatter([ex.x for ex in exclude_waypoints], [ex.y for ex in exclude_waypoints], color='red')
+
+                #original mission waypoints
+                plot_shape(curr_wpq, 'blue', False)
+                #exclusion zone
+                plot_shape([(ex.x, ex.y) for ex in exclude_waypoints], 'red', True)
+
+                plt.savefig('no-diversion.png')
                 plt.show()
+
                 return "No intersection", 200
 
             #create augmented exclusion zone
@@ -229,17 +248,63 @@ class GCOM_Server():
             convex_hull = augmented_exclusion.convex_hull
             augmented_convex_verts = list(convex_hull.exterior.coords)
 
-            #calculate drone paths...
+            #separate drone paths...
+            path_vertices = {False:[], True:[]}
+            current_path = False
+            prepend = False
+            for aug in augmented_convex_verts:
+                #switch between paths
+                if aug[0] == start_waypoint.x and aug[1] == start_waypoint.y:
+                    path_vertices[current_path].append(aug)
+                    current_path = not current_path
+                    if not current_path:
+                        #if current_path returns to false
+                        prepend = True
+                elif aug[0] == target_waypoint.x and aug[1] == target_waypoint.y:
+                    path_vertices[current_path].append(aug)
+                    current_path = not current_path
+                    if not current_path:
+                        #if current_path returns to false
+                        prepend = True
+                
+                #count line segment between current aug and next vertex as part of current path
+                if prepend:
+                    path_vertices[current_path].insert(0, aug)
+                else:
+                    path_vertices[current_path].append(aug)
+
+            #calculate path lengths
+            path_lengths = {False:0, True:0}
+            for path in [False, True]:
+                current_path = path_vertices[path]
+                length = 0
+                for i in range(len(current_path) - 1):
+                    current_vertex = current_path[i]
+                    next_vertex = current_path[i + 1]
+                    segment_length = ((next_vertex[0] - current_vertex[0]) ** 2 + (next_vertex[1] - current_vertex[1]) ** 2) ** 0.5
+                    length += segment_length
+                path_lengths[path] = length
+            
+            shorter_path = (path_lengths[True] < path_lengths[False])
+
+            #plot information with pyplot
+            #direct path
             direct_path = LineString([start_waypoint, target_waypoint])
-
-            #plot drone paths with pyplot
             x, y = direct_path.xy
-            plt.plot(x, y, color='blue', alpha=0.7, linewidth=3, solid_capstyle='round', zorder=2)
-            plt.scatter([ex[0] for ex in curr_wpq], [ex[1] for ex in curr_wpq], color='blue')
-            plt.scatter([ex.x for ex in exclude_waypoints], [ex.y for ex in exclude_waypoints], color='red')
+            plt.plot(x, y, color='blue', alpha=0.7, linewidth=2, solid_capstyle='round', zorder=2)
+            #original mission waypoints
+            plot_shape(curr_wpq, 'blue', False)
+            #exclusion zone
+            plot_shape([(ex.x, ex.y) for ex in exclude_waypoints], 'red', True)
+            #augmented exclusion zone
             plt.scatter([aug[0] for aug in augmented_convex_verts], [aug[1] for aug in augmented_convex_verts], color='orange')
-            plt.show()
+            #shorter path in lime
+            plot_shape(path_vertices[shorter_path], 'lime', False, False)
+            #other path in green
+            plot_shape(path_vertices[not shorter_path], 'green', False, False)
 
+            plt.savefig('diversion.png')
+            plt.show()
 
             self._so.gcom_locked_set(False)
             return "diverting"
