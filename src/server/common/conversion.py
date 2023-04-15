@@ -10,13 +10,13 @@ def convert_gps_to_utm(latitude, longitude):
     """
     Parameters:
     latitude - latitude to convert, in degrees
-    longitude - longitude to conver, in degrees
+    longitude - longitude to convert, in degrees
 
     Implements conversion from GPS coordinates (latitude and longitude) to UTM
     coordinates (easting and northing).
 
     For simplicity, assumes operation west of the prime meridian, below the
-    arctic circle, andabove the antarctic circle (most of the western
+    arctic circle, and above the antarctic circle (most of the western
     hemisphere.)
     """
     # Convert to radians
@@ -53,38 +53,53 @@ def convert_gps_to_utm(latitude, longitude):
 
     return (utm_e_km * 1000, utm_n_km * 1000)
 
-def convert_gps_to_utm_online(latitude, longitude):
+def convert_gps_to_utm_zone(latitude, longitude):
+    return (longitude + 183) // 6
+
+def convert_utm_to_gps(easting, northing, zone, hemisphere):
     """
-    Parameters:
-    latitude - latitude to convert, in degrees
-    longitude - longitude to conver, in degrees
+    easting - meters East
+    northing - meters North
+    zone - UTM zone
+    hemisphere - +1 for north, -1 for south
 
-    Implements conversion from GPS coordinates (latitude and longitude) to UTM
-    coordinates (easting and northing).
-
-    This is done by making a request to a conversion website, www.latlong.net,
-    and extracting the converted UTM coordinates from the response.
-    This decision was made for ease of implementation, as it avoids the need
-    to directly code the complex conversion formulas between the two coordinate
-    systems. Consequently, however, this does mean that the program must have
-    access to the internet in order to function.
-    This function is also rate-limited to one call per second.
+    returns (latitude, longitude) in degrees
     """
-    # Create target URL
-    conversion_url = "https://www.latlong.net" + f"/c/?lat={latitude}&long={longitude}"
 
-    # Make a request to the conversion site
-    response = requests.get(conversion_url, timeout=1)
+    #calculation constants
+    A_RAD = 6378.137
+    F = 1 / 298.257223563
+    N0 = 0 if hemisphere >= 0 else 10000
+    E0 = 500
+    K0 = 0.9996
 
-    # Extract the portion of the HTML containing the UTM coordinates
-    response = (response.text.split("UTM Zone")[-1]).split("</table>")[0]
-    utm_e, utm_n = response.split("<td>")[1:3]
+    #preliminary values
+    N = F / (2 - F)
+    A = A_RAD / (1 + N) *(1 + pow(N, 2) / 4 + pow(N, 4) / 64)
+    BETA = [0, N / 2 - 2 / 3 * pow(N, 2) + 37 / 96 * pow(N, 3),
+                1 / 48 * pow(N, 2) + 1 / 15 * pow(N, 3),
+                17 / 480 * pow(N, 3)]
+    DELTA = [0, 2 * N - 2 / 3 * pow(N, 2), - 2 * pow(N, 3),
+                7 / 3 * pow(N, 2) - 8 / 5 * pow(N, 3),
+                56 / 15 * pow(N, 3)]
+    
+    #intermediate values
+    xi = (northing / 1000 - N0) / (K0 * A)
+    eta = (easting / 1000 - E0) / (K0 * A)
 
-    # Remove HTML tags, whitespace, and commas, convert to float
-    utm_e = float(utm_e.split("</td>")[0].strip().replace(",", ""))
-    utm_n = float(utm_n.split("</td>")[0].strip().replace(",", ""))
+    xi_prime = xi - sum([BETA[j] * sin(2 * j * xi) * cosh(2 * j * eta) for j in range(1, 4)])
+    eta_prime = eta - sum([BETA[j] * cos(2 * j * xi) * sinh(2 * j * eta) for j in range(1, 4)])
+    chi = asin(sin(xi_prime) / cosh(eta_prime))
 
-    return (utm_e, utm_n)
+    #final calulations
+    rad_lat = chi + sum([DELTA[j] * sin(2 * j * chi) for j in range(1, 4)])
+    rad_lng = radians(zone * 6 - 183) + atan(sinh(eta_prime) / cos(xi_prime))
+    #grid_convergence = hemisphere * atan((tau_prime + sigma_prime * tan(xi_prime) * tanh(eta_prime)) / (sigma_prime - tau_prime * tan(xi_prime) * tanh(eta_prime)))
+
+    latitude = rad_lat * (180 / pi)
+    longitude = rad_lng * (180 / pi)
+
+    return (latitude, longitude)
 
 def distance_utm(coords1, coords2):
     """
@@ -92,3 +107,9 @@ def distance_utm(coords1, coords2):
     """
     return sqrt(pow(coords2[0] - coords1[0], 2) + pow(coords2[1] - coords1[1], 2))
 
+test = (38.1491375, -76.5644073)
+utm = convert_gps_to_utm(test[0], test[1])
+zone = convert_gps_to_utm_zone(test[0], test[1])
+back = convert_utm_to_gps(utm[0], utm[1], zone, 1)
+
+print(f"TEST VALUES {test}\nUTM {utm} ZONE {zone}\nGPS BACK {back}")

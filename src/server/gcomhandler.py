@@ -221,6 +221,7 @@ class GCOM_Server():
                                           [curr_wpq[i + 1][0], curr_wpq[i + 1][1]]])
                 if exclusion_polygon.distance(path_between) == 0:
                     start_waypoint = Point((curr_wpq[i][0], curr_wpq[i][1]))
+                    start_waypoint_index = i
                     break
             if start_waypoint == None:
                 #no intersection
@@ -309,6 +310,19 @@ class GCOM_Server():
             ax.set_aspect('equal', adjustable='box')
             plt.savefig('diversion.png')
             plt.show()
+
+            #construct diverted waypoint queue
+            original_queue = self._so.gcom_currentmission_get()
+            diverted_queue = []
+
+            #same as original, up to and not including the start waypoint
+            diverted_queue.extend([wp for wp in original_queue[:start_waypoint_index]])
+            
+            #obtain altitude of start_waypoint to use for diverted path
+            start_waypoint_alt = original_queue[start_waypoint_index]._alt
+            diverted_queue.extend([Waypoint(i, f'diversion-{i}', path_vertices[shorter_path][i][0], path_vertices[shorter_path][i][1]) for i in range(len(path_vertices[shorter_path]))])
+            diverted_queue.append()
+            
 
             self._so.gcom_locked_set(False)
             return "diverting"
