@@ -54,7 +54,7 @@ def convert_gps_to_utm(latitude, longitude):
     return (utm_e_km * 1000, utm_n_km * 1000)
 
 def convert_gps_to_utm_zone(latitude, longitude):
-    return (longitude + 183) // 6
+    return ((longitude + 180) // 6) % 60 + 1
 
 def convert_utm_to_gps(easting, northing, zone, hemisphere):
     """
@@ -79,7 +79,7 @@ def convert_utm_to_gps(easting, northing, zone, hemisphere):
     BETA = [0, N / 2 - 2 / 3 * pow(N, 2) + 37 / 96 * pow(N, 3),
                 1 / 48 * pow(N, 2) + 1 / 15 * pow(N, 3),
                 17 / 480 * pow(N, 3)]
-    DELTA = [0, 2 * N - 2 / 3 * pow(N, 2), - 2 * pow(N, 3),
+    DELTA = [0, 2 * N - 2 / 3 * pow(N, 2) - 2 * pow(N, 3),
                 7 / 3 * pow(N, 2) - 8 / 5 * pow(N, 3),
                 56 / 15 * pow(N, 3)]
     
