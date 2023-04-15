@@ -253,6 +253,7 @@ class GCom_Server():
             path_vertices = {False:[], True:[]}
             current_path = False
             prepend = False
+            prepend_index = 0
             for aug in augmented_convex_verts:
                 #switch between paths
                 if aug[0] == start_waypoint.x and aug[1] == start_waypoint.y:
@@ -270,7 +271,8 @@ class GCom_Server():
                 
                 #count line segment between current aug and next vertex as part of current path
                 if prepend:
-                    path_vertices[current_path].insert(0, aug)
+                    path_vertices[current_path].insert(prepend_index, aug)
+                    prepend_index += 1
                 else:
                     path_vertices[current_path].append(aug)
 
@@ -304,6 +306,8 @@ class GCom_Server():
             #other path in green
             plot_shape(path_vertices[not shorter_path], 'green', False, False)
 
+            ax = plt.gca()
+            ax.set_aspect('equal', adjustable='box')
             plt.savefig('diversion.png')
             plt.show()
 
