@@ -3,6 +3,7 @@ from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
+from server.common.conversion import *
 
 from server.common.wpqueue import WaypointQueue, Waypoint
 
@@ -201,7 +202,8 @@ class GCOM_Server():
             exclude = fence['exclude']
             target = fence['rejoin_at']
 
-            target_waypoint = Waypoint(0, "", target['latitude'], target['longitude'], 0).get_coords_utm() #get target waypoint in utm
+            targetwp = Waypoint(0, "", target['latitude'], target['longitude'], 0)
+            target_waypoint = targetwp.get_coords_utm() #get target waypoint in utm
             target_waypoint = Point(target_waypoint[0], target_waypoint[1])
 
             exclude_waypoints = []
@@ -318,11 +320,28 @@ class GCOM_Server():
             #same as original, up to and not including the start waypoint
             diverted_queue.extend([wp for wp in original_queue[:start_waypoint_index]])
             
-            #obtain altitude of start_waypoint to use for diverted path
-            start_waypoint_alt = original_queue[start_waypoint_index]._alt
-            diverted_queue.extend([Waypoint(i, f'diversion-{i}', path_vertices[shorter_path][i][0], path_vertices[shorter_path][i][1]) for i in range(len(path_vertices[shorter_path]))])
-            diverted_queue.append()
-            
+            #obtain altitude, UTM zone, and hemisphere of start_waypoint to use for diverted path
+            start_wp = original_queue[start_waypoint_index]
+            start_waypoint_alt = start_wp._alt
+            start_waypoint_zone = convert_gps_to_utm_zone(start_wp._lng)
+            start_waypoint_hemi = 1 if start_wp._lat >= 0 else -1
+            #add diversion paths to queue
+            for i in range(len(path_vertices[shorter_path])):
+                current_vertex = path_vertices[shorter_path][i]
+                vertex_latlng = convert_utm_to_gps(current_vertex[0], current_vertex[1], start_waypoint_zone, start_waypoint_hemi)
+                diverted_queue.append(Waypoint(-i, f"diversion-{i}", vertex_latlng[0], vertex_latlng[1], start_waypoint_alt))
+
+            #determine index of target wp
+            for i in range(len(original_queue)):
+                target_waypoint_index = i
+                if original_queue[i].distance(targetwp) < 0.1:
+                    break
+            #extend with rest of the original queue
+            diverted_queue.extend([wp for wp in original_queue[target_waypoint_index:]])
+
+            #send diverted queue to client as new mission
+            self._so.gcom_newmission_set(WaypointQueue(diverted_queue.copy()))
+            diverted_queue.clear()
 
             self._so.gcom_locked_set(False)
             return "diverting"

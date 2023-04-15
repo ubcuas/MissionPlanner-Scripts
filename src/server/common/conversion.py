@@ -53,7 +53,7 @@ def convert_gps_to_utm(latitude, longitude):
 
     return (utm_e_km * 1000, utm_n_km * 1000)
 
-def convert_gps_to_utm_zone(latitude, longitude):
+def convert_gps_to_utm_zone(longitude):
     return ((longitude + 180) // 6) % 60 + 1
 
 def convert_utm_to_gps(easting, northing, zone, hemisphere):
@@ -107,9 +107,10 @@ def distance_utm(coords1, coords2):
     """
     return sqrt(pow(coords2[0] - coords1[0], 2) + pow(coords2[1] - coords1[1], 2))
 
-test = (38.1491375, -76.5644073)
-utm = convert_gps_to_utm(test[0], test[1])
-zone = convert_gps_to_utm_zone(test[0], test[1])
-back = convert_utm_to_gps(utm[0], utm[1], zone, 1)
+if __name__ == "__main__":
+    test = (38.1491375, -76.5644073)
+    utm = convert_gps_to_utm(test[0], test[1])
+    zone = convert_gps_to_utm_zone(test[1])
+    back = convert_utm_to_gps(utm[0], utm[1], zone, 1)
 
-print(f"TEST VALUES {test}\nUTM {utm} ZONE {zone}\nGPS BACK {back}")
+    print(f"TEST VALUES {test}\nUTM {utm} ZONE {zone}\nGPS BACK {back}")
