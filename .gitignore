@@ -4,3 +4,4 @@ venv
 src.egg-info
 src/fence_test.py
 poetry.lock
+diversion_tests/
