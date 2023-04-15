@@ -4,17 +4,17 @@ import socket
 import time
 import clr
 clr.AddReference("MissionPlanner.Utilities")
-import MissionPlanner #import *
-clr.AddReference("MissionPlanner.Utilities") #includes the Utilities class
+import MissionPlanner
+clr.AddReference("MissionPlanner.Utilities") # Includes the Utilities class
 from MissionPlanner.Utilities import Locationwp
 clr.AddReference("MAVLink")
 import MAVLink
 
-HOST = 'localhost'   # Symbolic name meaning all available interfaces
+HOST = 'localhost' # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
 RPORT = 4000 # Arbitrary non-privileged port
 
-DELAY = 1 #seconds
+DELAY = 1 # Seconds
 
 REMOTE = ''
 # Datagram (udp) socket 
@@ -24,7 +24,7 @@ timeout = 5
 rsock.settimeout(timeout)
 print("Sockets Created")
 
-Script.ChangeMode("Guided") # changes mode to "Guided"
+Script.ChangeMode("Guided") # Changes mode to "Guided"
 print("Entered Guided Mode")
 
 wp_array = []
@@ -38,9 +38,9 @@ def upload_mission(wp_array):
     Parameters:
         - wp_array: ordered list of waypoints
     """
-    #set waypoint total
+    # Set waypoint total
     MAV.setWPTotal(len(wp_array) + 1)
-    #upload waypoints
+    # Upload waypoints
     dummy = Locationwp()
     Locationwp.lat.SetValue(dummy, 0)
     Locationwp.lng.SetValue(dummy, 0)
@@ -54,12 +54,12 @@ def upload_mission(wp_array):
         Locationwp.alt.SetValue(wp, wp_array[i][2])
         Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
         MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL)
-    #final ack
+    # Final ack
     MAV.setWPACK()
 
-#keep talking with the Mission Planner server 
+# Keep talking with the Mission Planner server 
 while 1:
-    #send location to server
+    # Send location to server
     location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
     rsock.sendto(location, (HOST, RPORT))
 
@@ -79,24 +79,25 @@ while 1:
     argv = msg.split()
     cmd = argv.pop(0)
     
-    if cs.mode == 'MANUAL': #Safety Manual Mode Switch
+    if cs.mode == 'MANUAL': # Safety Manual Mode Switch
         Script.ChangeMode("Manual")
+        print("Entered Manual Mode")
         break
     else:
         if cmd == "NEWM":
-            #NEWM - newmission
-            #enter stabilize and await new mission waypoints
+            # NEWM - newmission
+            # Enter stabilize and await new mission waypoints
 
             Script.ChangeMode("Guided")
             wp_array = []
             print("NEWM")
 
         elif cmd == "NEXT":
-            #NEXT - next waypoint
-            #receive another waypoint, or start the mission if no more waypoints
+            # NEXT - next waypoint
+            # Receive another waypoint, or start the mission if no more waypoints
 
             if (len(argv) > 0):
-                #recieve waypoint
+                # Receive waypoint
                 if (len(argv) != 3):
                     print("NEXT - invalid waypoint {:}".format(msg))
                 else:
@@ -110,28 +111,28 @@ while 1:
                     if (len(wp_array) == 1):
                         #set immediate mission - aircraft reacts immediately to first waypoint
                         upload_mission(wp_array)
-                        #enter auto mode
+                        # Enter auto mode
                         Script.ChangeMode("Auto")
                         print("NEXT - moving to first waypoint")
 
             else: 
                 upload_mission(wp_array)
-                #empty array
+                # Empty array
                 wp_array = []
-                #enter auto mode
+                # Enter auto mode
                 Script.ChangeMode("Auto")
                 print("NEXT - new mission set")
 
         elif cmd == "CONT":
-            #CONT - continue
+            # CONT - continue
             #print("CONT")
             pass
         elif cmd == "IDLE":
-            #IDLE - do nothing
+            # IDLE - do nothing
             #print("IDLE")
             pass
         elif cmd == "LOCK":
-            #LOCK - lock/unlock the UAV
+            # LOCK - lock/unlock the UAV
             flag = int(argv[0])
             if flag:
                 #lock the UAV
@@ -146,7 +147,7 @@ while 1:
             if (len(argv) == 1):
                 takeoffalt = float(argv[0])
                 Script.ChangeMode("Loiter")
-                #set up takeoff waypoint
+                # Set up takeoff waypoint
                 home = Locationwp()
                 Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
                 Locationwp.lat.SetValue(home, cs.lat)
@@ -163,10 +164,10 @@ while 1:
                 MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL)
                 MAV.setWPACK()
                 Script.ChangeMode("Guided")
-                print("YOU HAVE 5 SECONDS TO ARM MOTORS")
-                time.sleep(5)
+                print("YOU HAVE 10 SECONDS TO ARM MOTORS")
+                time.sleep(10)
                 Script.ChangeMode("Auto")
-                MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) #arm motors
+                MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
                 print("TOFF - takeoff to {:}m".format(takeoffalt))
             else:
                 print("TOFF - invalid command", msg)
@@ -180,14 +181,14 @@ while 1:
             print("RTL - returning to launch")
 
         elif cmd == "LAND":
-            #set up landing waypoint
+            # Set up landing waypoint
             home = Locationwp()
             Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
             Locationwp.lat.SetValue(home, cs.lat)
             Locationwp.lng.SetValue(home, cs.lng)
             Locationwp.alt.SetValue(home, 0)
             landing = Locationwp()
-            Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.VTOL_LAND))
+            Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.LAND))
             Locationwp.lat.SetValue(landing, cs.lat)
             Locationwp.lng.SetValue(landing, cs.lng)
             Locationwp.alt.SetValue(landing, takeoffalt)
@@ -204,7 +205,7 @@ while 1:
             landlat = float(argv[0])
             landlng = float(argv[1])
 
-            #set up landing waypoint
+            # Set up landing waypoint
             home = Locationwp()
             Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
             Locationwp.lat.SetValue(home, landlat)
@@ -243,12 +244,12 @@ while 1:
                 print("NEWF - unrecognized argument, should be POLYGON or CIRCLE")
         
         elif cmd == "FENCE":
-            #FENCE - next fencepost
-            #receive another fencepost, or set the fence if no more fenceposts
+            # FENCE - next fencepost
+            # Receive another fencepost, or set the fence if no more fenceposts
 
             if fence_type == "POLYGON":
                 if (len(argv) > 0):
-                    #recieve fencepost
+                    # Receive fencepost
                     if (len(argv) != 3):
                         print("FENCE - invalid fencepost {:}".format(msg))
                     else:
@@ -259,21 +260,21 @@ while 1:
                         wp_array.append((float_lat, float_lng, float_alt))
                         print("FENCE - received fencepost {:} {:} {:}".format(float_lat, float_lng, float_alt))
                 else: 
-                    #upload fenceposts
+                    # Upload fenceposts
                     for fp in wp_array:
                         if (fence_exclusive):
                             MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
                         else:
                             MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
 
-                    #empty array
+                    # Empty array
                     wp_array = []
-                    #enter auto mode
+                    # Enter auto mode
                     Script.ChangeMode("Auto")
                     print("FENCE - new fence set")
                     fence_type = ""
             else:
-                #CIRCLE fences are specified by a single FENCE instruction
+                # CIRCLE fences are specified by a single FENCE instruction
                 if (len(argv) != 4):
                     print("FENCE - invalid fencepost {:}".format(msg))
                 else:

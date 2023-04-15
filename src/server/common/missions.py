@@ -11,11 +11,11 @@ class Mission():
         self._wpq.clear()
 
     def mission_check_wp(self, current):
-        #return true if no current wp
+        # Return true if no current wp
         if self._wpq.empty():
             return True
         
-        #check distance to current wp
+        # Check distance to current wp
         if self._wpq.front().distance(current) <= 0.1:
             #update to next waypoint
             self._wpq.pop()
