@@ -1,43 +1,42 @@
 import wsgiserver
-from flask import Flask, jsonify, request
+from flask import Flask, request
 import json
-from shapely.geometry import Point, Polygon, MultiPoint, MultiPolygon, LineString
+from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
 
 from server.common.wpqueue import WaypointQueue, Waypoint
-from server.common.sharedobject import SharedObject
 
-class GCom_Server():
+class GCOM_Server():
     def __init__(self, so):
         self._so = so
 
-        print("GCom_Server Initialized")
+        print("GCOM_Server Initialized")
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         app = Flask(__name__)
 
         production_server = wsgiserver.WSGIServer(app, host=HOST, port=PORT)
 
-        #GET endpoints
+        # GET endpoints
 
         @app.route("/queue", methods=["GET"])
         def get_queue():
-            ret = self._so.gcom_currentmission_get() # this is a dict of wpq (hopefully)
+            ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
             formatted = []
             for wp in ret:
                 formatted.append(wp.get_asdict())
-            retJSON = json.dumps(formatted) # this should convert the dict to JSON
+            retJSON = json.dumps(formatted) # This should convert the dict to JSON
 
-            print("Queue sent to GCom")
+            print("Queue sent to GCOM")
 
             return retJSON
 
         @app.route("/status", methods=["GET"])
         def get_status():
-            ret = self._so.gcom_status_get() # this should be a dict of status (hopefully)
-            retJSON = json.dumps(ret) # this should convert the dict to JSON
+            ret = self._so.gcom_status_get() # This should be a dict of status (hopefully)
+            retJSON = json.dumps(ret) # This should convert the dict to JSON
 
-            print("Status sent to GCom")
+            print("Status sent to GCOM")
 
             return retJSON
 
@@ -45,7 +44,7 @@ class GCom_Server():
         def lock():
             status = self._so.gcom_locked_set(True)
             if status:
-                print("Locked by GCom")
+                print("Locked by GCOM")
                 return "Mission Queue Locked"
 
             else:
@@ -58,7 +57,7 @@ class GCom_Server():
         def unlock():
             status = self._so.gcom_locked_set(False)
             if status:
-                print("unlocked by GCom")
+                print("unlocked by GCOM")
 
                 return "Mission Queue unlocked"
             else:
@@ -82,7 +81,7 @@ class GCom_Server():
             return "Landing in Place"
 
 
-        #VTOL LAND ENDPOINT
+        # VTOL LAND ENDPOINT
 
         @app.route("/land", methods=["POST"])
         def vtol_land():
@@ -94,7 +93,7 @@ class GCom_Server():
 
             return "Landing at specified location"
 
-        #POST endpoints
+        # POST endpoints
 
         @app.route("/queue", methods=["POST"])
         def post_queue():
@@ -143,7 +142,7 @@ class GCom_Server():
 
             return "Setting New Home"
         
-        #VTOL endpoints
+        # VTOL endpoints
         @app.route("/vtol/transition", methods=["GET", "POST"])
         def vtol_transition():
             if request.method == "GET":
@@ -160,7 +159,7 @@ class GCom_Server():
             
             return "Bad Request", 400
 
-        #Fence inclusion/exclusion methods...
+        # Fence inclusion/exclusion methods
 
         @app.route("/fence/inclusive", methods=["POST"])
         def fence_inclusive():
@@ -179,7 +178,7 @@ class GCom_Server():
             return "Exclusive Fence Set"
         
 
-        #FENCE DIVERSION METHOD (BIG BOY)
+        # FENCE DIVERSION METHOD (BIG BOY)
         @app.route("/diversion", methods=["POST"])
         def fence_diversion():
             self._so.gcom_locked_set(True)

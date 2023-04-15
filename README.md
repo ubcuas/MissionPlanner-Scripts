@@ -50,7 +50,6 @@ following:
 7. If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
 
 
-
 ## Using MissionPlanner-Scripts
 
 1. Install required dependencies:
@@ -74,6 +73,7 @@ following:
     <img src="figures/client_mps.png" width="60%">
 
 # Endpoints
+
 ## (GET) /queue
 Returns the current list of waypoints in the queue, in the order of their names. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
 
@@ -83,24 +83,22 @@ Altitude is measured relative to sea level.
 
 Example response body:
 ```json
-{
-    "queue": [
-        {
-            "id": 1,
-            "name": "Alpha",
-            "longitude": 38.83731,
-            "latitude": -20.48321,
-            "altitude": 50.7
-        },
-        {
-            "id": 2,
-            "name": "Beta",
-            "longitude": 38.83731,
-            "latitude": -20.48321,
-            "altitude": 50.7
-        }
-    ]
-}
+[
+    {
+        "id": 1,
+        "name": "Alpha",
+        "longitude": 38.83731,
+        "latitude": -20.48321,
+        "altitude": 50.7
+    },
+    {
+        "id": 2,
+        "name": "Beta",
+        "longitude": 38.83731,
+        "latitude": -20.48321,
+        "altitude": 50.7
+    }
+]
 ```
 
 ## (POST) /queue
@@ -117,24 +115,22 @@ Return status code 200 if successfully POSTed.
 
 Example request body:
 ```json
-{
-    "queue": [
-        {
-            "id": 1,
-            "name": "Alpha",
-            "longitude": 38.83731,
-            "latitude": -20.48321,
-            "altitude": 50.7
-        },
-        {
-            "id": 2,
-            "name": "Beta",
-            "longitude": 38.83731,
-            "latitude": -20.48321,
-            "altitude": null
-        }
-    ]
-}
+[
+    {
+        "id": 1,
+        "name": "Alpha",
+        "longitude": 38.83731,
+        "latitude": -20.48321,
+        "altitude": 50.7
+    },
+    {
+        "id": 2,
+        "name": "Beta",
+        "longitude": 38.83731,
+        "latitude": -20.48321,
+        "altitude": null
+    }
+]
 ```
 
 ## (GET) /status
@@ -162,6 +158,7 @@ It is still be possible to run (POST) /queue while the aircraft is locked.
 
 This won't literally lock the aircraft either, i.e.
 we can still manually set waypoints with Mission Planner. This just pauses the loading functionality of the queue program. If currently moving toward a waypoint, stop moving toward it by removing it.
+
 ## (GET) /unlock
 Resume moving the aircraft based on the currently stored queue. Returns a Bad Request status code and an error message if the aircraft is already unlocked.
 
