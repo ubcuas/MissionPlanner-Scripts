@@ -240,7 +240,7 @@ class GCOM_Server():
                 return "No intersection", 200
 
             #create augmented exclusion zone
-            buffered_exclusion = exclusion.buffer(15)
+            buffered_exclusion = exclusion.buffer(20, quad_segs=5, cap_style='square', join_style='mitre', mitre_limit=20)
             buffered_convex_verts = list(buffered_exclusion.convex_hull.exterior.coords)
 
             buffered_convex_verts.append(target_waypoint)
