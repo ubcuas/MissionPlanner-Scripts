@@ -10,6 +10,8 @@ from MissionPlanner.Utilities import Locationwp
 clr.AddReference("MAVLink")
 import MAVLink
 
+MissionPlanner.MainV2.speechEnable = True
+
 HOST = 'localhost' # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
 RPORT = 4000 # Arbitrary non-privileged port
@@ -57,6 +59,8 @@ def upload_mission(wp_array):
     # Final ack
     MAV.setWPACK()
 
+MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
+
 # Keep talking with the Mission Planner server 
 while 1:
     # Send location to server
@@ -73,6 +77,7 @@ while 1:
         continue
     except socket.error:
         print("Socket error - trying again in 10 seconds...")
+        MissionPlanner.MainV2.speechEngine.SpeakAsync("Socket connection error. Trying again in 10 seconds.")
         time.sleep(10)
         continue
 
