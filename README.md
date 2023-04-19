@@ -14,7 +14,7 @@ following:
     - [Windows Installation](https://docs.docker.com/desktop/install/windows-install/)
     - [MacOS Installation](https://docs.docker.com/desktop/install/mac-install/)
 
-        > Note: You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
+        > **Note**: You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
 
 2. If you are running Windows, you will need WSL installed on your computer. You can get it simply by running `wsl --install` with admin privileges on cmd. Please also see the documentation [here](https://learn.microsoft.com/en-us/windows/wsl/install).
 
@@ -45,7 +45,7 @@ following:
     - Hostname: `host.docker.internal`
     - Remote Port: `5760`
 
-        > Note: if you are getting errors, try entering `localhost` for the hostname instead
+        > **Note**: if you are getting errors, try entering `localhost` for the hostname instead
 
 7. If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
 
