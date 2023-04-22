@@ -44,10 +44,6 @@ class SharedObject():
         self._vtol_mode = 3 #start in VTOL
         self._vtol_lk = Lock()
 
-        # Fence fields
-        self._fence = None
-        self._fence_flag = False
-        self._fence_lk = Lock()
     
     # Currentmission methods
     def gcom_currentmission_get(self):
@@ -219,23 +215,3 @@ class SharedObject():
         ret = self._vtol_mode
         self._vtol_lk.release()
         return ret
-    
-    # Fence methods
-    def gcom_fence_set(self, obj):
-        self._fence_lk.acquire()
-        self._fence = obj
-        self._fence_flag = True
-        self._fence_lk.release()
-        return True
-
-    def mps_fence_get(self): 
-        if self._fence_flag:
-            self._fence_lk.acquire()
-            self._fence_flag = False
-            ret = self._fence
-            self._fence = None
-            self._fence_lk.release()
-
-            return ret
-        else:
-            return None

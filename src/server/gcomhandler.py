@@ -173,25 +173,6 @@ class GCOM_Server():
             
             return "Bad Request", 400
 
-        # Fence inclusion/exclusion methods
-
-        @app.route("/fence/inclusive", methods=["POST"])
-        def fence_inclusive():
-            fence = request.get_json()
-
-            self._so.gcom_fence_set({"inex":False, "type":"circle", "center":fence['center'], "radius":fence['radius']})
-
-            return "Inclusive Fence Set"
-        
-        @app.route("/fence/exclusive", methods=["POST"])
-        def fence_exclusive():
-            fence = request.get_json()
-
-            self._so.gcom_fence_set({"inex":True, "type":"circle", "center":fence['center'], "radius":fence['radius']})
-
-            return "Exclusive Fence Set"
-        
-
         # FENCE DIVERSION METHOD (BIG BOY)
         @app.route("/diversion", methods=["POST"])
         def fence_diversion():

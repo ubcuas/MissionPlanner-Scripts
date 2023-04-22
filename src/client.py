@@ -186,24 +186,7 @@ while 1:
             print("RTL - returning to launch")
 
         elif cmd == "LAND":
-            # Set up landing waypoint
-            home = Locationwp()
-            Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
-            Locationwp.lat.SetValue(home, cs.lat)
-            Locationwp.lng.SetValue(home, cs.lng)
-            Locationwp.alt.SetValue(home, 0)
-            landing = Locationwp()
-            Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.LAND))
-            Locationwp.lat.SetValue(landing, cs.lat)
-            Locationwp.lng.SetValue(landing, cs.lng)
-            Locationwp.alt.SetValue(landing, takeoffalt)
-
-            MAV.setWPTotal(2)
-            MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
-            MAV.setWP(landing,1,MAVLink.MAV_FRAME.GLOBAL)
-            MAV.setWPACK()
-            Script.ChangeMode("Auto")
-            # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
+            MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("LAND - landing in place")
         
         elif cmd == "VTOLLAND":
@@ -232,70 +215,6 @@ while 1:
         
         elif cmd == "MODE":
             MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)
-        
-        elif cmd == "NEWF":
-            Script.ChangeMode('Guided')
-            if argv[0] == "EXCLUSIVE":
-                fence_exclusive = True
-            elif argv[0] == "INCLUSIVE":
-                fence_exclusive = False
-            else:
-                Script.ChangeMode('Auto')
-                print("NEWF - unrecognized argument, should be INCLUSIVE or EXCLUSIVE")
-
-            fence_type = argv[1]
-            if (fence_type != "POLYGON" and fence_type != "CIRCLE"):
-                Script.ChangeMode('Auto')
-                print("NEWF - unrecognized argument, should be POLYGON or CIRCLE")
-        
-        elif cmd == "FENCE":
-            # FENCE - next fencepost
-            # Receive another fencepost, or set the fence if no more fenceposts
-
-            if fence_type == "POLYGON":
-                if (len(argv) > 0):
-                    # Receive fencepost
-                    if (len(argv) != 3):
-                        print("FENCE - invalid fencepost {:}".format(msg))
-                    else:
-                        float_lat = float(argv[0])
-                        float_lng = float(argv[1])
-                        float_alt = float(argv[2])
-
-                        wp_array.append((float_lat, float_lng, float_alt))
-                        print("FENCE - received fencepost {:} {:} {:}".format(float_lat, float_lng, float_alt))
-                else: 
-                    # Upload fenceposts
-                    for fp in wp_array:
-                        if (fence_exclusive):
-                            MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_EXCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
-                        else:
-                            MAV.doCommand(MAVLink.MAV_CMD.FENCE_POLYGON_VERTEX_INCLUSION,len(wp_array),0,0,0,fp[0],fp[1],0)
-
-                    # Empty array
-                    wp_array = []
-                    # Enter auto mode
-                    Script.ChangeMode("Auto")
-                    print("FENCE - new fence set")
-                    fence_type = ""
-            else:
-                # CIRCLE fences are specified by a single FENCE instruction
-                if (len(argv) != 4):
-                    print("FENCE - invalid fencepost {:}".format(msg))
-                else:
-                    float_lat = float(argv[0])
-                    float_lng = float(argv[1])
-                    float_alt = float(argv[2])
-                    float_rad = float(argv[3])
-
-                    if (fence_exclusive):
-                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_CIRCLE_EXCLUSION,float_rad,1,0,0,float_lat,float_lng,0)
-                    else:
-                        MAV.doCommand(MAVLink.MAV_CMD.FENCE_CIRCLE_INCLUSION,float_rad,1,0,0,float_lat,float_lng,0)
-                    
-                    MAV.doCommand(MAVLink.MAV_CMD.DO_FENCE_ENABLE,1,0,0,0,0,0,0)
-
-                    print("FENCE - set circular fence with center {:} {:}, radius {:}".format(float_lat, float_lng, float_rad))
 
         else:
             print("unrecognized command", cmd, argv)

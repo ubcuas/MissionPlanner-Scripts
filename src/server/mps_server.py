@@ -86,28 +86,6 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 self.server._instructions.push("LOCK 0")
                 self.server._locked = False
 
-            # Check for a new fence
-            fence_dict = self.server._so.mps_fence_get()
-            if fence_dict != None:
-                print("New fence found!")
-
-                # Place instructions for the new fence onto the queue
-                inex = 'EXCLUSIVE' if fence_dict['inex'] else 'INCLUSIVE'
-                typ = 'POLYGON' if (fence_dict['type'] == 'polygon') else 'CIRCLE'
-                self.server._instructions.push(f"NEWF {inex} {typ}")
-
-                if (fence_dict['type'] == 'polygon'):
-                    while(not fence_dict['vertices'].empty()):
-                        curr = fence_dict['vertices'].pop()
-                        self.server._instructions.push(f"FENCE {str(curr)}")
-                    self.server._instructions.push("FENCE")
-                else:
-                    lat = str(fence_dict['center']['latitude'])
-                    lng = str(fence_dict['center']['longitude'])
-                    alt = str(fence_dict['center']['altitude'])
-                    rad = str(fence_dict['center']['radius'])
-                    self.server._instructions.push(f"FENCE {lat} {lng} {alt} {rad}")
-
             # Check for a new mission
             nextwpq = self.server._so.mps_newmission_get()
             if nextwpq != None:
