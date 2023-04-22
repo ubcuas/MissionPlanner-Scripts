@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: MissionPlanner Scripts
-  version: 1.4.0
+  version: 1.4.1
   description: "This is the API that the MissionPlanner Scripts server exposes to GCOM."
   contact:
     name: Amin Fahiminia, Hansen Dan
@@ -305,6 +305,28 @@ paths:
       responses:
         "200":
           description: "Important invokation is underway"
+  /altstandard:
+    put:
+      tags:
+        - options
+      summary: TODO
+      description: >-
+        TODO
+      operationId: api.altstandard_put
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                standard:
+                  type: string
+                  enum: ['AGL', 'MSL']
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Unrecognized standard
 components:
   requestBodies:
     Queue:
