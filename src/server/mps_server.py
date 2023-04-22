@@ -74,6 +74,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             text = self.server._so.voice_get()
             self.server._instructions.push(f"TTS {text}")
 
+        # Check if we should switch modes
+        elif self.server._so._flightmode_flag:
+            mode = self.server._so.flightmode_get()
+            self.server._instructions.push(f"FMDE {mode}")
+
         # Check if we should lock
         elif self.server._so.mps_locked_get():
             print("Locking...")

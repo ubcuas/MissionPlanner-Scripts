@@ -48,6 +48,11 @@ class SharedObject():
         self._voice_flag = False
         self._voice_text = ""
         self._voice_lk = Lock()
+
+        # flightmode flags
+        self._flightmode_flag = False
+        self._flightmode = ""
+        self._flightmode_lk = Lock()
     
     # Currentmission methods
     def gcom_currentmission_get(self):
@@ -233,4 +238,19 @@ class SharedObject():
         self._voice_text = ""
         self._voice_flag = False
         self._voice_lk.release()
+        return ret
+    
+    # flightmode methods
+    def flightmode_set(self, mode):
+        self._flightmode_lk.acquire()
+        self._flightmode_flag = True
+        self._flightmode = mode
+        self._flightmode_lk.release()
+
+    def flightmode_get(self):
+        self._flightmode_lk.acquire()
+        ret = self._flightmode
+        self._flightmode = ""
+        self._flightmode_flag = False
+        self._flightmode_lk.release()
         return ret

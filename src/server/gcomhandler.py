@@ -331,11 +331,21 @@ class GCOM_Server():
             return "diverting"
         
         #end of endpoints
-        @app.route("/text2speech", methods=["POST"])
-        def text_2_speech():
+        @app.route("/invoke", methods=["POST"])
+        def invoke():
             input = request.get_json()
             self._so.voice_set(input['message'])
             return f"Message sent: {input['message']}"
+        
+        @app.route("/flightmode", methods=["PUT"])
+        def change_flight_mode():
+            input = request.get_json()
+            
+            if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
+                self._so.flightmode_set(input['mode'])
+                return f"OK! Changed mode: {input['mode']}", 200
+            else:
+                return f"Unrecognized mode: {input['mode']}", 400
         
         #run server
         if production:
