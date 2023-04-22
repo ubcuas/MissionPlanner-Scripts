@@ -215,6 +215,12 @@ while 1:
         
         elif cmd == "MODE":
             MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)
+        
+        elif cmd == "TTS":
+            text = ""
+            for word in argv:
+                text += word + " "
+            MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
 
         else:
             print("unrecognized command", cmd, argv)

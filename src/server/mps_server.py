@@ -68,6 +68,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         elif self.server._so.mps_vtol_get() != self.server._flight_mode:
             self.server._flight_mode = self.server._so.mps_vtol_get()
             self.server._instructions.push(f"MODE {self.server._flight_mode}")
+        
+        # Check if we should send tts text
+        elif self.server._so._voice_flag:
+            text = self.server._so.voice_get()
+            self.server._instructions.push(f"TTS {text}")
 
         # Check if we should lock
         elif self.server._so.mps_locked_get():

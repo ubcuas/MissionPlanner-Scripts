@@ -44,6 +44,10 @@ class SharedObject():
         self._vtol_mode = 3 #start in VTOL
         self._vtol_lk = Lock()
 
+        # voice flags
+        self._voice_flag = False
+        self._voice_text = ""
+        self._voice_lk = Lock()
     
     # Currentmission methods
     def gcom_currentmission_get(self):
@@ -214,4 +218,19 @@ class SharedObject():
         self._vtol_lk.acquire()
         ret = self._vtol_mode
         self._vtol_lk.release()
+        return ret
+
+    # voice methods
+    def voice_set(self, text):
+        self._voice_lk.acquire()
+        self._voice_flag = True
+        self._voice_text = text
+        self._voice_lk.release()
+
+    def voice_get(self):
+        self._voice_lk.acquire()
+        ret = self._voice_text
+        self._voice_text = ""
+        self._voice_flag = False
+        self._voice_lk.release()
         return ret

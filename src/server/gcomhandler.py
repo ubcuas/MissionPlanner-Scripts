@@ -331,7 +331,12 @@ class GCOM_Server():
             return "diverting"
         
         #end of endpoints
-
+        @app.route("/text2speech", methods=["POST"])
+        def text_2_speech():
+            input = request.get_json()
+            self._so.voice_set(input['message'])
+            return f"Message sent: {input['message']}"
+        
         #run server
         if production:
             production_server.start()
