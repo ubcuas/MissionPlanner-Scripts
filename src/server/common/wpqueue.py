@@ -23,11 +23,16 @@ class Waypoint():
         this_utm = convert_gps_to_utm(self._lat, self._lng)
         return (this_utm[0], this_utm[1], self._alt)
 
-    def distance(self, other_wp):
+    def distance(self, other_wp, altitude=True):
         this_utm = self.get_coords_utm()
         other_utm = other_wp.get_coords_utm()
 
-        return sqrt(pow(other_utm[0] - this_utm[0], 2) + pow(other_utm[1] - this_utm[1], 2) + pow(other_utm[2] - this_utm[2], 2))
+        if altitude:
+            altdist = pow(other_utm[2] - this_utm[2], 2)
+        else:
+            altdist = 0
+
+        return sqrt(pow(other_utm[0] - this_utm[0], 2) + pow(other_utm[1] - this_utm[1], 2) + altdist)
 
 class Queue():
     def __init__(self, inlist=[]):

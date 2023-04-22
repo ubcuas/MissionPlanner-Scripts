@@ -234,8 +234,10 @@ class GCOM_Server():
                 #exclusion zone
                 plot_shape([(ex.x, ex.y) for ex in exclude_waypoints], 'red', True)
 
+                ax = plt.gca()
+                ax.set_aspect('equal', adjustable='box')
                 plt.savefig('no-diversion.png')
-                plt.show()
+                #plt.show()
 
                 return "No intersection", 200
 
@@ -255,16 +257,10 @@ class GCOM_Server():
             path_vertices = {False:[], True:[]}
             current_path = False
             prepend = False
-            prepend_index = 0
+            prepend_list = []
             for aug in augmented_convex_verts:
-                #switch between paths
-                if aug[0] == start_waypoint.x and aug[1] == start_waypoint.y:
-                    path_vertices[current_path].append(aug)
-                    current_path = not current_path
-                    if not current_path:
-                        #if current_path returns to false
-                        prepend = True
-                elif aug[0] == target_waypoint.x and aug[1] == target_waypoint.y:
+                #if aug is a start/end waypoint, switch between paths
+                if (aug[0] == start_waypoint.x and aug[1] == start_waypoint.y) or (aug[0] == target_waypoint.x and aug[1] == target_waypoint.y):
                     path_vertices[current_path].append(aug)
                     current_path = not current_path
                     if not current_path:
@@ -273,10 +269,16 @@ class GCOM_Server():
                 
                 #count line segment between current aug and next vertex as part of current path
                 if prepend:
-                    path_vertices[current_path].insert(prepend_index, aug)
-                    prepend_index += 1
+                    prepend_list.append(aug)
                 else:
                     path_vertices[current_path].append(aug)
+            #prepend prepend_list
+            path_vertices[False][:0] = prepend_list
+
+            #unreverse reversed paths
+            for path in path_vertices.values():
+                if path[0][0] == target_waypoint.x and path[0][1] == target_waypoint.y:
+                    path.reverse()
 
             #calculate path lengths
             path_lengths = {False:0, True:0}
@@ -311,7 +313,7 @@ class GCOM_Server():
             ax = plt.gca()
             ax.set_aspect('equal', adjustable='box')
             plt.savefig('diversion.png')
-            plt.show()
+            #plt.show()
 
             #construct diverted waypoint queue
             original_queue = self._so.gcom_currentmission_get()
@@ -334,8 +336,9 @@ class GCOM_Server():
             #determine index of target wp
             for i in range(len(original_queue)):
                 target_waypoint_index = i
-                if original_queue[i].distance(targetwp) < 0.1:
+                if original_queue[i].distance(targetwp, False) < 0.1:
                     break
+
             #extend with rest of the original queue
             diverted_queue.extend([wp for wp in original_queue[target_waypoint_index:]])
 
