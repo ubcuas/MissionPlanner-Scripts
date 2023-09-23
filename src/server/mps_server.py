@@ -4,7 +4,7 @@ from server.common.missions import Mission
 from server.common.wpqueue import Waypoint, Queue
 from server.common.sharedobject import SharedObject
 
-#define request handler
+# Define request handler
 class MPS_Handler(socketserver.BaseRequestHandler):
     """
     This class works similar to the TCP handler class, except that
@@ -14,7 +14,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
     """
 
     def handle(self):
-        #receive location data
+        # Receive location data
         data = self.request[0].strip()
         socket = self.request[1]
 
@@ -30,76 +30,80 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
         #print(f"                  hdg: {current_hdg} vel: {current_vel}")
 
-        #updated shared obj with location data
+        # Updated shared obj with location data
         self.server._so.mps_status_set({"velocity":float(current_vel), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_hdg), "batteryvoltage":float(current_btv)})
 
-        #send instruction to UAV
+        # Send instruction to UAV
         socket.sendto(bytes(self.next_instruction(int(float(current_wpn))), "utf-8"), self.client_address)
     
     def next_instruction(self, current_wpn):
-        #place new instructions onto the queue
+        # Place new instructions onto the queue
         instruction = ""
 
-        #check if there is a new home
+        # Check if there is a new home
         newhome = self.server._so.mps_newhome_get()
         if newhome != None:
             wp = Waypoint(newhome['id'], newhome['name'], newhome['latitude'], newhome['longitude'], newhome['altitude'])
             self.server._instructions.push(f"HOME {str(wp)}")
 
-        #check takeoff altitude
+        vtol_land = self.server._so.mps_vtol_land_get()
+        if vtol_land != None:
+            wp = Waypoint(vtol_land['id'], vtol_land['name'], vtol_land['latitude'], vtol_land['longitude'], vtol_land['altitude'])
+            self.server._instructions.push(f"VTOLLAND {str(wp)}")
+
+        # Check takeoff altitude
         takeoffalt = self.server._so.mps_takeoffalt_get()
         if takeoffalt != 0:
             self.server._instructions.push(f"TOFF {takeoffalt}")
 
-        #check if we should rtl
+        # Check if we should rtl
         elif self.server._so.mps_rtl_get():
             self.server._instructions.push("RTL")
         
-        #check if we should land
+        # Check if we should land
         elif self.server._so.mps_landing_get():
             self.server._instructions.push("LAND")
+        
+        # Check if we should change flight mode
+        elif self.server._so.mps_vtol_get() != self.server._flight_mode:
+            self.server._flight_mode = self.server._so.mps_vtol_get()
+            self.server._instructions.push(f"MODE {self.server._flight_mode}")
+        
+        # Check if we should send tts text
+        elif self.server._so._voice_flag:
+            text = self.server._so.voice_get()
+            self.server._instructions.push(f"TTS {text}")
 
-        #check if we should lock
+        # Check if we should switch modes
+        elif self.server._so._flightmode_flag:
+            mode = self.server._so.flightmode_get()
+            self.server._instructions.push(f"FMDE {mode}")
+
+        # Check if we should lock
         elif self.server._so.mps_locked_get():
             print("Locking...")
             if self.server._locked:
-                #still locked, idle
+                # Still locked, idle
                 #self.server._instructions.push("IDLE")
                 pass
             else:
-                #send the lock instruction
+                # Send the lock instruction
                 self.server._instructions.push("LOCK 1")
                 self.server._locked = True
         else:
-            #reset _locked if coming out of locked state
+            # reset _locked if coming out of locked state
             if self.server._locked:
                 self.server._instructions.push("LOCK 0")
                 self.server._locked = False
 
-            #check for a new fence
-            fence_dict = self.server._so.mps_fence_get()
-            if fence_dict != None:
-                print("New fence found!")
-
-                #place instructions for the new fence onto the queue
-                self.server._instructions.push(f"NEWF {'EXCLUSIVE' if fence_dict['inex'] else 'INCLUSIVE'} {'POLYGON' if (fence_dict['type'] == 'polygon') else 'CIRCLE'}")
-
-                if (fence_dict['type'] == 'polygon'):
-                    while(not fence_dict['vertices'].empty()):
-                        curr = fence_dict['vertices'].pop()
-                        self.server._instructions.push(f"FENCE {str(curr)}")
-                    self.server._instructions.push("FENCE")
-                else:
-                    self.server._instructions.push(f"FENCE {str(fence_dict['center']['latitude'])} {str(fence_dict['center']['longitude'])} {str(fence_dict['center']['altitude'])} {str(fence_dict['radius'])}")
-
-            #check for a new mission
+            # Check for a new mission
             nextwpq = self.server._so.mps_newmission_get()
             if nextwpq != None:
-                #overwrite the current mission with the new one
+                # Overwrite the current mission with the new one
                 print("New mission found!")
                 self.server._current_mission = Mission(nextwpq)
                 
-                #place instructions for the new mission onto the queue
+                # Place instructions for the new mission onto the queue
                 self.server._instructions.push("NEWM")
                 self.server._newmc = 1
                 while (not nextwpq.empty()):
@@ -108,7 +112,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                     self.server._newmc += 1
                 self.server._instructions.push("NEXT")
             else:
-                #keep going and send current wpno to shared obj
+                # Keep going and send current wpno to shared obj
                 if (self.server._newmc == 0):
                     self.server._so.mps_currentmission_update(current_wpn)
                 else:
@@ -116,7 +120,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 #self.server._instructions.push("CONT")
                 pass
 
-        #retrieve an instruction
+        # Retrieve an instruction
         if (self.server._instructions.empty()):
             return "IDLE"
         else:
@@ -129,13 +133,14 @@ class MPS_Internal_Server(socketserver.UDPServer):
     def __init__(self, hptuple, handler, so):
         self._so = so
 
-        self._current_mission = Mission() #empty mission
+        self._current_mission = Mission() # Empty mission
         self._instructions = Queue()
 
         self._locked = False
         self._newmc = 0
+        self._flight_mode = 3
 
-        #superclass constructor
+        # Superclass constructor
         super().__init__(hptuple, handler)
         print("MPS_Internal_Server initialized")
 

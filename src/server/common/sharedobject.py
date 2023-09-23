@@ -2,45 +2,59 @@ from threading import Lock
 
 class SharedObject():
     def __init__(self):
-        #current mission fields
+        # Current mission fields
         self._currentmission = []
         self._currentmission_length = 0
         self._currentmission_lk = Lock()
 
-        #new mission fields
+        # New mission fields
         self._newmission = []
         self._newmission_lk = Lock()
         self._newmission_flag = False
         self._newmission_flag_lk = Lock()
 
-        #status fields
+        # Status fields
         self._status = ()
         self._status_lk = Lock()
 
-        #lock fields
+        # Lock fields
         self._locked = False 
         self._locked_lk = Lock()
 
-        #takeoff fields
+        # Takeoff fields
         self._takeoffalt = 0
         self._takeoffalt_lk = Lock()
 
-        #new home fields
+        # New home fields
         self._newhome = {}
         self._newhome_flag = False
         self._newhome_lk = Lock()
 
-        #rtl and landing flags
+        # rtl and landing flags
         self._rtl_flag = False
         self._landing_flag = False
         self._rtl_land_lk = Lock()
 
-        #fence fields
-        self._fence = None
-        self._fence_flag = False
-        self._fence_lk = Lock()
+        # vtol land flags
+        self._vtol_land_flag = False 
+        self._vtol_land_pos = {}
+        self._vtol_land_lk = Lock()
+
+        # vtol flags
+        self._vtol_mode = 3 #start in VTOL
+        self._vtol_lk = Lock()
+
+        # voice flags
+        self._voice_flag = False
+        self._voice_text = ""
+        self._voice_lk = Lock()
+
+        # flightmode flags
+        self._flightmode_flag = False
+        self._flightmode = ""
+        self._flightmode_lk = Lock()
     
-    #currentmission methods
+    # Currentmission methods
     def gcom_currentmission_get(self):
         ret = []
         self._currentmission_lk.acquire()
@@ -56,7 +70,7 @@ class SharedObject():
             #print("SHAREDOBJ : popped", num, target)
         self._currentmission_lk.release()
 
-    #newmission methods
+    # newmission methods
     def gcom_newmission_flagcheck(self):
         return self._newmission_flag
     
@@ -93,7 +107,7 @@ class SharedObject():
         else:
             return None
     
-    #status methods
+    # Status methods
     def mps_status_set(self, updated):
         self._status_lk.acquire()
         self._status = updated 
@@ -106,7 +120,7 @@ class SharedObject():
         self._status_lk.release()
         return ret
 
-    #lock methods
+    # Lock methods
     def gcom_locked_set(self, locked):
         ret = True
         self._locked_lk.acquire()
@@ -121,9 +135,9 @@ class SharedObject():
         self._locked_lk.acquire()
         ret = self._locked 
         self._locked_lk.release()
-        return ret 
+        return ret
 
-    #takeoff methods
+    # takeoff methods
     def gcom_takeoffalt_set(self, alt):
         self._takeoffalt_lk.acquire()
         self._takeoffalt = alt
@@ -139,7 +153,7 @@ class SharedObject():
         else:
             return 0
     
-    #new home methods
+    # New home methods
     def gcom_newhome_set(self, wp):
         self._newhome_lk.acquire()
         self._newhome = wp
@@ -157,7 +171,7 @@ class SharedObject():
         else:
             return None
 
-    #rtl/landing methods
+    # rtl/landing methods
     def gcom_rtl_set(self, val):
         self._rtl_land_lk.acquire()
         self._rtl_flag = val
@@ -179,23 +193,64 @@ class SharedObject():
             self._landing_flag = False
             return True
         return False
+
+    # vtol landing methods
+    def gcom_vtol_land_set(self, pos):
+        self._vtol_land_lk.acquire()
+        self._vtol_land_pos = pos 
+        self._vtol_land_flag = True 
+        self._vtol_land_lk.release()
     
-    #fence methods
-    def gcom_fence_set(self, obj):
-        self._fence_lk.acquire()
-        self._fence = obj
-        self._fence_flag = True
-        self._fence_lk.release()
-        return True
-
-    def mps_fence_get(self): 
-        if self._fence_flag:
-            self._fence_lk.acquire()
-            self._fence_flag = False
-            ret = self._fence
-            self._fence = None
-            self._fence_lk.release()
-
+    def mps_vtol_land_get(self):
+        if self._vtol_land_flag:
+            self._vtol_land_lk.acquire()
+            ret = self._vtol_land_pos
+            self._vtol_land_flag = False
+            self._vtol_land_pos = None
+            self._vtol_land_lk.release()
             return ret
         else:
             return None
+    
+    # vtol methods
+    def gcom_vtol_set(self, val):
+        self._vtol_lk.acquire()
+        self._vtol_mode = val
+        self._vtol_flag = True
+        self._vtol_lk.release()
+    
+    def mps_vtol_get(self):
+        self._vtol_lk.acquire()
+        ret = self._vtol_mode
+        self._vtol_lk.release()
+        return ret
+
+    # voice methods
+    def voice_set(self, text):
+        self._voice_lk.acquire()
+        self._voice_flag = True
+        self._voice_text = text
+        self._voice_lk.release()
+
+    def voice_get(self):
+        self._voice_lk.acquire()
+        ret = self._voice_text
+        self._voice_text = ""
+        self._voice_flag = False
+        self._voice_lk.release()
+        return ret
+    
+    # flightmode methods
+    def flightmode_set(self, mode):
+        self._flightmode_lk.acquire()
+        self._flightmode_flag = True
+        self._flightmode = mode
+        self._flightmode_lk.release()
+
+    def flightmode_get(self):
+        self._flightmode_lk.acquire()
+        ret = self._flightmode
+        self._flightmode = ""
+        self._flightmode_flag = False
+        self._flightmode_lk.release()
+        return ret

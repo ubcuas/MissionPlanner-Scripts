@@ -1,0 +1,385 @@
+openapi: 3.0.2
+info:
+  title: MissionPlanner Scripts
+  version: 1.4.1
+  description: "This is the API that the MissionPlanner Scripts server exposes to GCOM."
+  contact:
+    name: Amin Fahiminia, Hansen Dan
+servers:
+  - url: http://localhost:9000
+tags:
+  - name: queue
+    description: Access to aircraft waypoint queue
+  - name: status
+    description: Current aircraft status
+  - name: lock
+    description: Toggle queue-based movement
+  - name: takeoff
+    description: Take off after motors are armed
+  - name: landing
+    description: Landing, RTL, and setting Home
+  - name: options
+    description: Configure flight options
+paths:
+  /queue:
+    get:
+      tags:
+        - queue
+      summary: Returns the current list of waypoints in the queue
+      description: >-
+        Returns the current list of waypoints in the queue, in the order of their names. 
+        Waypoints that have been passed and removed from the queue are not displayed.
+      operationId: api.queue_get
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Waypoint"
+    post: 
+      tags:
+        - queue
+      summary: Overwrite the queue with a new list of waypoints 
+      description: >-
+        POST request containing a list of waypoints with names and longitude, 
+        latitude, and altitude values. If altitude is nil, carry on with the 
+        same altitude as you had last waypoint.
+        Previous queue should be overwritten if there is already one in place.
+        Longitude, name, and latitude must not be null/empty. Returns a Bad 
+        Request status code and error message in that case. Longitude and 
+        latitude in degrees, altitude in meters.
+      operationId: api.queue_post
+      requestBody:
+        $ref: "#/components/requestBodies/Queue"
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: bad request
+  /status:
+    get:
+      tags:
+        - status
+      summary: Obtain the aircraft status
+      description: >-
+        GET request returns the aircraft status. Velocity in m/s. Altitude 
+        in meters and is relative to sea level. Longitude, latitude, heading 
+        in degrees.
+      operationId: api.status_get
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+  /lock:
+    get:
+      tags:
+        - lock
+      summary: Prevent the aircraft from moving based on the queue
+      description: >-
+        Stops the aircraft from moving based on the Mission Planner Scripts' 
+        waypoint queue loading functionality, maintaining the queue internally. 
+        Return Bad Request if the aircraft is already locked, or the queue is empty.
+      operationId: api.lock_get
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Aircraft already locked or queue empty
+  /unlock:
+    get:
+      tags:
+        - lock
+      summary: Resume aircraft movement based on the queue
+      description: >-
+        Resume moving the aircraft based on the currently stored queue. 
+        Returns a Bad Request status code and an error message if the aircraft 
+        is already unlocked.
+      operationId: api.unlock_get
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Aircraft already unlocked
+  /takeoff:
+    post:
+      tags:
+        - takeoff
+      summary: Lift off to a given altitude
+      description: >-
+        POST request containing an altitude to take off to that is measured 
+        relative to sea level. Don't put an altitude that would be underground.
+      operationId: api.takeoff_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                altitude:
+                  type: number
+                  format: float64
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Takeoff unsuccessful or motors disarmed
+  /rtl:
+    get:
+      tags:
+        - landing
+      summary: return to launch
+      description: >-
+        Aircraft returns to home waypoint and lands (return-to-launch). 
+        Returns a Bad Request status code and error message if the drone 
+        could not execute the operation.
+      operationId: api.rtl_get
+      responses:
+        "200":
+          description: Successful, drone has initiated RTL procedure
+        "400":
+          description: Initiating RTL unsuccessful
+  /land:
+    get:
+      tags:
+        - landing
+      summary: immediately descend and land
+      description: >-
+        Aircraft stops at its current position and lands. 
+        Returns a Bad Request status code and error message if the drone 
+        could not execute the operation.
+      operationId: api.land_get
+      responses:
+        "200":
+          description: Successful, drone has started landing procedure
+        "400":
+          description: Initiating landing unsuccessful
+    post: 
+      tags: 
+        - landing 
+      summary: land at designated location (VTOL-compatible)
+      description: >-
+        VTOL compatible land at the location in the request.
+      operationId: api.land_post 
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              $ref: "#/components/schemas/Waypoint"
+      responses:
+        "200":
+          description: Successful, drone has started landing procedure 
+  /home:
+    post:
+      tags:
+        - landing
+      summary: set the home waypoint of the drone
+      description: >-
+        POST request containing a waypoint whose longitude, latitiude and 
+        altitiude will be the basis for the new home waypoint. All other 
+        fields will be ignored.
+      operationId: api.home_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Waypoint"
+      responses:
+        "200":
+          description: Successfully set new home position
+        "400":
+          description: Home position could not be set
+  /vtol/transition: 
+    get:
+      tags:
+        - options
+      summary: return whether the aircraft is in VTOL or fixed wing mode
+      description: >-
+        Returns the current flight mode of the aircraft. The values 
+        correspond to those in the MAV commands, so 3 indicates VTOL flight 
+        while 4 indicates fixed wing flight. 
+      operationId: api.vtol_transition_get
+      responses:
+        "200":
+          description: Returned flight mode 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  mode: 
+                    type: integer
+    post:
+      tags:
+        - options
+      summary: change the aircraft's flight mode
+      description: >-
+        Change the aircraft's flight mode. The mode to change to is 
+        specified by the mode property in the request body. As in 
+        the GET endpoint, use 3 to indicate VTOL and 4 to indicate 
+        fixed wing.
+      operationId: api.vtol_transition_post
+      requestBody:
+        content:
+          application/json: 
+            schema:
+              type: object 
+              properties: 
+                mode: 
+                  type: integer 
+      responses:
+        "200": 
+          description: Flight mode changed
+  /diversion:
+    post: 
+      tags: 
+        - queue
+      summary: divert the aircraft around an exclusion zone
+      description: >-
+        Include the waypoints that define the exclusion polygon in 
+        order in the exclude array, and the waypoint to rejoin the 
+        normal queue at in the rejoin_at property. The server will 
+        process the information, produce a diverted path, and pass 
+        that to the aircraft, returning 200. Note that 200 will be 
+        returned whether or not the new path is applied or not.
+      operationId: api.diversion_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object 
+              properties:
+                exclude:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Waypoint'
+                rejoin_at:
+                  $ref: '#/components/schemas/Waypoint'
+      responses:
+        "200":
+          description: Diversion processed
+  /flightmode:
+    put:
+      tags:
+        - options
+      summary: Change flight mode of the aircraft
+      description: >-
+        Set the flight mode of the aircraft to Loiter, Stabilize, Auto, or Guided
+      operationId: api.mode_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  enum: ['loiter', 'stabilize', 'auto', 'guided']
+      responses:
+        "200":
+          description: Operation processed
+        "400":
+          description: Unrecognized mode
+  /invoke:
+    post:
+      tags:
+        - options
+      summary: Invoke as specified in post request
+      description: >-
+        Performs a crucial functionality
+      operationId: api.invoke_post
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              type: object 
+              properties:
+                message:
+                  type: string
+      responses:
+        "200":
+          description: "Important invokation is underway"
+  /altstandard:
+    put:
+      tags:
+        - options
+      summary: TODO
+      description: >-
+        TODO
+      operationId: api.altstandard_put
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                standard:
+                  type: string
+                  enum: ['AGL', 'MSL']
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Unrecognized standard
+components:
+  requestBodies:
+    Queue:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Queue"
+      description: Queue of waypoints
+      required: true
+  schemas:
+    Queue:
+      type: array
+      items:
+        $ref: "#/components/schemas/Waypoint"
+    Waypoint:
+      type: object
+      properties:
+        id:
+          type: number
+          format: integer
+        name:
+          type: string
+        longitude:
+          type: number
+          format: float64
+        latitude:
+          type: number
+          format: float64
+        altitude:
+          type: number
+          format: float64
+      xml:
+        name: Queue
+    Status:
+      type: object
+      properties:
+        velocity:
+          type: number
+          format: float64
+        longitude:
+          type: number
+          format: float64
+        latitude:
+          type: number
+          format: float64
+        altitude:
+          type: number
+          format: float64
+        heading:
+          type: number
+          format: float64
+        batteryvoltage:
+          type: number
+          format: float64
+      xml:
+        name: Status
