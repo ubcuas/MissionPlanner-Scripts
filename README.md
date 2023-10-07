@@ -19,22 +19,22 @@ following:
 
 2. If you are running Windows, you will need WSL installed on your computer. You can get it simply by running `wsl --install` with admin privileges on cmd. Please also see the documentation [here](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-3. Once you have Docker, you will need to pull the SITL image from DockerHub. To do this, run the Docker application then run the following command:
+3. Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the ArduPilot version):
 
     - ArduPlane (VTOL):
-        - x86: `docker pull ubcuas/uasitl:plane`
-        - ARM64: `docker pull ubcuas/uasitl:plane-arm`
+        - x86: `docker pull ubcuas/uasitl:plane-X.X.X`
+        - ARM64: `docker pull ubcuas/uasitl:plane-arm-X.X.X`
     - ArduCopter (Quadcopter):
-        - x86: `docker pull ubcuas/uasitl:copter`
-        - ARM64: `docker pull ubcuas/uasitl:copter-arm`
+        - x86: `docker pull ubcuas/uasitl:copter-X.X.X`
+        - ARM64: `docker pull ubcuas/uasitl:copter-arm-X.X.X`
 
     If everything goes correctly, running `docker image ls` should contain an entry for `ubcuas/uasitl`.
 
 4. Run one of the following commands to get SITL running:
 
-    x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]`
+    x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-X.X.X`
 
-    ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm`
+    ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm-X.X.X`
 
 5. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
 <p align="center">
