@@ -40,17 +40,13 @@ if __name__ == "__main__":
     gcmh = GCOM_Server(so)
     skth = Socket_Handler(so)
 
-    # mpss process
-    mpss_process = Thread(target=mpss.serve_forever)
+    # mpss thread
+    mpss_thread = Thread(target=mpss.serve_forever)
 
-    # gcmh process
-    gcmh_process = Thread(target=gcmh.serve_forever, args=[production, HOST, PORT])
+    # gcmh thread
+    gcmh_thread = Thread(target=gcmh.serve_forever, args=[production, HOST, PORT])
 
-    # # skth process
-    # skth_process = Thread(target=skth.serve_forever, args=[production, HOST, SOCKET_PORT])
-
-    mpss_process.start()
-    gcmh_process.start()
-    #skth_process.start()
+    mpss_thread.start()
+    gcmh_thread.start()
 
     skth.serve_forever(production, HOST, SOCKET_PORT)

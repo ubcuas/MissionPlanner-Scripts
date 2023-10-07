@@ -366,11 +366,6 @@ class GCOM_Server():
             print("Status sent to GCOM")
             
             socketio.emit('status_response', {'status_data': retJSON})
-
-        # def background_task():
-        #     while True:
-        #         handle_message()
-        #         time.sleep(3)
             
         #run server
         if production:
