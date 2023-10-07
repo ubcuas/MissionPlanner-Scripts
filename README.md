@@ -4,6 +4,7 @@
 
 1. [Instructions](#instructions)
 2. [Endpoints](#endpoints)
+3. [Sockets](#sockets)
 
 # Instructions
 
@@ -61,10 +62,10 @@ following:
 2. Launch the application:
 
     ```
-    poetry run .\src\main.py [--dev] [--port=9000]
+    poetry run .\src\main.py [--dev] [--port=9000] [--socket-port=9001]
     ```
 
-    The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
+    The server will listen on the specified port (default 9000) for HTTP requests, listen for WebSocket connections on the specified port (default 9001), and will use port 4000 to communicate with MissionPlanner.
 
 3. Start the client inside MissionPlanner:
 
@@ -200,3 +201,40 @@ Example request body:
     "altitude": 50.7
 }
 ```
+
+# Sockets
+
+A connection can be established through a Socket endpoint (set through command line argument, port 9001 by default). An example Node.js client has been provided in `testing/socket.js` that establishes a connection, and continually sends/recieves status information every 500ms.
+
+## Events (server-side)
+
+The server is listening for the following events:
+
+### connect
+
+Socket client connects. Outputs to console to confirm connection.
+
+### disconnect
+
+Socket client disconnects. Outputs to console to confirm disconnection.
+
+### message
+
+On recieving a `message` event, and emits another `message` event in response, carrying a JSON containing basic drone status information. JSON Response template:
+
+```json
+{
+    "velocity": 22.2,
+    "longitude": 38.3182,
+    "latitude":  82.111,
+    "altitude": 28.1111,
+    "heading": 11.2,
+    "batteryvoltage": 1.5
+}
+```
+
+## Timeouts/Heartbeat
+
+We are using the Flask SocketIO library for our implementation. By default:
+
+- The server pings the client every 25 seconds.

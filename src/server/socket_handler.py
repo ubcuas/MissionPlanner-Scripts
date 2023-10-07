@@ -28,8 +28,8 @@ class Socket_Handler():
             print("Client disconnected")
 
         @socketio.on('message')
-        def handle_message(msg=""):
-            print(f'Message received: {msg}')
+        def handle_message(msg):
+            #print(f'Message received: {msg}')
             ret = self.so.gcom_status_get()
             retJSON = json.dumps(ret)
             emit('message', {'status_data': retJSON})
