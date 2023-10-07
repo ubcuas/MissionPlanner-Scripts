@@ -1,5 +1,6 @@
 import sys
-from multiprocessing import Process
+#from multiprocessing import Process
+from threading import Thread
 
 from server.common.sharedobject import SharedObject
 from server.gcomhandler import GCOM_Server
@@ -40,14 +41,16 @@ if __name__ == "__main__":
     skth = Socket_Handler(so)
 
     # mpss process
-    mpss_process = Process(target=mpss.serve_forever)
+    mpss_process = Thread(target=mpss.serve_forever)
 
     # gcmh process
-    gcmh_process = Process(target=gcmh.serve_forever, args=[production, HOST, PORT])
+    gcmh_process = Thread(target=gcmh.serve_forever, args=[production, HOST, PORT])
 
-    # skth process
-    skth_process = Process(target=skth.serve_forever, args=[production, HOST, SOCKET_PORT])
+    # # skth process
+    # skth_process = Thread(target=skth.serve_forever, args=[production, HOST, SOCKET_PORT])
 
     mpss_process.start()
     gcmh_process.start()
-    skth_process.start()
+    #skth_process.start()
+
+    skth.serve_forever(production, HOST, SOCKET_PORT)

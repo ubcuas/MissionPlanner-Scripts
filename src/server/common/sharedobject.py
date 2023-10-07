@@ -1,4 +1,5 @@
-from multiprocessing import Lock
+#from multiprocessing import Lock
+from threading import Lock
 
 class SharedObject():
     def __init__(self):

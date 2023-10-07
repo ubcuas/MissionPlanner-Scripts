@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, send, emit
 from server.common.conversion import *
 import time
 import json
@@ -11,9 +11,9 @@ class Socket_Handler():
         self.so = so
         print("SocketHandler Initialized")
 
-    def serve_forever(self, production=True, HOST="localhost", PORT=5050):
+    def serve_forever(self, production=True, HOST="localhost", PORT=9001):
         app = Flask(__name__)
-        socketio = SocketIO(app)
+        socketio = SocketIO(app, logger=True)
 
         @app.route("/test")
         def test():
@@ -22,17 +22,16 @@ class Socket_Handler():
         @socketio.on('connect')
         def handle_connect():
             print("Client connected to socket")
-            socketio.emit('okay', {'data': 'Connected'})
 
         @socketio.on('disconnect')
         def handle_disconnect():
             print("Client disconnected")
 
         @socketio.on('message')
-        def handle_message():
+        def handle_message(msg=""):
+            print(f'Message received: {msg}')
             ret = self.so.gcom_status_get()
             retJSON = json.dumps(ret)
-            print("Status sent to GCOM")
-            socketio.emit('status_response', {'status_data': retJSON})
+            emit('message', {'status_data': retJSON})
         
         socketio.run(app, host=HOST, port=PORT, debug=True, use_reloader=False)
