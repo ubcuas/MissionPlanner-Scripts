@@ -220,7 +220,7 @@ Socket client disconnects. Outputs to console to confirm disconnection.
 
 ### message
 
-On recieving a `message` event, and emits another `message` event in response, carrying a JSON containing basic drone status information. JSON Response template:
+On recieving a `message` event, the server emits another `message` event in response, carrying a JSON containing basic drone status information. JSON Response template:
 
 ```json
 {
@@ -233,8 +233,6 @@ On recieving a `message` event, and emits another `message` event in response, c
 }
 ```
 
-## Timeouts/Heartbeat
+## Heartbeat
 
-We are using the Flask SocketIO library for our implementation. By default:
-
-- The server pings the client every 25 seconds.
+We are using the Flask SocketIO library for our implementation. By default, the server pings the client every 25 seconds.
