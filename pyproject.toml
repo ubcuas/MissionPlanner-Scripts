@@ -12,6 +12,7 @@ flask = "^2.2.2"
 wsgiserver = "^1.3"
 shapely = "^2.0.1"
 matplotlib = "^3.7.1"
+pytest = "^7.4.2"
 
 
 [build-system]
