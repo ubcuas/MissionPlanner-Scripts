@@ -1,0 +1,67 @@
+{
+  "exclude": [
+    {
+      "id": 6,
+      "name": "string",
+      "longitude": -76.5644073,
+      "latitude": 38.1491375,
+      "altitude": 0
+    },
+    {
+      "id": 7,
+      "name": "string",
+      "longitude": -76.5844917,
+      "latitude": 38.1723531,
+      "altitude": 0
+    },
+    {
+      "id": 8,
+      "name": "string",
+      "longitude": -76.5529060,
+      "latitude": 38.1935375,
+      "altitude": 0
+    },
+    {
+      "id": 9,
+      "name": "string",
+      "longitude": -76.5697289,
+      "latitude": 38.2299550,
+      "altitude": 0
+    },
+    {
+      "id": 10,
+      "name": "string",
+      "longitude": -76.5230370,
+      "latitude": 38.2364273,
+      "altitude": 0
+    },
+    {
+      "id": 11,
+      "name": "string",
+      "longitude": -76.6044044,
+      "latitude": 38.2592106,
+      "altitude": 0
+    },
+    {
+      "id": 12,
+      "name": "string",
+      "longitude": -76.6116142,
+      "latitude": 38.2090509,
+      "altitude": 0
+    },
+    {
+      "id": 13,
+      "name": "string",
+      "longitude": -76.6474915,
+      "latitude": 38.1742424,
+      "altitude": 0
+    }
+  ],
+  "rejoin_at": {
+    "id": 4,
+    "name": "string",
+    "longitude": -76.6116142,
+    "latitude": 38.1490025,
+    "altitude": 50
+  }
+}

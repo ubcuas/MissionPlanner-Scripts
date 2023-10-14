@@ -1,0 +1,39 @@
+{
+  "exclude": [
+    {
+      "id": 13,
+      "name": "string",
+      "longitude": -76.5609741,
+      "latitude": 38.2598846,
+      "altitude": 0
+    },
+    {
+      "id": 14,
+      "name": "string",
+      "longitude": -76.5756512,
+      "latitude": 38.2597498,
+      "altitude": 0
+    },
+    {
+      "id": 15,
+      "name": "string",
+      "longitude": -76.5755653,
+      "latitude": 38.2524033,
+      "altitude": 0
+    },
+    {
+      "id": 16,
+      "name": "string",
+      "longitude": -76.5599442,
+      "latitude": 38.2525382,
+      "altitude": 0
+    }
+  ],
+  "rejoin_at": {
+    "id": 3,
+    "name": "string",
+    "longitude": -76.5711880,
+    "latitude": 38.2400003,
+    "altitude": 50
+    }
+}
