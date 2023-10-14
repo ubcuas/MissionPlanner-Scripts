@@ -22,16 +22,19 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         current_lat = str(parameters[0]).strip(' b\'')
         current_lng = str(parameters[1]).strip(' b\'')
         current_alt = str(parameters[2]).strip(' b\'')
-        current_hdg = str(parameters[3]).strip(' b\'')
-        current_vel = str(parameters[4]).strip(' b\'')
-        current_btv = str(parameters[5]).strip(' b\'')
-        current_wpn = str(parameters[6]).strip(' b\'')
+        current_rol = str(parameters[3]).strip(' b\'')
+        current_pch = str(parameters[4]).strip(' b\'')
+        current_yaw = str(parameters[5]).strip(' b\'')
+        current_asp = str(parameters[6]).strip(' b\'')
+        current_gsp = str(parameters[7]).strip(' b\'')
+        current_btv = str(parameters[8]).strip(' b\'')
+        current_wpn = str(parameters[9]).strip(' b\'')
 
         #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
         #print(f"                  hdg: {current_hdg} vel: {current_vel}")
 
         # Updated shared obj with location data
-        self.server._so.mps_status_set({"velocity":float(current_vel), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_hdg), "batteryvoltage":float(current_btv)})
+        self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv)})
 
         # Send instruction to UAV
         socket.sendto(bytes(self.next_instruction(int(float(current_wpn))), "utf-8"), self.client_address)
