@@ -21,6 +21,8 @@ DELAY = 1 # Seconds
 REMOTE = ''
 # Datagram (udp) socket 
 
+MODE = "plane"
+
 rsock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 timeout = 5
 rsock.settimeout(timeout)
@@ -217,7 +219,10 @@ while 1:
             MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)
         
         elif cmd == "FMDE":
-            Script.ChangeMode(argv[0])
+            if MODE == 'plane' and argv[0] in ['loiter', 'stabilize']:
+                Script.ChangeMode("q{:}".format(argv[0]))
+            else:
+                Script.ChangeMode(argv[0])
         
         elif cmd == "TTS":
             text = ""
@@ -226,7 +231,9 @@ while 1:
             MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
         
         elif cmd == "CONFIG":
-            pass 
+            if argv[0] in ["vtol", "plane"]:
+                MODE = argv[0]
+                print(MODE)
 
         else:
             print("unrecognized command", cmd, argv)
