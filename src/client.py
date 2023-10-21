@@ -224,6 +224,9 @@ while 1:
             for word in argv:
                 text += word + " "
             MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
+        
+        elif cmd == "CONFIG":
+            pass 
 
         else:
             print("unrecognized command", cmd, argv)

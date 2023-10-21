@@ -40,6 +40,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         # Place new instructions onto the queue
         instruction = ""
 
+        # Check if there is a flight config update request
+        newmode = self.server._so.flightConfig_get()
+        if newmode != "":
+            self.server._instructions.push(f"CONFIG {newmode}")
+
         # Check if there is a new home
         newhome = self.server._so.mps_newhome_get()
         if newhome != None:

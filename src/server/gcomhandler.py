@@ -344,6 +344,10 @@ class GCOM_Server():
             if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
                 self._so.flightmode_set(input['mode'])
                 return f"OK! Changed mode: {input['mode']}", 200
+            elif input['mode'] in ['vtol', 'plane']:
+                print("changing mode")
+                self._so.flightConfig_set(input['mode'])
+                return f"OK! Changed mode: {input['mode']}", 200
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
         

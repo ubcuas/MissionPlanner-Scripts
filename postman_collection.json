@@ -1,0 +1,316 @@
+{
+	"info": {
+		"_postman_id": "243c15d7-0904-4cc6-af7f-4d422f72709d",
+		"name": "./Insomnia_spec",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27310156",
+		"_collection_link": "https://dark-space-625667.postman.co/workspace/uas~4452f2d7-867e-430f-8ca4-52527aa26ec3/collection/27310156-243c15d7-0904-4cc6-af7f-4d422f72709d?action=share&source=collection_link&creator=27310156"
+	},
+	"item": [
+		{
+			"name": "fence",
+			"item": [
+				{
+					"name": "set all inclusive polygonal fences",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  [\n    {\n      \"id\": 0,\n      \"name\": \"string\",\n      \"longitude\": 0,\n      \"latitude\": 0,\n      \"altitude\": 0\n    }\n  ]\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/fence/inclusive",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"fence",
+								"inclusive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set all exclusive polygonal fences",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  [\n    {\n      \"id\": 0,\n      \"name\": \"string\",\n      \"longitude\": 0,\n      \"latitude\": 0,\n      \"altitude\": 0\n    }\n  ]\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/fence/exclusive",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"fence",
+								"exclusive"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "landing",
+			"item": [
+				{
+					"name": "return to launch",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/rtl",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"rtl"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "immediately descend and land",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/land",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"land"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set the home waypoint of the drone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 0,\n  \"name\": \"Alpha\",\n  \"latitude\": -35.3627798,\n  \"longitude\": 149.1651830,\n  \"altitude\": 583\n}"
+						},
+						"url": {
+							"raw": "{{ base_url }}/home",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"home"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "unlock",
+			"item": [
+				{
+					"name": "Resume aircraft movement based on the queue",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/unlock",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"unlock"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "takeoff",
+			"item": [
+				{
+					"name": "Lift off to a given altitude",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"altitude\": 100\n}"
+						},
+						"url": {
+							"raw": "{{ base_url }}/takeoff",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"takeoff"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "lock",
+			"item": [
+				{
+					"name": "Prevent the aircraft from moving based on the queue",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/lock",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"lock"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "queue",
+			"item": [
+				{
+					"name": "Returns the current list of waypoints in the queue",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data"
+							}
+						],
+						"url": {
+							"raw": "{{ base_url }}/queue",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"queue"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Overwrite the queue with a new list of waypoints",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  {\n\t\t\"id\": 0,\n    \"name\": \"Alpha\",\n    \"latitude\": -35.3627798,\n    \"longitude\": 149.1651830,\n    \"altitude\": 603\n  },\n\t{\n\t\t\"id\": 1,\n\t  \"name\": \"Bravo\",\n    \"latitude\": -35.3637798,\n    \"longitude\": 149.1651830,\n    \"altitude\": null\n\t},\n\t{\n\t\t\"id\": 2,\n\t  \"name\": \"Charlie\",\n    \"latitude\": -35.3637798,\n    \"longitude\": 149.1641830,\n    \"altitude\": 593\n\t}\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/queue",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"queue"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "status",
+			"item": [
+				{
+					"name": "Obtain the aircraft status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/status",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "mode",
+			"item": [
+				{
+					"name": "Update current flight mode",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mode\": \"vtol\" \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ base_url }}/flightmode",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"flightmode"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
