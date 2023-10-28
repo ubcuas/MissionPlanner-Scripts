@@ -47,6 +47,10 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         newmode = self.server._so.flightConfig_get()
         if newmode != "":
             self.server._instructions.push(f"CONFIG {newmode}")
+        
+        altitude_standard = self.server._so.altitude_standard_get()
+        if altitude_standard != "":
+            self.server._instructions.push(f"ALTSTD {altitude_standard}")
 
         # Check if there is a new home
         newhome = self.server._so.mps_newhome_get()

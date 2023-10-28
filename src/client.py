@@ -22,6 +22,7 @@ REMOTE = ''
 # Datagram (udp) socket 
 
 MODE = "plane"
+ALTSTD = MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT
 
 rsock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 timeout = 5
@@ -34,6 +35,12 @@ print("Entered Guided Mode")
 wp_array = []
 fence_exclusive = False
 fence_type = ""
+
+def get_altitude_standard(standard):
+    if standard == "AGL":
+        return MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT
+    else:
+        return MAVLink.MAV_FRAME.GLOBAL
 
 def upload_mission(wp_array):
     """
@@ -50,14 +57,14 @@ def upload_mission(wp_array):
     Locationwp.lng.SetValue(dummy, 0)
     Locationwp.alt.SetValue(dummy, 0)
     Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
-    MAV.setWP(dummy, 0, MAVLink.MAV_FRAME.GLOBAL)
+    MAV.setWP(dummy, 0, ALTSTD)
     for i in range(0, len(wp_array)):
         wp = Locationwp()
         Locationwp.lat.SetValue(wp, wp_array[i][0])
         Locationwp.lng.SetValue(wp, wp_array[i][1])
         Locationwp.alt.SetValue(wp, wp_array[i][2])
         Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
-        MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL)
+        MAV.setWP(wp, i + 1, ALTSTD)
     # Final ack
     MAV.setWPACK()
 
@@ -167,8 +174,8 @@ while 1:
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
 
                 MAV.setWPTotal(2)
-                MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
-                MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL)
+                MAV.setWP(home,0,ALTSTD)
+                MAV.setWP(takeoff,1,ALTSTD)
                 MAV.setWPACK()
                 Script.ChangeMode("Guided")
                 print("YOU HAVE 10 SECONDS TO ARM MOTORS")
@@ -208,8 +215,8 @@ while 1:
             Locationwp.alt.SetValue(landing, takeoffalt)
 
             MAV.setWPTotal(2)
-            MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
-            MAV.setWP(landing,1,MAVLink.MAV_FRAME.GLOBAL)
+            MAV.setWP(home,0,ALTSTD)
+            MAV.setWP(landing,1,ALTSTD)
             MAV.setWPACK()
             Script.ChangeMode("Auto")
             # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
@@ -233,7 +240,9 @@ while 1:
         elif cmd == "CONFIG":
             if argv[0] in ["vtol", "plane"]:
                 MODE = argv[0]
-                print(MODE)
+        
+        elif cmd == "ALTSTD":
+            ALTSTD = get_altitude_standard(argv[0])
 
         else:
             print("unrecognized command", cmd, argv)
