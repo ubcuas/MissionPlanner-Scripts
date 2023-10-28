@@ -54,6 +54,8 @@ class SharedObject():
         self._flightmode_flag = False
         self._flightmode = ""
         self._flightmode_lk = Lock()
+        self._flightConfig = ""
+        self._flightConfig_lk = Lock()
     
     # Currentmission methods
     def gcom_currentmission_get(self):
@@ -254,4 +256,16 @@ class SharedObject():
         self._flightmode = ""
         self._flightmode_flag = False
         self._flightmode_lk.release()
+        return ret
+
+    def flightConfig_set(self, config):
+        self._flightConfig_lk.acquire()
+        self._flightConfig = config
+        self._flightConfig_lk.release()
+    
+    def flightConfig_get(self):
+        self._flightConfig_lk.acquire()
+        ret = self._flightConfig
+        self._flightConfig = ""
+        self._flightConfig_lk.release()
         return ret
