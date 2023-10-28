@@ -56,6 +56,10 @@ class SharedObject():
         self._flightmode_lk = Lock()
         self._flightConfig = ""
         self._flightConfig_lk = Lock()
+
+        # altitude standard flags
+        self.altitude_standard = "AGL"
+        self.altitude_standard_lk = Lock()
     
     # Currentmission methods
     def gcom_currentmission_get(self):
@@ -268,4 +272,17 @@ class SharedObject():
         ret = self._flightConfig
         self._flightConfig = ""
         self._flightConfig_lk.release()
+        return ret
+
+    # altitude standard methods
+    def altitude_standard_set(self, standard):
+        self.altitude_standard_lk.acquire()
+        self.altitude_standard = standard
+        self.altitude_standard_lk.release()
+
+    def altitude_standard_get(self):
+        self.altitude_standard_lk.acquire()
+        ret = self.altitude_standard
+        self.altitude_standard = ""
+        self.altitude_standard_lk.release()
         return ret

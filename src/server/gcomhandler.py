@@ -341,16 +341,24 @@ class GCOM_Server():
         @app.route("/flightmode", methods=["PUT"])
         def change_flight_mode():
             input = request.get_json()
-            
-            if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
-                self._so.flightmode_set(input['mode'])
-                return f"OK! Changed mode: {input['mode']}", 200
-            elif input['mode'] in ['vtol', 'plane']:
-                print("changing mode")
-                self._so.flightConfig_set(input['mode'])
-                return f"OK! Changed mode: {input['mode']}", 200
+
+            updated_flag = False
+
+            if 'altitude_standard' in input and input["altitude_standard"] in ['AGL', 'ASL']:
+                self._so.altitude_standard_set(input['altitude_standard'])
+                updated_flag = True
+            if 'flight_mode' in input and input['flight_mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
+                self._so.flightmode_set(input['flight_mode'])
+                updated_flag = True  
+            if 'drone_type' in input and input['drone_type'] in ['vtol', 'plane']:
+                self._so.flightConfig_set(input['drone_type'])
+                updated_flag = True
+
+            if updated_flag:
+                return "Updated values", 200
             else:
-                return f"Unrecognized mode: {input['mode']}", 400
+                return "Unrecognized keys or values", 400
+
         
         #Socket stuff
         @socketio.on("connect")
