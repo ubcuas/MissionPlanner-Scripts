@@ -235,7 +235,7 @@ Each of these key-value pairs is optional; you can include any, all, or none of 
     "drone_type": "vtol",
     "altitude_standard": "ASL"
 }
-
+```
 # Sockets
 
 A connection can be established through a Socket endpoint (set through command line argument, port 9001 by default). An example Node.js client has been provided in `testing/socket.js` that establishes a connection, and continually sends/recieves status information every 500ms.
