@@ -4,6 +4,7 @@
 
 1. [Instructions](#instructions)
 2. [Endpoints](#endpoints)
+3. [Sockets](#sockets)
 
 # Instructions
 
@@ -18,22 +19,22 @@ following:
 
 2. If you are running Windows, you will need WSL installed on your computer. You can get it simply by running `wsl --install` with admin privileges on cmd. Please also see the documentation [here](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-3. Once you have Docker, you will need to pull the SITL image from DockerHub. To do this, run the Docker application then run the following command:
+3. Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the ArduPilot version):
 
     - ArduPlane (VTOL):
-        - x86: `docker pull ubcuas/uasitl:plane`
-        - ARM64: `docker pull ubcuas/uasitl:plane-arm`
+        - x86: `docker pull ubcuas/uasitl:plane-X.X.X`
+        - ARM64: `docker pull ubcuas/uasitl:plane-arm-X.X.X`
     - ArduCopter (Quadcopter):
-        - x86: `docker pull ubcuas/uasitl:copter`
-        - ARM64: `docker pull ubcuas/uasitl:copter-arm`
+        - x86: `docker pull ubcuas/uasitl:copter-X.X.X`
+        - ARM64: `docker pull ubcuas/uasitl:copter-arm-X.X.X`
 
     If everything goes correctly, running `docker image ls` should contain an entry for `ubcuas/uasitl`.
 
 4. Run one of the following commands to get SITL running:
 
-    x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]`
+    x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-X.X.X`
 
-    ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm`
+    ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm-X.X.X`
 
 5. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
 <p align="center">
@@ -61,10 +62,10 @@ following:
 2. Launch the application:
 
     ```
-    poetry run .\src\main.py [--dev] [--port=9000]
+    poetry run .\src\main.py [--dev] [--port=9000] [--socket-port=9001]
     ```
 
-    The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
+    The server will listen on the specified port (default 9000) for HTTP requests, listen for WebSocket connections on the specified port (default 9001), and will use port 4000 to communicate with MissionPlanner.
 
 3. Start the client inside MissionPlanner:
 
@@ -200,3 +201,38 @@ Example request body:
     "altitude": 50.7
 }
 ```
+
+# Sockets
+
+A connection can be established through a Socket endpoint (set through command line argument, port 9001 by default). An example Node.js client has been provided in `testing/socket.js` that establishes a connection, and continually sends/recieves status information every 500ms.
+
+## Events (server-side)
+
+The server is listening for the following events:
+
+### connect
+
+Socket client connects. Outputs to console to confirm connection.
+
+### disconnect
+
+Socket client disconnects. Outputs to console to confirm disconnection.
+
+### message
+
+On recieving a `message` event, the server emits another `message` event in response, carrying a JSON containing basic drone status information. JSON Response template:
+
+```json
+{
+    "velocity": 22.2,
+    "longitude": 38.3182,
+    "latitude":  82.111,
+    "altitude": 28.1111,
+    "heading": 11.2,
+    "batteryvoltage": 1.5
+}
+```
+
+## Heartbeat
+
+We are using the Flask SocketIO library for our implementation. By default, the server pings the client every 25 seconds.

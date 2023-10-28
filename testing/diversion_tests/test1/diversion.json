@@ -1,0 +1,32 @@
+{
+    "exclude": [
+      {
+        "id": 0,
+        "name": "string",
+        "longitude": -76.5702009,
+        "latitude": 38.3098409,
+        "altitude": 0
+      },
+          {
+        "id": 0,
+        "name": "string",
+        "longitude": -76.5552664,
+        "latitude": 38.3112720,
+        "altitude": 0
+      },
+          {
+        "id": 0,
+        "name": "string",
+        "longitude": -76.5688276,
+        "latitude": 38.3018933,
+        "altitude": 0
+      }
+    ],
+    "rejoin_at": {
+      "id": 3,
+      "name": "string",
+      "longitude": -76.5604055,
+      "latitude": 38.3051860,
+      "altitude": 25
+      }
+  }
