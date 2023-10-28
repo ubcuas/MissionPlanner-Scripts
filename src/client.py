@@ -64,7 +64,7 @@ MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 # Keep talking with the Mission Planner server 
 while 1:
     # Send location to server
-    location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
+    location = "{:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno)
     rsock.sendto(location, (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
