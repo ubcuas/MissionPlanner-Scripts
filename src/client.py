@@ -37,7 +37,6 @@ fence_exclusive = False
 fence_type = ""
 
 def get_altitude_standard(standard):
-    print(standard)
     if standard == "AGL":
         return MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT
     else:
@@ -241,11 +240,9 @@ while 1:
         elif cmd == "CONFIG":
             if argv[0] in ["vtol", "plane"]:
                 MODE = argv[0]
-                print(MODE)
         
         elif cmd == "ALTSTD":
             ALTSTD = get_altitude_standard(argv[0])
-            print(ALTSTD)
 
         else:
             print("unrecognized command", cmd, argv)
