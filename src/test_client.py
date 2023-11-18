@@ -13,6 +13,18 @@ RPORT = 4000 # Arbitrary non-privileged port
 DELAY = 10
 MAV = {}
 
+
+MAVLink = {
+    "MAV_CMD": {
+        "WAYPOINT": 1,
+        "TAKEOFF": 5
+    },
+
+    "MAV_FRAME": {
+        "GLOBAL": 10
+    }
+}
+
 rsock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 print("Sockets Created")
 
@@ -61,32 +73,25 @@ def upload_mission(wp_array):
 
 class ValueContainerInt:
 
-    def __init__(self):
-        self.val = 0
+    def __init__(self, val):
+        self.val = val
     
     def SetValue(lwp, new_val):
-        lwp.val
+        self.val = new_val
 
 class Locationwp:
-
-
-    id : int
-    lat : int
-    lng : int
-    alt : int
+    id = ValueContainerInt(0)
+    lat = ValueContainerInt(0)
+    lng = ValueContainerInt(0)
+    alt = ValueContainerInt(0)
 
     def __init__(self):
-        self.id = 0
-        self.lat = 0
-        self.lng = 0
-        self.alt = 0
-    
-    d
-
-        
+        self.id = ValueContainerInt(0)
+        self.lat = ValueContainerInt(0)
+        self.lng = ValueContainerInt(0)
+        self.alt = ValueContainerInt(0)
 
 
-            
 while True:
     
     location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
@@ -175,12 +180,12 @@ while True:
                 Script.ChangeMode("Loiter")
                 # Set up takeoff waypoint
                 home = Locationwp()
-                Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
+                Locationwp.id.SetValue(home, int(MAVLink[MAV_CMD][WAYPOINT]))
                 Locationwp.lat.SetValue(home, cs.lat)
                 Locationwp.lng.SetValue(home, cs.lng)
                 Locationwp.alt.SetValue(home, 0)
                 takeoff = Locationwp()
-                Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.TAKEOFF))
+                Locationwp.id.SetValue(takeoff, int(MAVLink[MAV_CMD][TAKEOFF]))
                 Locationwp.lat.SetValue(takeoff, cs.lat)
                 Locationwp.lng.SetValue(takeoff, cs.lng)
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
