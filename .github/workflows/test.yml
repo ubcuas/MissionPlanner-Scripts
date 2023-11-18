@@ -7,10 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: 'MPS#05'
-      - name: show ls
-        run: ls -l
       - name: Install Postman CLI
         run: |
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
@@ -18,4 +14,6 @@ jobs:
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Run API tests
         run: |
-          postman collection run "${{ github.workspace }}/Mission-Planner-Scripts-Postman.postman_collection.json " -e "29984433-a9adf9af-a2c3-4535-9576-4810d878ed2b" --integration-id "153006-${{ github.run_id }}"
+          postman collection run "${{ github.workspace }}/postman/collections/Mission Planner Scripts Postman.json" --integration-id "153006-${{ github.run_id }}"
+          # Lint your API using Postman CLI
+          postman api lint bf1d4fce-d19b-4bba-a4f6-9e0b6be96e47 --integration-id 153006
