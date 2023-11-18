@@ -3,6 +3,8 @@ from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
+from flask_socketio import SocketIO
+import time
 from server.common.conversion import *
 
 from server.common.wpqueue import WaypointQueue, Waypoint
@@ -28,8 +30,7 @@ class GCOM_Server():
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         app = Flask(__name__)
-
-        production_server = wsgiserver.WSGIServer(app, host=HOST, port=PORT)
+        socketio = SocketIO(app)
 
         # GET endpoints
 
@@ -79,14 +80,6 @@ class GCOM_Server():
 
                 return "Mission Queue Unlock Error: Already Unlocked", 400
 
-
-        @app.route("/rtl", methods=["GET"])
-        def rtl():
-            print("RTL")
-            self._so.gcom_rtl_set(True)
-
-            return "Returning to Land"
-
         @app.route("/land", methods=["GET"])
         def land():
             print("Landing")
@@ -94,6 +87,13 @@ class GCOM_Server():
 
             return "Landing in Place"
 
+        @app.route("/rtl", methods=["POST"])
+        def rtl():
+            altitude = request.get_json()['altitude']
+            print(f"RTL at {altitude}")
+            self._so.gcom_rtl_set(altitude)
+
+            return "Returning to Land"
 
         # VTOL LAND ENDPOINT
 
@@ -340,15 +340,50 @@ class GCOM_Server():
         @app.route("/flightmode", methods=["PUT"])
         def change_flight_mode():
             input = request.get_json()
-            
-            if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
-                self._so.flightmode_set(input['mode'])
-                return f"OK! Changed mode: {input['mode']}", 200
+
+            updated_flag = False
+
+            if 'altitude_standard' in input and input["altitude_standard"] in ['AGL', 'ASL']:
+                self._so.altitude_standard_set(input['altitude_standard'])
+                updated_flag = True
+            if 'flight_mode' in input and input['flight_mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
+                self._so.flightmode_set(input['flight_mode'])
+                updated_flag = True  
+            if 'drone_type' in input and input['drone_type'] in ['vtol', 'plane']:
+                self._so.flightConfig_set(input['drone_type'])
+                updated_flag = True
+
+            if updated_flag:
+                return "Updated values", 200
             else:
-                return f"Unrecognized mode: {input['mode']}", 400
+                return "Unrecognized keys or values", 400
+
         
+        #Socket stuff
+        @socketio.on("connect")
+        def handle_connect():
+            print("Client connected to socket")
+            socketio.emit('okay', {'data': 'Connected'})
+
+        @socketio.on("disconnect")
+        def handle_disconnect():
+            print("Client disconnected")
+
+        @socketio.on("message")
+        def handle_message(data):
+            ret = self._so.gcom_status_get()
+            retJSON =  json.dumps(ret)
+
+            print("Status sent to GCOM")
+            
+            socketio.emit('status_response', {'status_data': retJSON})
+            
         #run server
         if production:
-            production_server.start()
+            # Option 1: Using gevent and gevent-websocket for production
+            server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
+            server.serve_forever()
         else:
-            app.run(port=PORT)
+            # Option 2: Using socketio.run for development (supports WebSocket)
+            #socketio.start_background_task(background_task)
+            socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)
