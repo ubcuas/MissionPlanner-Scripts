@@ -80,14 +80,6 @@ class GCOM_Server():
 
                 return "Mission Queue Unlock Error: Already Unlocked", 400
 
-
-        @app.route("/rtl", methods=["GET"])
-        def rtl():
-            print("RTL")
-            self._so.gcom_rtl_set(True)
-
-            return "Returning to Land"
-
         @app.route("/land", methods=["GET"])
         def land():
             print("Landing")
@@ -95,6 +87,13 @@ class GCOM_Server():
 
             return "Landing in Place"
 
+        @app.route("/rtl", methods=["POST"])
+        def rtl():
+            altitude = request.get_json()['altitude']
+            print(f"RTL at {altitude}")
+            self._so.gcom_rtl_set(altitude)
+
+            return "Returning to Land"
 
         # VTOL LAND ENDPOINT
 

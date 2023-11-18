@@ -11,7 +11,7 @@ print("Sockets Created")
 counter = 0
 
 while True:
-    rsock.sendto(bytes("0 0 0 0 0 0 0", "utf-8"), (HOST, RPORT))
+    rsock.sendto(bytes("0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0", "utf-8"), (HOST, RPORT))
 
     msg = rsock.recv(1024).decode('utf-8')
 

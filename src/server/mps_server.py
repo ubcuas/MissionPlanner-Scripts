@@ -65,8 +65,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             self.server._instructions.push(f"TOFF {takeoffalt}")
 
         # Check if we should rtl
-        elif self.server._so.mps_rtl_get():
-            self.server._instructions.push("RTL")
+        elif self.server._so._rtl_flag:
+            self.server._instructions.push(f"RTL {self.server._so.mps_rtl_get()}")
         
         # Check if we should land
         elif self.server._so.mps_landing_get():
