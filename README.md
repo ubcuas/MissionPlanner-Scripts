@@ -62,11 +62,18 @@ following:
 
 2. Launch the application:
 
-    ```c
-    poetry run .\src\main.py [--dev] [--port=9000] [--socket-port=9001]
+    On Windows
+    ```
+    poetry run python .\src\main.py --dev --port=9000
     ```
 
-    The server will listen on the specified port (default 9000) for HTTP requests, listen for WebSocket connections on the specified port (default 9001), and will use port 4000 to communicate with MissionPlanner.
+    On MacOS
+    ```
+    poetry run python src/main.py --dev --port=9000
+    ```
+
+
+    The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
 
 3. Start the client inside MissionPlanner:
 
