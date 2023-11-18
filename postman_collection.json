@@ -72,8 +72,17 @@
 				{
 					"name": "return to launch",
 					"request": {
-						"method": "GET",
-						"header": [],
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"altitude\": 100\n}"
+						},
 						"url": {
 							"raw": "{{ base_url }}/rtl",
 							"host": [

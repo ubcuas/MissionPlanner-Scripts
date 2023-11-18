@@ -191,6 +191,12 @@ while 1:
             print("HOME - set a new home")
 
         elif cmd == "RTL":
+            rtl_altitude = float(argv[0]) * 100
+            if MODE == 'plane':
+                MAV.setParam('ALT_HOLD_RTL', rtl_altitude)
+            else:
+                MAV.setParam('RTL_ALT', rtl_altitude)
+            
             MAV.doCommand(MAVLink.MAV_CMD.RETURN_TO_LAUNCH,0,0,0,0,0,0,0)
             print("RTL - returning to launch")
 

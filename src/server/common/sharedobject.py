@@ -33,6 +33,7 @@ class SharedObject():
 
         # rtl and landing flags
         self._rtl_flag = False
+        self._rtl_value = 0
         self._landing_flag = False
         self._rtl_land_lk = Lock()
 
@@ -181,14 +182,19 @@ class SharedObject():
     # rtl/landing methods
     def gcom_rtl_set(self, val):
         self._rtl_land_lk.acquire()
-        self._rtl_flag = val
+        self._rtl_flag = True
+        self._rtl_value = val
         self._rtl_land_lk.release()
     
     def mps_rtl_get(self):
         if self._rtl_flag:
+            self._rtl_land_lk.acquire()
             self._rtl_flag = False
-            return True
-        return False
+            ret = self._rtl_value
+            self._rtl_value = 0
+            self._rtl_land_lk.release()
+            return ret
+        return None
     
     def gcom_landing_set(self, val):
         self._rtl_land_lk.acquire()
