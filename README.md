@@ -62,12 +62,12 @@ following:
 
     On Windows
     ```
-    poetry run .\src\main.py [--dev] [--port=9000]
+    poetry run python .\src\main.py --dev --port=9000
     ```
 
     On MacOS
     ```
-    poetry run python src/main.py [--dev] [--port=9000]
+    poetry run python src/main.py --dev --port=9000
     ```
 
 
