@@ -1,0 +1,353 @@
+{
+	"info": {
+		"_postman_id": "ef0b6816-af5d-40d4-ac7b-10805db42773",
+		"name": "Mission Planner Scripts Postman",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29984433",
+		"_collection_link": "https://warped-shadow-271590.postman.co/workspace/My-Workspace~99907fa6-a61a-4569-879b-b1c20631d932/collection/29984433-ef0b6816-af5d-40d4-ac7b-10805db42773?action=share&source=collection_link&creator=29984433"
+	},
+	"item": [
+		{
+			"name": "fence",
+			"item": [
+				{
+					"name": "set all inclusive polygonal fences",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  [\n    {\n      \"id\": 0,\n      \"name\": \"string\",\n      \"longitude\": 0,\n      \"latitude\": 0,\n      \"altitude\": 0\n    }\n  ]\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/fence/inclusive",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"fence",
+								"inclusive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set all exclusive polygonal fences",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  [\n    {\n      \"id\": 0,\n      \"name\": \"string\",\n      \"longitude\": 0,\n      \"latitude\": 0,\n      \"altitude\": 0\n    }\n  ]\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/fence/exclusive",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"fence",
+								"exclusive"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "landing",
+			"item": [
+				{
+					"name": "return to launch",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/rtl",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"rtl"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "immediately descend and land",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/land",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"land"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set the home waypoint of the drone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 0,\n  \"name\": \"Alpha\",\n  \"latitude\": -35.3627798,\n  \"longitude\": 149.1651830,\n  \"altitude\": 583\n}"
+						},
+						"url": {
+							"raw": "{{ base_url }}/home",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"home"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "unlock",
+			"item": [
+				{
+					"name": "Resume aircraft movement based on the queue",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/unlock",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"unlock"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Resume aircraft movement based on the queue",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{ base_url }}/unlock",
+									"host": [
+										"{{ base_url }}"
+									],
+									"path": [
+										"unlock"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "takeoff",
+			"item": [
+				{
+					"name": "Lift off to a given altitude",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"altitude\": 25\n}"
+						},
+						"url": {
+							"raw": "{{ base_url }}/takeoff",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"takeoff"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "lock",
+			"item": [
+				{
+					"name": "Prevent the aircraft from moving based on the queue",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/lock",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"lock"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "queue",
+			"item": [
+				{
+					"name": "Returns the current list of waypoints in the queue",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Send a GET request to {{ base_url }}/queue",
+									"pm.sendRequest({",
+									"  url: `${pm.environment.get('base_url')}/queue`,",
+									"  method: 'GET'",
+									"}, function (error, response) {",
+									"  if (error) {",
+									"    console.error('Error:', error);",
+									"    return;",
+									"  }",
+									"",
+									"  // Check if the response is an empty list (an array with no elements)",
+									"  pm.test('Response is an empty list', function () {",
+									"    pm.expect(response.json()).to.be.an('array').that.is.empty;",
+									"  });",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data"
+							}
+						],
+						"url": {
+							"raw": "{{ base_url }}/queue",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"queue"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Overwrite the queue with a new list of waypoints",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n      \"id\": 0,\n      \"name\": \"string\",\n      \"longitude\": -76.5498161,\n      \"latitude\": 38.2659499,\n      \"altitude\": 50\n    },\n      {\n      \"id\": 1,\n      \"name\": \"string\",\n      \"longitude\": -76.5657806,\n      \"latitude\": 38.2656803,\n      \"altitude\": 50\n    },\n      {\n      \"id\": 2,\n      \"name\": \"string\",\n      \"longitude\": -76.5705872,\n      \"latitude\": 38.2608955,\n      \"altitude\": 50\n    },\n      {\n      \"id\": 3,\n      \"name\": \"string\",\n      \"longitude\": -76.5711880,\n      \"latitude\": 38.2400003,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 4,\n      \"name\": \"string\",\n      \"longitude\": -76.5614033,\n      \"latitude\": 38.2404722,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 5,\n      \"name\": \"string\",\n      \"longitude\": -76.5594292,\n      \"latitude\": 38.2464043,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 6,\n      \"name\": \"string\",\n      \"longitude\": -76.5539360,\n      \"latitude\": 38.2462021,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 7,\n      \"name\": \"string\",\n      \"longitude\": -76.5520477,\n      \"latitude\": 38.2402025,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 8,\n      \"name\": \"string\",\n      \"longitude\": -76.5434647,\n      \"latitude\": 38.2402700,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 9,\n      \"name\": \"string\",\n      \"longitude\": -76.5439796,\n      \"latitude\": 38.2518641,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 10,\n      \"name\": \"string\",\n      \"longitude\": -76.5390873,\n      \"latitude\": 38.2526730,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 11,\n      \"name\": \"string\",\n      \"longitude\": -76.5414047,\n      \"latitude\": 38.2608955,\n      \"altitude\": 50\n      },\n      {\n      \"id\": 12,\n      \"name\": \"string\",\n      \"longitude\": -76.5465546,\n      \"latitude\": 38.2634564,\n      \"altitude\": 50\n      }\n  ]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/queue",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"queue"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "status",
+			"item": [
+				{
+					"name": "Obtain the aircraft status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/status",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"status"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Obtain the aircraft status",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{ base_url }}/status",
+									"host": [
+										"{{ base_url }}"
+									],
+									"path": [
+										"status"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
+				}
+			]
+		}
+	]
+}
