@@ -1,5 +1,11 @@
 import socket
 import time
+import logging
+
+
+'''
+Test Client for simulating MissionPlanner, used for testing MPS
+'''
 
 HOST = 'localhost'   # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
@@ -10,8 +16,8 @@ MAV = {}
 rsock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 print("Sockets Created")
 
-counter = 0
 
+### Simulated Object Classes
 class MissionPlannerSimulatedObj:
 
     # dummy values for constructor
@@ -52,16 +58,40 @@ def upload_mission(wp_array):
     # Set waypoint total
 
     # SIMULATED VERSION NEEDS TO BE UPLOADED
-    
-class Locationwp:
+
+class ValueContainerInt:
+
     def __init__(self):
-        ## need to fill it in
-        self.test = 1
+        self.val = 0
+    
+    def SetValue(lwp, new_val):
+        lwp.val
+
+class Locationwp:
+
+
+    id : int
+    lat : int
+    lng : int
+    alt : int
+
+    def __init__(self):
+        self.id = 0
+        self.lat = 0
+        self.lng = 0
+        self.alt = 0
+    
+    d
+
+        
+
 
             
 while True:
     
-    rsock.sendto(bytes("0 0 0 0 0 0 0", "utf-8"), (HOST, RPORT))
+    location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
+    location = location.encode("utf-8")
+    rsock.sendto(location, (HOST, RPORT))
 
     msg = rsock.recv(1024).decode('utf-8')
 

@@ -60,9 +60,16 @@ following:
 
 2. Launch the application:
 
+    On Windows
     ```
     poetry run .\src\main.py [--dev] [--port=9000]
     ```
+
+    On MacOS
+    ```
+    poetry run python src/main.py [--dev] [--port=9000]
+    ```
+
 
     The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
 
