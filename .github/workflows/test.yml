@@ -7,11 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4.7.1
       - name: Install Postman CLI
         run: |
           curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Install Python packages with Poetry
+        uses: ClementWalter/poetry-action@v1
+      - name: Start server with Poetry
+        run: poetry run python /src/main.py --dev --port=9000
+      - name: Run test client
+        run: python test_client.py
       - name: Run API tests
         run: |
           postman collection run "${{ github.workspace }}/Mission-Planner-Scripts-Postman.postman_collection.json" --integration-id "153006-${{ github.run_id }}"
