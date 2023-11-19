@@ -14,7 +14,10 @@ jobs:
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Install Python packages with Poetry
-        run: pip install -U pip | pip install poetry | poetry install --no-root
+        run: |
+          pip install -U pip 
+          pip install poetry 
+          poetry install --no-root
       - name: Start server with Poetry
         run: poetry run python /src/main.py --dev --port=9000
       - name: Run test client
