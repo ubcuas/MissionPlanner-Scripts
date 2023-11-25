@@ -19,7 +19,7 @@ jobs:
           pip install poetry 
           poetry install --no-root
       - name: Start server with Poetry
-        run: nohup poetry run python src/main.py --dev --port=9000
+        run: poetry run python src/main.py --dev --port=9000 /dev/null 2>&1
       - name: Run test client
         run: python test_client.py
       - name: Run API tests
