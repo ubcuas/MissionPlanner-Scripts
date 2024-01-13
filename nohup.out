@@ -1,7 +1,0 @@
-Creating virtualenv missionplanner-scripts-CiF5p9M9-py3.9 in /Users/ramjayakumar/Library/Caches/pypoetry/virtualenvs
-Traceback (most recent call last):
-  File "/Users/ramjayakumar/repos/MissionPlanner-Scripts/src/main.py", line 5, in <module>
-    from server.gcomhandler import GCOM_Server
-  File "/Users/ramjayakumar/repos/MissionPlanner-Scripts/src/server/gcomhandler.py", line 1, in <module>
-    import wsgiserver
-ModuleNotFoundError: No module named 'wsgiserver'
