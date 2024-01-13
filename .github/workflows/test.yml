@@ -21,7 +21,7 @@ jobs:
       - name: Start server with Poetry
         run: poetry run python src/main.py --dev --port=9000 /dev/null 2>&1 &
       - name: Run test client
-        run: python src/test_client.py
+        run: python src/test_client.py &
       - name: Run API tests
         run: |
           postman collection run "${{ github.workspace }}/Mission-Planner-Scripts-Postman.postman_collection.json" --integration-id "153006-${{ github.run_id }}"
