@@ -2,7 +2,7 @@
 	"id": "b47b622f-4a90-4fab-8eed-34429ccf36eb",
 	"values": [
 		{
-			"key": " base_url ",
+			"key": "base_url",
 			"value": "http://127.0.0.1:9000",
 			"enabled": true
 		}
