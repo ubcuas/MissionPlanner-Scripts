@@ -83,7 +83,12 @@ class SharedObject():
         
         self._newmission_lk.release()
         self._newmission_flag_lk.release()
-    
+
+        self._flightmode_lk.acquire()
+        self._flightmode_flag = True
+        self._flightmode = "auto"
+        self._flightmode_lk.release() 
+        
         return True
 
     def mps_newmission_get(self): 
