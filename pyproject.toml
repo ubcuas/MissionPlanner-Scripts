@@ -8,7 +8,7 @@ packages = [{include = "missionplanner_scripts"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-flask = "^2.2.2"
+flask = "^3.0.1"
 wsgiserver = "^1.3"
 shapely = "^2.0.1"
 matplotlib = "^3.7.1"
