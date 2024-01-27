@@ -109,6 +109,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             if self.server._locked:
                 self.server._instructions.push("LOCK 0")
                 self.server._locked = False
+            
+            # Check for a new waypoint to push
+            push_wp = self.server._so.append_wp_get()
+            if push_wp:
+                self.server._instructions.push(f"PUSH {str(push_wp)}")
 
             # Check for a new mission
             nextwpq = self.server._so.mps_newmission_get()
