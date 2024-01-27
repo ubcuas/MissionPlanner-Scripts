@@ -1,5 +1,4 @@
-from gevent import pywsgi
-from geventwebsocket.handler import WebSocketHandler
+import wsgiserver
 from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
@@ -130,6 +129,21 @@ class GCOM_Server():
             self._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
 
             wpq.clear()
+
+            return "ok"
+
+        @app.route("/append", methods=['POST'])
+        def append_wp():
+            payload = request.get_json()
+
+            if not('latitude' in payload) or not('longitude' in payload):
+                return "Latitude and Longitude cannot be null", 400
+
+            ret = self._so.gcom_status_get()
+            last_altitude = ret['altitude'] if ret != () else 50
+
+            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
+            self._so.append_wp_set(wp)
 
             return "ok"
     
@@ -341,24 +355,16 @@ class GCOM_Server():
         @app.route("/flightmode", methods=["PUT"])
         def change_flight_mode():
             input = request.get_json()
-
-            updated_flag = False
-
-            if 'altitude_standard' in input and input["altitude_standard"] in ['AGL', 'ASL']:
-                self._so.altitude_standard_set(input['altitude_standard'])
-                updated_flag = True
-            if 'flight_mode' in input and input['flight_mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
-                self._so.flightmode_set(input['flight_mode'])
-                updated_flag = True  
-            if 'drone_type' in input and input['drone_type'] in ['vtol', 'plane']:
-                self._so.flightConfig_set(input['drone_type'])
-                updated_flag = True
-
-            if updated_flag:
-                return "Updated values", 200
+            
+            if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
+                self._so.flightmode_set(input['mode'])
+                return f"OK! Changed mode: {input['mode']}", 200
+            elif input['mode'] in ['vtol', 'plane']:
+                print("changing mode")
+                self._so.flightConfig_set(input['mode'])
+                return f"OK! Changed mode: {input['mode']}", 200
             else:
-                return "Unrecognized keys or values", 400
-
+                return f"Unrecognized mode: {input['mode']}", 400
         
         #Socket stuff
         @socketio.on("connect")

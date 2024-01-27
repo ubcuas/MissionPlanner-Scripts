@@ -74,12 +74,13 @@ MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 while 1:
     # Send location to server
     location = "{:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
-    rsock.sendto(location, (HOST, RPORT))
+    rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
 
     try:
         msg = rsock.recv(1024)
+        msg = msg.decode()
     except socket.timeout:
         print("Socket timeout")
         time.sleep(DELAY)
@@ -136,6 +137,21 @@ while 1:
                 # Enter auto mode
                 Script.ChangeMode("Auto")
                 print("NEXT - new mission set")
+        
+        elif cmd == "PUSH":
+            print("DEBUG", cmd, argv)
+            wptotal = MAV.getWPCount()
+
+            MAV.setWPTotal(wptotal + 1)
+            # Upload waypoints
+            newwp = Locationwp()
+            Locationwp.lat.SetValue(newwp, float(argv[0]))
+            Locationwp.lng.SetValue(newwp, float(argv[1]))
+            Locationwp.alt.SetValue(newwp, float(argv[2]))
+            Locationwp.id.SetValue(newwp, int(MAVLink.MAV_CMD.WAYPOINT))
+            MAV.setWP(newwp, wptotal, ALTSTD)
+            MAV.setWPACK()
+            print("PUSH - waypoint pushed")
 
         elif cmd == "CONT":
             # CONT - continue
