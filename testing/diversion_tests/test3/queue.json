@@ -1,0 +1,93 @@
+[
+    {
+      "id": 0,
+      "name": "string",
+      "longitude": -76.5498161,
+      "latitude": 38.2659499,
+      "altitude": 50
+    },
+      {
+      "id": 1,
+      "name": "string",
+      "longitude": -76.5657806,
+      "latitude": 38.2656803,
+      "altitude": 50
+    },
+      {
+      "id": 2,
+      "name": "string",
+      "longitude": -76.5705872,
+      "latitude": 38.2608955,
+      "altitude": 50
+    },
+      {
+      "id": 3,
+      "name": "string",
+      "longitude": -76.5711880,
+      "latitude": 38.2400003,
+      "altitude": 50
+      },
+      {
+      "id": 4,
+      "name": "string",
+      "longitude": -76.5614033,
+      "latitude": 38.2404722,
+      "altitude": 50
+      },
+      {
+      "id": 5,
+      "name": "string",
+      "longitude": -76.5594292,
+      "latitude": 38.2464043,
+      "altitude": 50
+      },
+      {
+      "id": 6,
+      "name": "string",
+      "longitude": -76.5539360,
+      "latitude": 38.2462021,
+      "altitude": 50
+      },
+      {
+      "id": 7,
+      "name": "string",
+      "longitude": -76.5520477,
+      "latitude": 38.2402025,
+      "altitude": 50
+      },
+      {
+      "id": 8,
+      "name": "string",
+      "longitude": -76.5434647,
+      "latitude": 38.2402700,
+      "altitude": 50
+      },
+      {
+      "id": 9,
+      "name": "string",
+      "longitude": -76.5439796,
+      "latitude": 38.2518641,
+      "altitude": 50
+      },
+      {
+      "id": 10,
+      "name": "string",
+      "longitude": -76.5390873,
+      "latitude": 38.2526730,
+      "altitude": 50
+      },
+      {
+      "id": 11,
+      "name": "string",
+      "longitude": -76.5414047,
+      "latitude": 38.2608955,
+      "altitude": 50
+      },
+      {
+      "id": 12,
+      "name": "string",
+      "longitude": -76.5465546,
+      "latitude": 38.2634564,
+      "altitude": 50
+      }
+  ]

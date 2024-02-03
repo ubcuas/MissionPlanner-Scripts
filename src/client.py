@@ -21,6 +21,9 @@ DELAY = 1 # Seconds
 REMOTE = ''
 # Datagram (udp) socket 
 
+MODE = "plane"
+ALTSTD = MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT
+
 rsock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 timeout = 5
 rsock.settimeout(timeout)
@@ -32,6 +35,12 @@ print("Entered Guided Mode")
 wp_array = []
 fence_exclusive = False
 fence_type = ""
+
+def get_altitude_standard(standard):
+    if standard == "AGL":
+        return MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT
+    else:
+        return MAVLink.MAV_FRAME.GLOBAL
 
 def upload_mission(wp_array):
     """
@@ -48,14 +57,14 @@ def upload_mission(wp_array):
     Locationwp.lng.SetValue(dummy, 0)
     Locationwp.alt.SetValue(dummy, 0)
     Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
-    MAV.setWP(dummy, 0, MAVLink.MAV_FRAME.GLOBAL)
+    MAV.setWP(dummy, 0, ALTSTD)
     for i in range(0, len(wp_array)):
         wp = Locationwp()
         Locationwp.lat.SetValue(wp, wp_array[i][0])
         Locationwp.lng.SetValue(wp, wp_array[i][1])
         Locationwp.alt.SetValue(wp, wp_array[i][2])
         Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
-        MAV.setWP(wp, i + 1, MAVLink.MAV_FRAME.GLOBAL)
+        MAV.setWP(wp, i + 1, ALTSTD)
     # Final ack
     MAV.setWPACK()
 
@@ -64,13 +73,14 @@ MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 # Keep talking with the Mission Planner server 
 while 1:
     # Send location to server
-    location = "{:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.yaw, cs.airspeed, cs.battery_voltage, cs.wpno)
-    rsock.sendto(location, (HOST, RPORT))
+    location = "{:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
+    rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
 
     try:
         msg = rsock.recv(1024)
+        msg = msg.decode()
     except socket.timeout:
         print("Socket timeout")
         time.sleep(DELAY)
@@ -127,6 +137,21 @@ while 1:
                 # Enter auto mode
                 Script.ChangeMode("Auto")
                 print("NEXT - new mission set")
+        
+        elif cmd == "PUSH":
+            print("DEBUG", cmd, argv)
+            wptotal = MAV.getWPCount()
+
+            MAV.setWPTotal(wptotal + 1)
+            # Upload waypoints
+            newwp = Locationwp()
+            Locationwp.lat.SetValue(newwp, float(argv[0]))
+            Locationwp.lng.SetValue(newwp, float(argv[1]))
+            Locationwp.alt.SetValue(newwp, float(argv[2]))
+            Locationwp.id.SetValue(newwp, int(MAVLink.MAV_CMD.WAYPOINT))
+            MAV.setWP(newwp, wptotal, ALTSTD)
+            MAV.setWPACK()
+            print("PUSH - waypoint pushed")
 
         elif cmd == "CONT":
             # CONT - continue
@@ -165,8 +190,8 @@ while 1:
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
 
                 MAV.setWPTotal(2)
-                MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
-                MAV.setWP(takeoff,1,MAVLink.MAV_FRAME.GLOBAL)
+                MAV.setWP(home,0,ALTSTD)
+                MAV.setWP(takeoff,1,ALTSTD)
                 MAV.setWPACK()
                 Script.ChangeMode("Guided")
                 print("YOU HAVE 10 SECONDS TO ARM MOTORS")
@@ -182,6 +207,12 @@ while 1:
             print("HOME - set a new home")
 
         elif cmd == "RTL":
+            rtl_altitude = float(argv[0]) * 100
+            if MODE == 'plane':
+                MAV.setParam('ALT_HOLD_RTL', rtl_altitude)
+            else:
+                MAV.setParam('RTL_ALT', rtl_altitude)
+            
             MAV.doCommand(MAVLink.MAV_CMD.RETURN_TO_LAUNCH,0,0,0,0,0,0,0)
             print("RTL - returning to launch")
 
@@ -206,8 +237,8 @@ while 1:
             Locationwp.alt.SetValue(landing, takeoffalt)
 
             MAV.setWPTotal(2)
-            MAV.setWP(home,0,MAVLink.MAV_FRAME.GLOBAL)
-            MAV.setWP(landing,1,MAVLink.MAV_FRAME.GLOBAL)
+            MAV.setWP(home,0,ALTSTD)
+            MAV.setWP(landing,1,ALTSTD)
             MAV.setWPACK()
             Script.ChangeMode("Auto")
             # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
@@ -217,13 +248,23 @@ while 1:
             MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)
         
         elif cmd == "FMDE":
-            Script.ChangeMode(argv[0])
+            if MODE == 'plane' and argv[0] in ['loiter', 'stabilize']:
+                Script.ChangeMode("q{:}".format(argv[0]))
+            else:
+                Script.ChangeMode(argv[0])
         
         elif cmd == "TTS":
             text = ""
             for word in argv:
                 text += word + " "
             MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
+        
+        elif cmd == "CONFIG":
+            if argv[0] in ["vtol", "plane"]:
+                MODE = argv[0]
+        
+        elif cmd == "ALTSTD":
+            ALTSTD = get_altitude_standard(argv[0])
 
         else:
             print("unrecognized command", cmd, argv)

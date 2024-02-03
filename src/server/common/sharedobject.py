@@ -1,3 +1,4 @@
+#from multiprocessing import Lock
 from threading import Lock
 
 class SharedObject():
@@ -32,6 +33,7 @@ class SharedObject():
 
         # rtl and landing flags
         self._rtl_flag = False
+        self._rtl_value = 0
         self._landing_flag = False
         self._rtl_land_lk = Lock()
 
@@ -53,6 +55,34 @@ class SharedObject():
         self._flightmode_flag = False
         self._flightmode = ""
         self._flightmode_lk = Lock()
+        self._flightConfig = ""
+        self._flightConfig_lk = Lock()
+
+        # altitude standard flags
+        self.altitude_standard = "AGL"
+        self.altitude_standard_lk = Lock()
+
+        # append_wp flags
+        self._append_wp_flag = False
+        self._append_wp_lk = Lock()
+        self._append_wp = None
+    
+    def append_wp_set(self, wp):
+        self._append_wp_lk.acquire()
+        self._append_wp_flag = True
+        self._append_wp = wp
+        self._append_wp_lk.release()
+    
+    def append_wp_get(self):
+        if self._append_wp_flag:
+            self._append_wp_lk.acquire()
+            ret = self._append_wp
+            self._append_wp_flag = False
+            self._append_wp = None
+            self._append_wp_lk.release()
+            return ret
+        else:
+            return None
     
     # Currentmission methods
     def gcom_currentmission_get(self):
@@ -174,14 +204,19 @@ class SharedObject():
     # rtl/landing methods
     def gcom_rtl_set(self, val):
         self._rtl_land_lk.acquire()
-        self._rtl_flag = val
+        self._rtl_flag = True
+        self._rtl_value = val
         self._rtl_land_lk.release()
     
     def mps_rtl_get(self):
         if self._rtl_flag:
+            self._rtl_land_lk.acquire()
             self._rtl_flag = False
-            return True
-        return False
+            ret = self._rtl_value
+            self._rtl_value = 0
+            self._rtl_land_lk.release()
+            return ret
+        return None
     
     def gcom_landing_set(self, val):
         self._rtl_land_lk.acquire()
@@ -253,4 +288,29 @@ class SharedObject():
         self._flightmode = ""
         self._flightmode_flag = False
         self._flightmode_lk.release()
+        return ret
+
+    def flightConfig_set(self, config):
+        self._flightConfig_lk.acquire()
+        self._flightConfig = config
+        self._flightConfig_lk.release()
+    
+    def flightConfig_get(self):
+        self._flightConfig_lk.acquire()
+        ret = self._flightConfig
+        self._flightConfig = ""
+        self._flightConfig_lk.release()
+        return ret
+
+    # altitude standard methods
+    def altitude_standard_set(self, standard):
+        self.altitude_standard_lk.acquire()
+        self.altitude_standard = standard
+        self.altitude_standard_lk.release()
+
+    def altitude_standard_get(self):
+        self.altitude_standard_lk.acquire()
+        ret = self.altitude_standard
+        self.altitude_standard = ""
+        self.altitude_standard_lk.release()
         return ret

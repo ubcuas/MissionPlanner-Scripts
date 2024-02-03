@@ -22,16 +22,21 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         current_lat = str(parameters[0]).strip(' b\'')
         current_lng = str(parameters[1]).strip(' b\'')
         current_alt = str(parameters[2]).strip(' b\'')
-        current_hdg = str(parameters[3]).strip(' b\'')
-        current_vel = str(parameters[4]).strip(' b\'')
-        current_btv = str(parameters[5]).strip(' b\'')
-        current_wpn = str(parameters[6]).strip(' b\'')
+        current_rol = str(parameters[3]).strip(' b\'')
+        current_pch = str(parameters[4]).strip(' b\'')
+        current_yaw = str(parameters[5]).strip(' b\'')
+        current_asp = str(parameters[6]).strip(' b\'')
+        current_gsp = str(parameters[7]).strip(' b\'')
+        current_btv = str(parameters[8]).strip(' b\'')
+        current_wpn = str(parameters[9]).strip(' b\'')
+        wind_dir = str(parameters[10]).strip(' b\'')
+        wind_vel = str(parameters[11]).strip(' b\'')
 
         #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
         #print(f"                  hdg: {current_hdg} vel: {current_vel}")
 
         # Updated shared obj with location data
-        self.server._so.mps_status_set({"velocity":float(current_vel), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_hdg), "batteryvoltage":float(current_btv)})
+        self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel)})
 
         # Send instruction to UAV
         socket.sendto(bytes(self.next_instruction(int(float(current_wpn))), "utf-8"), self.client_address)
@@ -39,6 +44,15 @@ class MPS_Handler(socketserver.BaseRequestHandler):
     def next_instruction(self, current_wpn):
         # Place new instructions onto the queue
         instruction = ""
+
+        # Check if there is a flight config update request
+        newmode = self.server._so.flightConfig_get()
+        if newmode != "":
+            self.server._instructions.push(f"CONFIG {newmode}")
+        
+        altitude_standard = self.server._so.altitude_standard_get()
+        if altitude_standard != "":
+            self.server._instructions.push(f"ALTSTD {altitude_standard}")
 
         # Check if there is a new home
         newhome = self.server._so.mps_newhome_get()
@@ -57,8 +71,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             self.server._instructions.push(f"TOFF {takeoffalt}")
 
         # Check if we should rtl
-        elif self.server._so.mps_rtl_get():
-            self.server._instructions.push("RTL")
+        elif self.server._so._rtl_flag:
+            self.server._instructions.push(f"RTL {self.server._so.mps_rtl_get()}")
         
         # Check if we should land
         elif self.server._so.mps_landing_get():
@@ -95,6 +109,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             if self.server._locked:
                 self.server._instructions.push("LOCK 0")
                 self.server._locked = False
+            
+            # Check for a new waypoint to push
+            push_wp = self.server._so.append_wp_get()
+            if push_wp:
+                self.server._instructions.push(f"PUSH {str(push_wp)}")
 
             # Check for a new mission
             nextwpq = self.server._so.mps_newmission_get()

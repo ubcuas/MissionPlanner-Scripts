@@ -3,6 +3,8 @@ from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
+from flask_socketio import SocketIO
+import time
 from server.common.conversion import *
 
 from server.common.wpqueue import WaypointQueue, Waypoint
@@ -28,8 +30,7 @@ class GCOM_Server():
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         app = Flask(__name__)
-
-        production_server = wsgiserver.WSGIServer(app, host=HOST, port=PORT)
+        socketio = SocketIO(app)
 
         # GET endpoints
 
@@ -79,14 +80,6 @@ class GCOM_Server():
 
                 return "Mission Queue Unlock Error: Already Unlocked", 400
 
-
-        @app.route("/rtl", methods=["GET"])
-        def rtl():
-            print("RTL")
-            self._so.gcom_rtl_set(True)
-
-            return "Returning to Land"
-
         @app.route("/land", methods=["GET"])
         def land():
             print("Landing")
@@ -94,6 +87,13 @@ class GCOM_Server():
 
             return "Landing in Place"
 
+        @app.route("/rtl", methods=["POST"])
+        def rtl():
+            altitude = request.get_json()['altitude']
+            print(f"RTL at {altitude}")
+            self._so.gcom_rtl_set(altitude)
+
+            return "Returning to Land"
 
         # VTOL LAND ENDPOINT
 
@@ -129,6 +129,21 @@ class GCOM_Server():
             self._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
 
             wpq.clear()
+
+            return "ok"
+
+        @app.route("/append", methods=['POST'])
+        def append_wp():
+            payload = request.get_json()
+
+            if not('latitude' in payload) or not('longitude' in payload):
+                return "Latitude and Longitude cannot be null", 400
+
+            ret = self._so.gcom_status_get()
+            last_altitude = ret['altitude'] if ret != () else 50
+
+            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
+            self._so.append_wp_set(wp)
 
             return "ok"
     
@@ -344,11 +359,38 @@ class GCOM_Server():
             if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
                 self._so.flightmode_set(input['mode'])
                 return f"OK! Changed mode: {input['mode']}", 200
+            elif input['mode'] in ['vtol', 'plane']:
+                print("changing mode")
+                self._so.flightConfig_set(input['mode'])
+                return f"OK! Changed mode: {input['mode']}", 200
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
         
+        #Socket stuff
+        @socketio.on("connect")
+        def handle_connect():
+            print("Client connected to socket")
+            socketio.emit('okay', {'data': 'Connected'})
+
+        @socketio.on("disconnect")
+        def handle_disconnect():
+            print("Client disconnected")
+
+        @socketio.on("message")
+        def handle_message(data):
+            ret = self._so.gcom_status_get()
+            retJSON =  json.dumps(ret)
+
+            print("Status sent to GCOM")
+            
+            socketio.emit('status_response', {'status_data': retJSON})
+            
         #run server
         if production:
-            production_server.start()
+            # Option 1: Using gevent and gevent-websocket for production
+            server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
+            server.serve_forever()
         else:
-            app.run(port=PORT)
+            # Option 2: Using socketio.run for development (supports WebSocket)
+            #socketio.start_background_task(background_task)
+            socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)
