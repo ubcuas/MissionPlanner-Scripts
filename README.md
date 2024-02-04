@@ -81,6 +81,21 @@ following:
 
     <img src="figures/client_mps.png" width="60%">
 
+### Using Tests
+
+To run tests, you must have the Docker image running (uasitl:copyter).
+Then, run the following commands to run the PyTest commands:
+
+WSL
+
+'''
+    cd src
+'''
+
+'''
+    poetry run pytest
+'''
+
 # Endpoints
 
 ## (GET) /queue
@@ -194,7 +209,7 @@ Example request body:
 
 ```
 
-## (GET) /rtl
+## (POST) /rtl
 
 Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Request status code and error message if the drone could not execute the operation.
 

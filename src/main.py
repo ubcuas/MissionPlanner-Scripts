@@ -18,6 +18,9 @@ if __name__ == "__main__":
         arguments[k] = v
 
     # Process options
+    if "--test" in arguments.keys():
+        print("starting test environment")
+        
     if '--dev' in arguments.keys():
         print("Starting server in development")
         production = False

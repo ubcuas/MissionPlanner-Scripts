@@ -14,7 +14,7 @@ MissionPlanner.MainV2.speechEnable = True
 
 HOST = 'localhost' # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
-RPORT = 4000 # Arbitrary non-privileged port
+RPORT = 9001 # Arbitrary non-privileged port
 
 DELAY = 1 # Seconds
 
@@ -85,9 +85,10 @@ while 1:
         print("Socket timeout")
         time.sleep(DELAY)
         continue
-    except socket.error:
+    except socket.error as e:
+        print(e)
         print("Socket error - trying again in 10 seconds...")
-        MissionPlanner.MainV2.speechEngine.SpeakAsync("Socket connection error. Trying again in 10 seconds.")
+        # MissionPlanner.MainV2.speechEngine.SpeakAsync("Socket connection error. Trying again in 10 seconds. skill issue")
         time.sleep(10)
         continue
 
@@ -254,10 +255,20 @@ while 1:
                 Script.ChangeMode(argv[0])
         
         elif cmd == "TTS":
-            text = ""
-            for word in argv:
-                text += word + " "
-            MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
+            #text = ""
+            #for word in argv:
+            #    text += word + " "
+            #MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
+            numwp = MAV.getWPCount()
+            for i in range(0, numwp):
+                print("About to get WP")
+                try:
+                    print(MAV.sysidcurrent)
+                    print(MAV.compidcurrent)
+                    wp = MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i)
+                    print(i, wp.lat, wp.lng, wp.alt)
+                except:
+                    pass
         
         elif cmd == "CONFIG":
             if argv[0] in ["vtol", "plane"]:

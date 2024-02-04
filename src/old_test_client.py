@@ -81,7 +81,6 @@ class Locationwp:
         self.lng = 0
         self.alt = 0
     
-    d
 
         
 

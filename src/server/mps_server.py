@@ -170,7 +170,7 @@ class MPS_Server():
         print("MPS_Server initialized")
 
     def serve_forever(self):
-        HOST, PORT = "localhost", 4000
+        HOST, PORT = "localhost", 9001
         self._server = MPS_Internal_Server((HOST, PORT), MPS_Handler, self._so)
         self._server.serve_forever()
 
