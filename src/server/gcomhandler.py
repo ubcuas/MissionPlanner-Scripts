@@ -37,6 +37,9 @@ class GCOM_Server():
 
         @app.route("/queue", methods=["GET"])
         def get_queue():
+            self._so.gcom_currentmission_trigger_update()
+            while self._so._currentmission_flg_ready == False:
+                pass
             ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
             formatted = []
             for wp in ret:

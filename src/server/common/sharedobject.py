@@ -6,6 +6,8 @@ class SharedObject():
         # Current mission fields
         self._currentmission = []
         self._currentmission_length = 0
+        self._currentmission_flg_update = False
+        self._currentmission_flg_ready = False
         self._currentmission_lk = Lock()
 
         # New mission fields
@@ -314,3 +316,24 @@ class SharedObject():
         self.altitude_standard = ""
         self.altitude_standard_lk.release()
         return ret
+    
+    #mps -> gcom queue
+    def mps_currentmission_updatequeue(self, wplist):
+        self._currentmission_lk.acquire()
+        self._currentmission_flg_ready = True
+        self._currentmission = wplist
+        self._currentmission_lk.release()
+    
+    def mps_currentmission_shouldupdate(self):
+        self._currentmission_lk.acquire()
+        ret = self._currentmission_flg_update
+        if ret:
+            self._currentmission_flg_update = False
+        self._currentmission_lk.release()
+        return ret
+    
+    def gcom_currentmission_trigger_update(self):
+        self._currentmission_lk.acquire()
+        self._currentmission_flg_update = True
+        self._currentmission_flg_ready = False
+        self._currentmission_lk.release()

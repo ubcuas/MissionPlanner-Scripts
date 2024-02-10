@@ -73,7 +73,7 @@ MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 # Keep talking with the Mission Planner server 
 while 1:
     # Send location to server
-    location = "{:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
+    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
     rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
@@ -259,16 +259,24 @@ while 1:
             #for word in argv:
             #    text += word + " "
             #MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
+            pass
+
+        elif cmd == "QGET":
+            #get info
             numwp = MAV.getWPCount()
+            wplist = []
             for i in range(0, numwp):
-                print("About to get WP")
                 try:
-                    print(MAV.sysidcurrent)
-                    print(MAV.compidcurrent)
                     wp = MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i)
-                    print(i, wp.lat, wp.lng, wp.alt)
+                    wplist.append((wp.lat, wp.lng, wp.alt))
                 except:
                     pass
+            #send info
+            queue_info = "queue {:}".format(numwp)
+            for wp in wplist:
+                queue_info += " {:} {:} {:}".format(wp[0], wp[1], wp[2])
+            print("DEBUG queue_info string ", queue_info)
+            rsock.sendto(bytes(queue_info, 'utf-8'), (HOST, RPORT))
         
         elif cmd == "CONFIG":
             if argv[0] in ["vtol", "plane"]:
