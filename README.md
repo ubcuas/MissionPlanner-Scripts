@@ -18,9 +18,9 @@ following:
 
         > **Note**: You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
 
-2. If you are running Windows, you will need WSL installed on your computer. You can get it simply by running `wsl --install` with admin privileges on cmd. Please also see the documentation [here](https://learn.microsoft.com/en-us/windows/wsl/install).
+2. If you are running Windows, you will need to run the application through Powershell or Command Prompt. **WSL WILL NOT WORK DUE TO EMULATION ISSUES!**
 
-3. Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the ArduPilot version):
+5. Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the ArduPilot version):
 
     - ArduPlane (VTOL):
         - x86: `docker pull ubcuas/uasitl:plane-X.X.X`
@@ -31,26 +31,26 @@ following:
 
     If everything goes correctly, running `docker image ls` should contain an entry for `ubcuas/uasitl`.
 
-4. Run one of the following commands to get SITL running:
+6. Run one of the following commands to get SITL running:
 
     x86: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-X.X.X`
 
     ARM64: `docker run --rm -d -p 5760-5780:5760-5780 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm-X.X.X`
 
-5. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
+7. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
 
     <p align="center">
         <img src="figures/tcpdropdown.png" width="60%">
     </p>
 
-6. Press the `Connect` Button to the right of that pane. You will be prompted with two inputs: one for hostname, and another for the remote port you want to use. Enter the following for each:
+8. Press the `Connect` Button to the right of that pane. You will be prompted with two inputs: one for hostname, and another for the remote port you want to use. Enter the following for each:
 
     - Hostname: `host.docker.internal`
     - Remote Port: `5760`
 
         > **Note**: if you are getting errors, try entering `localhost` for the hostname instead
 
-7. If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
+9. If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
 
 ## Using MissionPlanner-Scripts
 
