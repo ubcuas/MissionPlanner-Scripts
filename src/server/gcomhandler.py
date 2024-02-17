@@ -90,7 +90,7 @@ class GCOM_Server():
 
         @app.route("/rtl", methods=["GET", "POST"])
         def rtl():
-            altitude = request.get_json().get('altitude', 50)
+            altitude = request.get_json().get('altitude', 5)
 
             print(f"RTL at {altitude}")
             self._so.gcom_rtl_set(altitude)

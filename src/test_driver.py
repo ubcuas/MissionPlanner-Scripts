@@ -113,6 +113,33 @@ class TestClass:
         response = requests.post(f'http://{HOST}:{PORT}/rtl', json=data)
         print(f'response : {response}')
         assert response.status_code == 200
+    
+    def test_get_land(self):
+        response = requests.get(f'http://{HOST}:{PORT}/land')
+        print(f'response : {response}')
+        assert response.status_code == 200
+
+    def test_post_home(self):
+        data = {
+            "id": 1,
+            "name": "Alpha",
+            "longitude": 38.83731,
+            "latitude": -20.48321,
+            "altitude": 50.7
+        }
+        response = requests.post(f'http://{HOST}:{PORT}/home', json=data)
+        print(f'response : {response}')
+        assert response.status_code == 200
+    
+    def test_put_flightmode(self):
+        data = {
+            "flight_mode": "loiter",
+            "drone_type": "vtol",
+            "altitude_standard": "ASL"
+        }
+        response = requests.put(f'http://{HOST}:{PORT}/home', json=data)
+        print(f'response : {response}')
+        assert response.status_code == 200
 
     # def test_post_queue(self):
     #     # Prepare a JSON payload for testing
