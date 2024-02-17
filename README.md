@@ -18,7 +18,7 @@ following:
 
         > **Note**: You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
 
-2. If you are running Windows, you will need WSL installed on your computer. You can get it simply by running `wsl --install` with admin privileges on cmd. Please also see the documentation [here](https://learn.microsoft.com/en-us/windows/wsl/install).
+2. If you are running Windows, you will need to run the application through Powershell or Command Prompt. **WSL WILL NOT WORK DUE TO EMULATION ISSUES!**
 
 3. Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the ArduPilot version):
 
