@@ -58,7 +58,7 @@ following:
 
 2. Launch the application:
 
-    On Windows
+    On Windows (Powershell)
     ```
     poetry run python .\src\main.py --dev --port=9000
     ```
@@ -75,6 +75,19 @@ following:
     Navigate to the 'Scripts' tab and select `client.py` to run, the press 'Run Scripts' to start.
 
     <img src="figures/client_mps.png" width="60%">
+
+### Using Tests
+
+To run tests, you must have the Docker image running (uasitl:copter).
+Then, enter the src directory and run the `pytest` command via Poetry:
+
+```
+    cd src
+```
+
+```
+    poetry run pytest
+```
 
 # Endpoints
 
@@ -189,7 +202,7 @@ Example request body:
 
 ```
 
-## (GET) /rtl
+## (POST) /rtl
 
 Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Request status code and error message if the drone could not execute the operation.
 

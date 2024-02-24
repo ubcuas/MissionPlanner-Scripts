@@ -14,36 +14,57 @@ class MPS_Handler(socketserver.BaseRequestHandler):
     """
 
     def handle(self):
-        # Receive location data
-        data = self.request[0].strip()
+        data = self.request[0].strip().decode()
         socket = self.request[1]
 
-        parameters = data.split()
-        current_lat = str(parameters[0]).strip(' b\'')
-        current_lng = str(parameters[1]).strip(' b\'')
-        current_alt = str(parameters[2]).strip(' b\'')
-        current_rol = str(parameters[3]).strip(' b\'')
-        current_pch = str(parameters[4]).strip(' b\'')
-        current_yaw = str(parameters[5]).strip(' b\'')
-        current_asp = str(parameters[6]).strip(' b\'')
-        current_gsp = str(parameters[7]).strip(' b\'')
-        current_btv = str(parameters[8]).strip(' b\'')
-        current_wpn = str(parameters[9]).strip(' b\'')
-        wind_dir = str(parameters[10]).strip(' b\'')
-        wind_vel = str(parameters[11]).strip(' b\'')
+        data = data.split()
+        data_type = data[0]
+        parameters = data[1:]
 
-        #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
-        #print(f"                  hdg: {current_hdg} vel: {current_vel}")
+        if data_type == "telemetry":
+            # Receive location data
+            current_lat = str(parameters[0]).strip(' b\'')
+            current_lng = str(parameters[1]).strip(' b\'')
+            current_alt = str(parameters[2]).strip(' b\'')
+            current_rol = str(parameters[3]).strip(' b\'')
+            current_pch = str(parameters[4]).strip(' b\'')
+            current_yaw = str(parameters[5]).strip(' b\'')
+            current_asp = str(parameters[6]).strip(' b\'')
+            current_gsp = str(parameters[7]).strip(' b\'')
+            current_btv = str(parameters[8]).strip(' b\'')
+            current_wpn = str(parameters[9]).strip(' b\'')
+            wind_dir = str(parameters[10]).strip(' b\'')
+            wind_vel = str(parameters[11]).strip(' b\'')
 
-        # Updated shared obj with location data
-        self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel)})
+            #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
+            #print(f"                  hdg: {current_hdg} vel: {current_vel}")
 
-        # Send instruction to UAV
-        socket.sendto(bytes(self.next_instruction(int(float(current_wpn))), "utf-8"), self.client_address)
+            # Updated shared obj with location data
+            self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel)})
+
+            # Send instruction to UAV
+            socket.sendto(bytes(self.next_instruction(int(float(current_wpn))), "utf-8"), self.client_address)
+        
+        elif data_type == "queue":
+            #receive data about current queue
+            wp_count = int(parameters[0])
+            wp_list = []
+
+            for i in range(0, wp_count):
+                wp_list.append(Waypoint("","", float(parameters[1 + 3*i]), float(parameters[1 + 3*i + 1]), float(parameters[1 + 3*i + 2])))
+            
+            print(f"DEBUG Recieved Waypoint List ({wp_count}):")
+            for i in range(0, wp_count):
+                print(f"{wp_list[i]._lat} {wp_list[i]._lng} {wp_list[i]._alt}")
+            self.server._so.mps_currentmission_updatequeue(wp_list)
     
     def next_instruction(self, current_wpn):
         # Place new instructions onto the queue
         instruction = ""
+
+        # Check if we should send back updated mission queue
+        if self.server._so.mps_currentmission_shouldupdate():
+            self.server._instructions.push(f"QGET")
 
         # Check if there is a flight config update request
         newmode = self.server._so.flightConfig_get()
@@ -170,7 +191,7 @@ class MPS_Server():
         print("MPS_Server initialized")
 
     def serve_forever(self):
-        HOST, PORT = "localhost", 4000
+        HOST, PORT = "localhost", 9001
         self._server = MPS_Internal_Server((HOST, PORT), MPS_Handler, self._so)
         self._server.serve_forever()
 

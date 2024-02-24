@@ -1,4 +1,5 @@
-import wsgiserver
+# from gevent import pywsgi
+# from geventwebsocket.handler import WebSocketHandler
 from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
@@ -33,9 +34,15 @@ class GCOM_Server():
         socketio = SocketIO(app)
 
         # GET endpoints
+        @app.route("/", methods=["GET"])
+        def index():
+            return "GCOM Server Running", 200
 
         @app.route("/queue", methods=["GET"])
         def get_queue():
+            self._so.gcom_currentmission_trigger_update()
+            while self._so._currentmission_flg_ready == False:
+                pass
             ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
             formatted = []
             for wp in ret:
@@ -60,7 +67,7 @@ class GCOM_Server():
             status = self._so.gcom_locked_set(True)
             if status:
                 print("Locked by GCOM")
-                return "Mission Queue Locked"
+                return "Mission Queue Locked", 200
 
             else:
                 print("Lock failed")
@@ -74,7 +81,7 @@ class GCOM_Server():
             if status:
                 print("unlocked by GCOM")
 
-                return "Mission Queue unlocked"
+                return "Mission Queue unlocked", 200
             else:
                 print("Unlock failed")
 
@@ -85,15 +92,16 @@ class GCOM_Server():
             print("Landing")
             self._so.gcom_landing_set(True)
 
-            return "Landing in Place"
+            return "Landing in Place", 200
 
-        @app.route("/rtl", methods=["POST"])
+        @app.route("/rtl", methods=["GET", "POST"])
         def rtl():
-            altitude = request.get_json()['altitude']
+            altitude = request.get_json().get('altitude', 5)
+
             print(f"RTL at {altitude}")
             self._so.gcom_rtl_set(altitude)
 
-            return "Returning to Land"
+            return "Returning to Land", 200
 
         # VTOL LAND ENDPOINT
 
@@ -105,7 +113,7 @@ class GCOM_Server():
             
             self._so.gcom_vtol_land_set(land)
 
-            return "Landing at specified location"
+            return "Landing at specified location", 200
 
         # POST endpoints
 
@@ -130,7 +138,7 @@ class GCOM_Server():
 
             wpq.clear()
 
-            return "ok"
+            return "ok", 200
 
         @app.route("/append", methods=['POST'])
         def append_wp():
@@ -145,7 +153,7 @@ class GCOM_Server():
             wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
             self._so.append_wp_set(wp)
 
-            return "ok"
+            return "ok", 200
     
         @app.route("/takeoff", methods=["POST"])
         def takeoff():
@@ -158,7 +166,7 @@ class GCOM_Server():
             print(f"Taking off to altitude {altitude}")
             self._so.gcom_takeoffalt_set(altitude)
 
-            return "Takeoff command received"
+            return "Takeoff command received", 200
 
         @app.route("/home", methods=["POST"])
         def home():
@@ -169,7 +177,7 @@ class GCOM_Server():
 
             self._so.gcom_newhome_set(home)
 
-            return "Setting New Home"
+            return "Setting New Home", 200
         
         # VTOL endpoints
         @app.route("/vtol/transition", methods=["GET", "POST"])
@@ -182,7 +190,7 @@ class GCOM_Server():
                 mode = int(payload['mode'])
                 if mode == 3 or mode == 4:
                     self._so.gcom_vtol_set(mode)
-                    return "Changing flight mode"
+                    return "Changing flight mode", 200
                 else:
                     return "Invalid flight mode", 400
             
@@ -385,12 +393,12 @@ class GCOM_Server():
             
             socketio.emit('status_response', {'status_data': retJSON})
             
-        #run server
-        if production:
-            # Option 1: Using gevent and gevent-websocket for production
-            server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
-            server.serve_forever()
-        else:
+        # # #run server
+        # # if production:
+        # #     # Option 1: Using gevent and gevent-websocket for production
+        # #     server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
+        # #     server.serve_forever()
+        # else:
             # Option 2: Using socketio.run for development (supports WebSocket)
             #socketio.start_background_task(background_task)
-            socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)
+        socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)

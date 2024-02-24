@@ -14,7 +14,7 @@ MissionPlanner.MainV2.speechEnable = True
 
 HOST = 'localhost' # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
-RPORT = 4000 # Arbitrary non-privileged port
+RPORT = 9001 # Arbitrary non-privileged port
 
 DELAY = 1 # Seconds
 
@@ -68,12 +68,12 @@ def upload_mission(wp_array):
     # Final ack
     MAV.setWPACK()
 
-MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
+# MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 
 # Keep talking with the Mission Planner server 
 while 1:
     # Send location to server
-    location = "{:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
+    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
     rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
@@ -85,9 +85,10 @@ while 1:
         print("Socket timeout")
         time.sleep(DELAY)
         continue
-    except socket.error:
+    except socket.error as e:
+        print(e)
         print("Socket error - trying again in 10 seconds...")
-        MissionPlanner.MainV2.speechEngine.SpeakAsync("Socket connection error. Trying again in 10 seconds.")
+        # MissionPlanner.MainV2.speechEngine.SpeakAsync("Socket connection error. Trying again in 10 seconds. skill issue")
         time.sleep(10)
         continue
 
@@ -123,12 +124,17 @@ while 1:
                     wp_array.append((float_lat, float_lng, float_alt))
                     print("NEXT - received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
 
-                    if (len(wp_array) == 1):
-                        #set immediate mission - aircraft reacts immediately to first waypoint
-                        upload_mission(wp_array)
-                        # Enter auto mode
-                        Script.ChangeMode("Auto")
-                        print("NEXT - moving to first waypoint")
+                    # if (len(wp_array) == 1):
+                    #     #set immediate mission - aircraft reacts immediately to first waypoint
+                    #     upload_mission(wp_array)
+                    #     # Enter auto mode
+                    #     Script.ChangeMode("Auto")
+                    #     print("NEXT - moving to first waypoint")
+                     #set immediate mission - aircraft reacts immediately to first waypoint
+                    upload_mission(wp_array)
+                    # Enter auto mode
+                    Script.ChangeMode("Auto")
+                    print("NEXT - moving to first waypoint")
 
             else: 
                 upload_mission(wp_array)
@@ -254,10 +260,28 @@ while 1:
                 Script.ChangeMode(argv[0])
         
         elif cmd == "TTS":
-            text = ""
-            for word in argv:
-                text += word + " "
-            MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
+            #text = ""
+            #for word in argv:
+            #    text += word + " "
+            #MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
+            pass
+
+        elif cmd == "QGET":
+            #get info
+            numwp = MAV.getWPCount()
+            wplist = []
+            for i in range(0, numwp):
+                try:
+                    wp = MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i)
+                    wplist.append((wp.lat, wp.lng, wp.alt))
+                except:
+                    pass
+            #send info
+            queue_info = "queue {:}".format(numwp)
+            for wp in wplist:
+                queue_info += " {:} {:} {:}".format(wp[0], wp[1], wp[2])
+            print("DEBUG queue_info string ", queue_info)
+            rsock.sendto(bytes(queue_info, 'utf-8'), (HOST, RPORT))
         
         elif cmd == "CONFIG":
             if argv[0] in ["vtol", "plane"]:

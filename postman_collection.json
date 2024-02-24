@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "243c15d7-0904-4cc6-af7f-4d422f72709d",
+		"_postman_id": "dfb1110d-f3f4-4ca2-b452-e147f5b7715d",
 		"name": "./Insomnia_spec",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "27310156",
-		"_collection_link": "https://dark-space-625667.postman.co/workspace/uas~4452f2d7-867e-430f-8ca4-52527aa26ec3/collection/27310156-243c15d7-0904-4cc6-af7f-4d422f72709d?action=share&source=collection_link&creator=27310156"
+		"_exporter_id": "30810844"
 	},
 	"item": [
 		{
@@ -72,17 +71,8 @@
 				{
 					"name": "return to launch",
 					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"altitude\": 100\n}"
-						},
+						"method": "GET",
+						"header": [],
 						"url": {
 							"raw": "{{ base_url }}/rtl",
 							"host": [
@@ -252,7 +242,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\n  {\n\t\t\"id\": 0,\n    \"name\": \"Alpha\",\n    \"latitude\": -35.3627798,\n    \"longitude\": 149.1651830,\n    \"altitude\": 603\n  },\n\t{\n\t\t\"id\": 1,\n\t  \"name\": \"Bravo\",\n    \"latitude\": -35.3637798,\n    \"longitude\": 149.1651830,\n    \"altitude\": null\n\t},\n\t{\n\t\t\"id\": 2,\n\t  \"name\": \"Charlie\",\n    \"latitude\": -35.3637798,\n    \"longitude\": 149.1641830,\n    \"altitude\": 593\n\t}\n]"
+							"raw": "[\n    {\n        \"id\": 0,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3138859,\n        \"longitude\": -76.5499234,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.313949,\n        \"longitude\": -76.5493333,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3136755,\n        \"longitude\": -76.5486789,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 3,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3132419,\n        \"longitude\": -76.5486306,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 4,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128589,\n        \"longitude\": -76.5489203,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 5,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128168,\n        \"longitude\": -76.5494245,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 6,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128715,\n        \"longitude\": -76.5500629,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 7,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3131325,\n        \"longitude\": -76.5503258,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 8,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3134271,\n        \"longitude\": -76.550315,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 9,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3137302,\n        \"longitude\": -76.5501004,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 10,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3142016,\n        \"longitude\": -76.5494299,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 11,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141637,\n        \"longitude\": -76.5490758,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 12,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141006,\n        \"longitude\": -76.5485287,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 13,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3138522,\n        \"longitude\": -76.5480512,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 14,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3135955,\n        \"longitude\": -76.5479761,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 15,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3133808,\n        \"longitude\": -76.5480405,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 16,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3131577,\n        \"longitude\": -76.548121,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 17,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3130441,\n        \"longitude\": -76.5483195,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 18,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3127915,\n        \"longitude\": -76.548593,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 19,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3126569,\n        \"longitude\": -76.549049,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 20,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3126653,\n        \"longitude\": -76.5496606,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 21,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128,\n        \"longitude\": -76.5504491,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 22,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3132419,\n        \"longitude\": -76.5506852,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 23,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3137344,\n        \"longitude\": -76.5507281,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 24,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.314008,\n        \"longitude\": -76.5505993,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 25,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141932,\n        \"longitude\": -76.5503418,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 26,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3143742,\n        \"longitude\": -76.5499824,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 27,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3144878,\n        \"longitude\": -76.5495425,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 28,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3145551,\n        \"longitude\": -76.5487593,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 29,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3143952,\n        \"longitude\": -76.5480673,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 30,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141258,\n        \"longitude\": -76.5476221,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 31,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3138101,\n        \"longitude\": -76.5475255,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 32,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.313486,\n        \"longitude\": -76.5475845,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 33,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3131535,\n        \"longitude\": -76.5476865,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 34,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3130062,\n        \"longitude\": -76.5478098,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 35,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3129136,\n        \"longitude\": -76.54796,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 36,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3127663,\n        \"longitude\": -76.5481371,\n        \"altitude\": 100\n    }\n]"
 						},
 						"url": {
 							"raw": "{{ base_url }}/queue",
@@ -320,6 +310,49 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "{{ base_url }}/invoke",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"message\": \"Hello world\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ base_url }}/invoke",
+					"host": [
+						"{{ base_url }}"
+					],
+					"path": [
+						"invoke"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Test Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ base_url }}/",
+					"host": [
+						"{{ base_url }}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
