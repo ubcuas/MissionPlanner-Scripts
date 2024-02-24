@@ -17,7 +17,7 @@ centerlng = -76.6528130
 alt = 100
 
 wplist = []
-for i in range(0, 100):
+for i in range(0, 300):
     wplist.append((centerlat + random.random() * 0.02 - 0.01, centerlng + random.random() * 0.02 - 0.01, alt))
 
 with open("generated.txt", "w") as f:
