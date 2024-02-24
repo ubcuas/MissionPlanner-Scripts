@@ -34,6 +34,9 @@ class GCOM_Server():
         socketio = SocketIO(app)
 
         # GET endpoints
+        @app.route("/", methods=["GET"])
+        def index():
+            return "GCOM Server Running", 200
 
         @app.route("/queue", methods=["GET"])
         def get_queue():

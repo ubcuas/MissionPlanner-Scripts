@@ -68,7 +68,7 @@ def upload_mission(wp_array):
     # Final ack
     MAV.setWPACK()
 
-MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
+# MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 
 # Keep talking with the Mission Planner server 
 while 1:
@@ -124,12 +124,17 @@ while 1:
                     wp_array.append((float_lat, float_lng, float_alt))
                     print("NEXT - received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
 
-                    if (len(wp_array) == 1):
-                        #set immediate mission - aircraft reacts immediately to first waypoint
-                        upload_mission(wp_array)
-                        # Enter auto mode
-                        Script.ChangeMode("Auto")
-                        print("NEXT - moving to first waypoint")
+                    # if (len(wp_array) == 1):
+                    #     #set immediate mission - aircraft reacts immediately to first waypoint
+                    #     upload_mission(wp_array)
+                    #     # Enter auto mode
+                    #     Script.ChangeMode("Auto")
+                    #     print("NEXT - moving to first waypoint")
+                     #set immediate mission - aircraft reacts immediately to first waypoint
+                    upload_mission(wp_array)
+                    # Enter auto mode
+                    Script.ChangeMode("Auto")
+                    print("NEXT - moving to first waypoint")
 
             else: 
                 upload_mission(wp_array)
