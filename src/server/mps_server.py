@@ -51,6 +51,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             wp_list = []
 
             for i in range(0, wp_count):
+                print(self.request)
                 wp_list.append(Waypoint("","", float(parameters[1 + 3*i]), float(parameters[1 + 3*i + 1]), float(parameters[1 + 3*i + 2])))
             
             print(f"DEBUG Recieved Waypoint List ({wp_count}):")

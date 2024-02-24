@@ -44,8 +44,10 @@ class GCOM_Server():
             while self._so._currentmission_flg_ready == False:
                 pass
             ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
+            print("ret", ret)
             formatted = []
             for wp in ret:
+                print(wp.get_asdict(), wp._name)
                 formatted.append(wp.get_asdict())
             
             wpno = int(self._so.gcom_status_get()['current_wpn'])
@@ -141,10 +143,38 @@ class GCOM_Server():
                     wpq.append(wp)
             
             self._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
-
+            copy = WaypointQueue(wpq.copy()).aslist()
             wpq.clear()
+            print("copy: ", list(map(lambda x: str(x.get_asdict()), copy)))
+            print("copy2: ", list(map(lambda x: str(x.get_asdict()), self._so.gcom_currentmission_get())))
 
             return "ok", 200
+        
+        @app.route("/insert", methods=['POST'])
+        def insert_wp():
+            payload = request.get_json()
+
+            if not('latitude' in payload) or not('longitude' in payload):
+                return "Latitude and Longitude cannot be null", 400
+            
+            self._so.gcom_currentmission_trigger_update()
+            while self._so._currentmission_flg_ready == False:
+                pass
+            ret = self._so.gcom_currentmission_get()
+            
+            wpno = int(self._so.gcom_status_get()['current_wpn'])
+            remaining = ret[wpno-1:]
+            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], payload['altitude'])
+
+            if payload['altitude'] is not None:
+                wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], remaining[-1]._alt)
+
+            remaining.insert(0, wp)
+            print("remaining", list(map(lambda x: str(x.get_asdict()), remaining)))
+            self._so.gcom_newmission_set(WaypointQueue(remaining.copy()))
+
+            return "ok", 200
+            
 
         @app.route("/append", methods=['POST'])
         def append_wp():

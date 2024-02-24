@@ -11,7 +11,7 @@ class Waypoint():
         self._alt = float(alt)
 
     def __str__(self):
-        return f"{self._lat} {self._lng} {self._alt}"
+        return f"{self._name} {self._lat} {self._lng} {self._alt}"
     
     def get_coords_gps(self):
         return (self._lat, self._lng, self._alt)
