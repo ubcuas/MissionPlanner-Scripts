@@ -62,7 +62,7 @@ following:
 
 2. Launch the application:
 
-    On Windows
+    On Windows (Powershell)
     ```
     poetry run python .\src\main.py --dev --port=9000
     ```
@@ -83,18 +83,16 @@ following:
 
 ### Using Tests
 
-To run tests, you must have the Docker image running (uasitl:copyter).
-Then, run the following commands to run the PyTest commands:
+To run tests, you must have the Docker image running (uasitl:copter).
+Then, enter the src directory and run the `pytest` command via Poetry:
 
-WSL
-
-'''
+```
     cd src
-'''
+```
 
-'''
+```
     poetry run pytest
-'''
+```
 
 # Endpoints
 
