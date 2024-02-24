@@ -47,9 +47,15 @@ class GCOM_Server():
             formatted = []
             for wp in ret:
                 formatted.append(wp.get_asdict())
-            retJSON = json.dumps(formatted) # This should convert the dict to JSON
+            
+            wpno = int(self._so.gcom_status_get()['current_wpn'])
+            remaining = formatted[wpno-1:]
+            retJSON = json.dumps(remaining) # This should convert the dict to JSON
+            print(str(self._so.append_wp_get()))
 
             print("Queue sent to GCOM")
+
+            remaining
 
             return retJSON
 
