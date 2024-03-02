@@ -154,6 +154,12 @@ class GCOM_Server():
             self._so.append_wp_set(wp)
 
             return "ok", 200
+        
+        @app.route("/clear", methods=['GET'])
+        def clear_queue():
+            self._so.gcom_newmission_set(WaypointQueue([]))
+
+            return "ok", 200
     
         @app.route("/takeoff", methods=["POST"])
         def takeoff():
