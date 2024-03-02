@@ -177,7 +177,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 print("instruction", instruction)
                 return bytes(instruction, "utf-8")
             else:
-                print(f"packed bytes: ", instruction.hex(' ', -4))
+                print(f"packed bytes: length {len(instruction)}",)
             return instruction
             
 

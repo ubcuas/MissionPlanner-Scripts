@@ -51,6 +51,7 @@ def upload_mission(wp_array):
     Parameters:
         - wp_array: ordered list of waypoints
     """
+    #start = time.monotonic_ns()
     # Set waypoint total
     MAV.setWPTotal(len(wp_array) + 1)
     # Upload waypoints
@@ -69,6 +70,8 @@ def upload_mission(wp_array):
         MAV.setWP(wp, i + 1, ALTSTD)
     # Final ack
     MAV.setWPACK()
+    #end = time.monotonic_ns()
+    #print("Uploading mission took {:}ms".format((end - start) / 1000000))
 
 def interpret_normal(recvd):
     msg = recvd.decode()
