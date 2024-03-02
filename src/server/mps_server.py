@@ -1,4 +1,5 @@
 import socketserver
+import struct
 
 from server.common.missions import Mission
 from server.common.wpqueue import Waypoint, Queue
@@ -43,7 +44,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel)})
 
             # Send instruction to UAV
-            socket.sendto(bytes(self.next_instruction(int(float(current_wpn))), "utf-8"), self.client_address)
+            socket.sendto(self.next_instruction(int(float(current_wpn))), self.client_address)
         
         elif data_type == "queue":
             #receive data about current queue
@@ -143,14 +144,21 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 print("New mission found!")
                 self.server._current_mission = Mission(nextwpq)
                 
-                # Place instructions for the new mission onto the queue
+                # Place instruction for the new mission onto the queue
                 self.server._instructions.push("NEWM")
+
+                #Prepare packed mission
+                missionbytes = b""
+
                 self.server._newmc = 1
                 while (not nextwpq.empty()):
                     curr = nextwpq.pop()
-                    self.server._instructions.push(f"NEXT {str(curr)}")
                     self.server._newmc += 1
-                self.server._instructions.push("NEXT")
+                    missionbytes += bytes(struct.pack("f", curr._lat))
+                    missionbytes += bytes(struct.pack("f", curr._lng))
+                    missionbytes += bytes(struct.pack("f", curr._alt))
+
+                self.server._instructions.push(missionbytes)
             else:
                 # Keep going and send current wpno to shared obj
                 if (self.server._newmc == 0):
@@ -162,10 +170,14 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
         # Retrieve an instruction
         if (self.server._instructions.empty()):
-            return "IDLE"
+            return b"IDLE"
         else:
             instruction = self.server._instructions.pop()
-            print("instruction", instruction)
+            if (type(instruction) != bytes):
+                print("instruction", instruction)
+                return bytes(instruction, "utf-8")
+            else:
+                print(f"packed bytes: length {len(instruction)}",)
             return instruction
             
 
