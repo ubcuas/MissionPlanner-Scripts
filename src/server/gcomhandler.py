@@ -169,7 +169,7 @@ class GCOM_Server():
             if payload['altitude'] is not None:
                 wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], remaining[-1]._alt)
 
-            remaining.insert(0, wp)
+            remaining.insert(1, wp)
             print("remaining", list(map(lambda x: str(x.get_asdict()), remaining)))
             self._so.gcom_newmission_set(WaypointQueue(remaining.copy()))
 
