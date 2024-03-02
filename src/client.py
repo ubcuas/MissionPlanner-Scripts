@@ -86,7 +86,7 @@ def interpret_packedmission(recvd):
         #print(recvd[idx:idx + 8])
         ret.append(struct.unpack('f', recvd[idx:idx + 4])[0])
 
-    print(ret)
+    #print(ret)
     return ret
 
 # MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
@@ -101,7 +101,7 @@ while 1:
 
     try:
         recvd = rsock.recv(4096)
-        print("received {:} bytes".format(len(recvd)))
+        #print("received {:} bytes".format(len(recvd)))
     except socket.timeout:
         print("Socket timeout")
         time.sleep(DELAY)
