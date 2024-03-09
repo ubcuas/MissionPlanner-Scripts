@@ -44,20 +44,15 @@ class GCOM_Server():
             while self._so._currentmission_flg_ready == False:
                 pass
             ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
-            print("ret", ret)
             formatted = []
             for wp in ret:
-                print(wp.get_asdict(), wp._name)
                 formatted.append(wp.get_asdict())
             
             wpno = int(self._so.gcom_status_get()['current_wpn'])
             remaining = formatted[wpno-1:]
             retJSON = json.dumps(remaining) # This should convert the dict to JSON
-            print(str(self._so.append_wp_get()))
 
             print("Queue sent to GCOM")
-
-            remaining
 
             return retJSON
 
