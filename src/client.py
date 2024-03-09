@@ -222,6 +222,10 @@ while 1:
         elif cmd == "HOME":
             MAV.doCommand(MAVLink.MAV_CMD.DO_SET_HOME,0,0,0,0,float(argv[0]),float(argv[1]),float(argv[2]))
             print("HOME - set a new home")
+        
+        elif cmd == "ARM":
+            MAV.doCommand(MAVLink.MAV_CMD.COMPONENT_ARM_DISARM, int(argv[0]), 0, 0, 0, 0, 0, 0, 0)
+            print("ARM - arm/disarm motors")
 
         elif cmd == "RTL":
             rtl_altitude = float(argv[0]) * 100

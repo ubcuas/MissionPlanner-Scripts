@@ -1,4 +1,4 @@
-# from gevent import pywsgi
+    # from gevent import pywsgi
 # from geventwebsocket.handler import WebSocketHandler
 from flask import Flask, request
 import json
@@ -408,6 +408,17 @@ class GCOM_Server():
                 return f"OK! Changed mode: {input['mode']}", 200
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
+        
+        @app.route("/arm", methods=["POST"])
+        def arm_disarm_drone():
+            input = request.get_json()
+
+            if input['arm'] in [1, 0]:
+                print(f"arming {int(input['arm'])}")
+                self._so.arm_set(int(input['arm']))
+                return f"OK! {"Armed drone" if input["arm"] else "Disarmed drone"}", 200
+            else:
+                return f"Unrecognized arm command", 400
         
         #Socket stuff
         @socketio.on("connect")
