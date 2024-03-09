@@ -51,7 +51,10 @@ following:
 
 
 ## Using MissionPlanner-Scripts
-**NOTE : MissionPlanner currently only works on Windows**
+
+> [!NOTE]
+> MissionPlanner currently only works on Windows
+
 1. Install required dependencies:
 
     ```
