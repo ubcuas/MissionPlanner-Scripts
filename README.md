@@ -10,71 +10,76 @@
 
 ## SITL & MissionPlanner
 
-1. In order to run SITL on your local machine, you will need to have Docker installed. For installation instructions, refer to the
-following:
+1.  In order to run SITL on your local machine, you will need to have Docker installed. For installation instructions, refer to the
+    following:
 
-    - [Windows Installation](https://docs.docker.com/desktop/install/windows-install/)
-    - [MacOS Installation](https://docs.docker.com/desktop/install/mac-install/)
+        - [Windows Installation](https://docs.docker.com/desktop/install/windows-install/)
+        - [MacOS Installation](https://docs.docker.com/desktop/install/mac-install/)
 
-2. You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
+2.  You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
 
-3. Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the desired ArduPilot version - this should match what is/will be running on the drone):
+3.  Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the desired ArduPilot version - this should match what is/will be running on the drone):
 
     - ArduPlane (VTOL):
-        - x86: `docker pull ubcuas/uasitl:plane-X.X.X`
-        - ARM64: `docker pull ubcuas/uasitl:plane-arm-X.X.X`
+      - x86: `docker pull ubcuas/uasitl:plane-X.X.X`
+      - ARM64: `docker pull ubcuas/uasitl:plane-arm-X.X.X`
     - ArduCopter (Quadcopter):
-        - x86: `docker pull ubcuas/uasitl:copter-X.X.X`
-        - ARM64: `docker pull ubcuas/uasitl:copter-arm-X.X.X`
+      - x86: `docker pull ubcuas/uasitl:copter-X.X.X`
+      - ARM64: `docker pull ubcuas/uasitl:copter-arm-X.X.X`
 
     If everything goes correctly, running `docker image ls` should contain an entry for `ubcuas/uasitl`.
 
-4. Run one of the following commands to get SITL running. Refer to [the documentation](https://github.com/ubcuas/UASITL) for more customization:
+4.  Run one of the following commands to get SITL running. Refer to [the documentation](https://github.com/ubcuas/UASITL) for more customization:
 
     x86: `docker run --rm -d -p 5760:5760 --name acom-sitl ubcuas/uasitl:[plane/copter]-X.X.X`
 
     ARM64: `docker run --rm -d -p 5760:5760 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm-X.X.X`
 
-5. Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
+5.  Next, open MissionPlanner. The first thing you will want to do is make sure that the dropdown in the top right of the UI is configured to `TCP` as shown here:
 
-    <p align="center">
-        <img src="figures/tcpdropdown.png" width="60%">
-    </p>
+<p align="center">
+    <img src="figures/tcpdropdown.png" width="60%">
+</p>
 
-6. Press the `Connect` Button to the right of that pane. You will be prompted with two inputs: one for hostname, and another for the remote port you want to use. Enter the following for each:
+6.  Press the `Connect` Button to the right of that pane. You will be prompted with two inputs: one for hostname, and another for the remote port you want to use. Enter the following for each:
 
     - Hostname: `localhost`
     - Remote Port: `5760`
 
-7. If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
+7.  If you have completed all of the above steps you should be ready to use SITL with MissionPlanner. If you see a drone show up on the map then you should be ready to go.
 
 ## Using MissionPlanner-Scripts
 
+> [!NOTE]
+> MissionPlanner currently only works on Windows
+
 1. Install required dependencies:
 
-    ```c
-    poetry install --no-root
-    ```
+   ```c
+   poetry install --no-root
+   ```
 
 2. Launch the application:
 
-    On Windows (Powershell)
-    ```
-    poetry run python .\src\main.py --dev --port=9000
-    ```
+   On Windows (Powershell)
 
-    On MacOS
-    ```
-    poetry run python src/main.py --dev --port=9000
-    ```
+   ```
+   poetry run python .\src\main.py --dev --port=9000
+   ```
 
-    The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
+   On MacOS
+
+   ```
+   poetry run python src/main.py --dev --port=9000
+   ```
+
+   The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
 
 3. Start the client inside MissionPlanner:
 
-    Navigate to the 'Scripts' tab and select `client.py` to run, the press 'Run Scripts' to start.
+   Navigate to the 'Scripts' tab and select `client.py` to run, the press 'Run Scripts' to start.
 
-    <img src="figures/client_mps.png" width="60%">
+   <img src="figures/client_mps.png" width="60%">
 
 ### Using Tests
 
@@ -93,7 +98,7 @@ Then, enter the src directory and run the `pytest` command via Poetry:
 
 ## (GET) /queue
 
-Returns the current list of waypoints in the queue, in the order of their names. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
+Returns the remaining list of waypoints in the order provided by the queue. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
 
 Waypoints that have been passed and removed from the queue, obviously, should not be displayed here either.
 
@@ -103,20 +108,20 @@ Example response body:
 
 ```json
 [
-    {
-        "id": 1,
-        "name": "Alpha",
-        "longitude": 38.83731,
-        "latitude": -20.48321,
-        "altitude": 50.7
-    },
-    {
-        "id": 2,
-        "name": "Beta",
-        "longitude": 38.83731,
-        "latitude": -20.48321,
-        "altitude": 50.7
-    }
+  {
+    "id": 1,
+    "name": "Alpha",
+    "longitude": 38.83731,
+    "latitude": -20.48321,
+    "altitude": 50.7
+  },
+  {
+    "id": 2,
+    "name": "Beta",
+    "longitude": 38.83731,
+    "latitude": -20.48321,
+    "altitude": 50.7
+  }
 ]
 ```
 
@@ -137,20 +142,20 @@ Example request body:
 
 ```json
 [
-    {
-        "id": 1,
-        "name": "Alpha",
-        "longitude": 38.83731,
-        "latitude": -20.48321,
-        "altitude": 50.7
-    },
-    {
-        "id": 2,
-        "name": "Beta",
-        "longitude": 38.83731,
-        "latitude": -20.48321,
-        "altitude": null
-    }
+  {
+    "id": 1,
+    "name": "Alpha",
+    "longitude": 38.83731,
+    "latitude": -20.48321,
+    "altitude": 50.7
+  },
+  {
+    "id": 2,
+    "name": "Beta",
+    "longitude": 38.83731,
+    "latitude": -20.48321,
+    "altitude": null
+  }
 ]
 ```
 
@@ -163,12 +168,12 @@ Example response:
 
 ```json
 {
-    "velocity": 22.2,
-    "longitude": 38.3182,
-    "latitude":  82.111,
-    "altitude": 28.1111,
-    "heading": 11.2,
-    "batteryvoltage": 1.5
+  "velocity": 22.2,
+  "longitude": 38.3182,
+  "latitude": 82.111,
+  "altitude": 28.1111,
+  "heading": 11.2,
+  "batteryvoltage": 1.5
 }
 ```
 
@@ -197,9 +202,8 @@ Example request body:
 
 ```json
 {
-    "altitude": 50.7
+  "altitude": 50.7
 }
-
 ```
 
 ## (POST) /rtl
@@ -224,11 +228,11 @@ Example request body:
 
 ```json
 {
-    "id": 1,
-    "name": "Alpha",
-    "longitude": 38.83731,
-    "latitude": -20.48321,
-    "altitude": 50.7
+  "id": 1,
+  "name": "Alpha",
+  "longitude": 38.83731,
+  "latitude": -20.48321,
+  "altitude": 50.7
 }
 ```
 
@@ -246,11 +250,25 @@ Each of these key-value pairs is optional; you can include any, all, or none of 
 
 ```json
 {
-    "flight_mode": "loiter",
-    "drone_type": "vtol",
-    "altitude_standard": "ASL"
+  "flight_mode": "loiter",
+  "drone_type": "vtol",
+  "altitude_standard": "ASL"
 }
 ```
+
+## (POST) /insert
+
+Inserts a new waypoint at the beginning of the queue. Drone should immediately head to this waypoint when the request is sent.
+
+Example request body:
+
+{
+"id": 2,
+"name": "Beta",
+"longitude": 18.43731,
+"latitude": -19.24251,
+"altitude": 42.7
+}
 
 # Sockets
 
@@ -274,12 +292,12 @@ On recieving a `message` event, the server emits another `message` event in resp
 
 ```json
 {
-    "velocity": 22.2,
-    "longitude": 38.3182,
-    "latitude":  82.111,
-    "altitude": 28.1111,
-    "heading": 11.2,
-    "batteryvoltage": 1.5
+  "velocity": 22.2,
+  "longitude": 38.3182,
+  "latitude": 82.111,
+  "altitude": 28.1111,
+  "heading": 11.2,
+  "batteryvoltage": 1.5
 }
 ```
 
