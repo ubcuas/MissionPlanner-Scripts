@@ -260,6 +260,7 @@ Inserts a new waypoint at the beginning of the queue. Drone should immediately h
 
 Example request body:
 
+```json
 {
     "id": 2,
     "name": "Beta",
@@ -267,6 +268,7 @@ Example request body:
     "latitude": -19.24251,
     "altitude": 42.7
 }
+```
 
 # Sockets
 
