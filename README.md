@@ -211,7 +211,7 @@ Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Re
 
 ## (GET) /land
 
-Aircraft stops at its current position and lands. Returns a Bad Request status code and error message if the drone could not execute the operation.
+Aircraft stops at its current position and lands. Enters loiter mode before landing. Returns a Bad Request status code and error message if the drone could not execute the operation.
 
 ## (POST) /home
 
