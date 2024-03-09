@@ -51,7 +51,7 @@ following:
 
 
 ## Using MissionPlanner-Scripts
-
+**NOTE : MissionPlanner currently only works on Windows**
 1. Install required dependencies:
 
     ```
@@ -82,7 +82,7 @@ following:
 # Endpoints
 
 ## (GET) /queue
-Returns the current list of waypoints in the queue, in the order of their names. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
+Returns the remaining list of waypoints in the order provided by the queue. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
 
 Waypoints that have been passed and removed from the queue, obviously, should not be displayed here either.
 
@@ -205,5 +205,19 @@ Example request body:
     "longitude": 38.83731,
     "latitude": -20.48321,
     "altitude": 50.7
+}
+```
+
+## (POST) /insert
+Inserts a new waypoint at the beginning of the queue. Drone should immediately head to this waypoint when the request is sent.
+
+Example request body:
+```json
+{
+    "id": 2,
+    "name": "Beta",
+    "longitude": 18.43731,
+    "latitude": -19.24251,
+    "altitude": 42.7
 }
 ```
