@@ -1,6 +1,7 @@
 #Python 2.7
 
 import socket
+import struct
 import time
 import clr
 clr.AddReference("MissionPlanner.Utilities")
@@ -33,6 +34,7 @@ Script.ChangeMode("Guided") # Changes mode to "Guided"
 print("Entered Guided Mode")
 
 wp_array = []
+upcoming_mission = False
 fence_exclusive = False
 fence_type = ""
 
@@ -49,6 +51,7 @@ def upload_mission(wp_array):
     Parameters:
         - wp_array: ordered list of waypoints
     """
+    #start = time.monotonic_ns()
     # Set waypoint total
     MAV.setWPTotal(len(wp_array) + 1)
     # Upload waypoints
@@ -67,6 +70,24 @@ def upload_mission(wp_array):
         MAV.setWP(wp, i + 1, ALTSTD)
     # Final ack
     MAV.setWPACK()
+    #end = time.monotonic_ns()
+    #print("Uploading mission took {:}ms".format((end - start) / 1000000))
+
+def interpret_normal(recvd):
+    msg = recvd.decode()
+    return msg.split()
+
+def interpret_packedmission(recvd):
+    ret = ["NEXT"]
+
+    #print(recvd)
+    for i in range(len(recvd) // 4):
+        idx = 4 * i
+        #print(recvd[idx:idx + 8])
+        ret.append(struct.unpack('f', recvd[idx:idx + 4])[0])
+
+    print(ret)
+    return ret
 
 # MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 
@@ -79,8 +100,8 @@ while 1:
     #print("Waypoint Count", MAV.getWPCount())
 
     try:
-        msg = rsock.recv(1024)
-        msg = msg.decode()
+        recvd = rsock.recv(4096)
+        print("received {:} bytes".format(len(recvd)))
     except socket.timeout:
         print("Socket timeout")
         time.sleep(DELAY)
@@ -92,7 +113,11 @@ while 1:
         time.sleep(10)
         continue
 
-    argv = msg.split()
+    if (upcoming_mission):
+        argv = interpret_packedmission(recvd)
+    else:
+        argv = interpret_normal(recvd)
+
     cmd = argv.pop(0)
     
     if cs.mode == 'MANUAL': # Safety Manual Mode Switch
@@ -101,39 +126,36 @@ while 1:
         break
     else:
         if cmd == "NEWM":
-            # NEWM - newmission
-            # Enter stabilize and await new mission waypoints
-
+            #Enter guided and await new mission waypoints
             Script.ChangeMode("Guided")
             wp_array = []
-            print("NEWM")
+            upcoming_mission = True
+            print("NEWM - About to recieve new mission")
 
         elif cmd == "NEXT":
-            # NEXT - next waypoint
-            # Receive another waypoint, or start the mission if no more waypoints
+            upcoming_mission = False
 
-            if (len(argv) > 0):
-                # Receive waypoint
-                if (len(argv) != 3):
-                    print("NEXT - invalid waypoint {:}".format(msg))
-                else:
-                    float_lat = float(argv[0])
-                    float_lng = float(argv[1])
-                    float_alt = float(argv[2])
+            if (len(argv) % 3 != 0):
+                print("recieved {:} waypoint params, not divisible by 3}".format(len(argv)))
 
-                    wp_array.append((float_lat, float_lng, float_alt))
-                    print("NEXT - received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
+            for idx in range(0, len(argv) // 3):
+                float_lat = float(argv[3 * idx])
+                float_lng = float(argv[3 * idx + 1])
+                float_alt = float(argv[3 * idx + 2])
 
-
-            else: 
-                upload_mission(wp_array)
-                # Empty array
-                wp_array = []
-                # Enter auto mode
-                Script.ChangeMode("Auto")
-                print("NEXT - new mission set")
+                wp_array.append((float_lat, float_lng, float_alt))
+                print("NEXT - received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
+            
+            #set mission
+            upload_mission(wp_array)
+            # Empty array
+            wp_array = []
+            # Enter auto mode
+            Script.ChangeMode("Auto")
+            print("NEXT - new mission set")   
         
         elif cmd == "PUSH":
+            #is this unused?
             print("DEBUG", cmd, argv)
             wptotal = MAV.getWPCount()
 
