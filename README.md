@@ -157,6 +157,12 @@ Example request body:
 ]
 ```
 
+## (GET) /clear
+
+Call this endpoint to clear the current contents of the queue. The drone will no longer pursue the mission, as all waypoints have been removed.
+
+An alternative to this endpoint is to call `POST /queue` with an empty queue as the body, since it overwrites the mission.
+
 ## (GET) /status
 
 GET request returns the aircraft status.
