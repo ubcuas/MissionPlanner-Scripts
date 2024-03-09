@@ -141,8 +141,6 @@ class GCOM_Server():
             self._so.gcom_newmission_set(WaypointQueue(wpq.copy()))
             copy = WaypointQueue(wpq.copy()).aslist()
             wpq.clear()
-            print("copy: ", list(map(lambda x: str(x.get_asdict()), copy)))
-            print("copy2: ", list(map(lambda x: str(x.get_asdict()), self._so.gcom_currentmission_get())))
 
             return "ok", 200
         
@@ -166,7 +164,6 @@ class GCOM_Server():
                 wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], remaining[-1]._alt)
 
             remaining.insert(1, wp)
-            print("remaining", list(map(lambda x: str(x.get_asdict()), remaining)))
             self._so.gcom_newmission_set(WaypointQueue(remaining.copy()))
 
             return "ok", 200
