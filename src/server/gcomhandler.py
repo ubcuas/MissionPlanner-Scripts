@@ -98,6 +98,7 @@ class GCOM_Server():
         @app.route("/land", methods=["GET"])
         def land():
             print("Landing")
+            self._so.flightmode_set("loiter")
             self._so.gcom_landing_set(True)
 
             return "Landing in Place", 200
