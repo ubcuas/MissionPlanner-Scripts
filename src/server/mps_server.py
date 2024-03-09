@@ -75,6 +75,10 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         altitude_standard = self.server._so.altitude_standard_get()
         if altitude_standard != "":
             self.server._instructions.push(f"ALTSTD {altitude_standard}")
+        
+        arm = self.server._so.arm_get()
+        if arm is not None:
+            self.server._instructions.push(f"ARM {arm}")
 
         # Check if there is a new home
         newhome = self.server._so.mps_newhome_get()

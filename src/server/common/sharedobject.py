@@ -68,6 +68,27 @@ class SharedObject():
         self._append_wp_flag = False
         self._append_wp_lk = Lock()
         self._append_wp = None
+
+        # arm/disarm fields
+        self._arm_flag = False
+        self._arm_lk = Lock()
+        self._arm_status = 0
+
+    def arm_set(self, status):
+        self._arm_lk.acquire()
+        self._arm_flag = True
+        self._arm_status = status
+        self._arm_lk.release()
+    
+    def arm_get(self):
+        if self._arm_flag:
+            self._arm_lk.acquire()
+            ret = self._arm_status
+            self._arm_flag = False
+            self._arm_lk.release()
+            return ret
+        else:
+            return None
     
     def append_wp_set(self, wp):
         self._append_wp_lk.acquire()
