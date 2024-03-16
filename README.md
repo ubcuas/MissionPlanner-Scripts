@@ -50,6 +50,9 @@ following:
 
 ## Using MissionPlanner-Scripts
 
+> [!NOTE]
+> MissionPlanner currently only works on Windows
+
 1. Install required dependencies:
 
     ```c
@@ -93,7 +96,7 @@ Then, enter the src directory and run the `pytest` command via Poetry:
 
 ## (GET) /queue
 
-Returns the current list of waypoints in the queue, in the order of their names. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
+Returns the remaining list of waypoints in the order provided by the queue. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.
 
 Waypoints that have been passed and removed from the queue, obviously, should not be displayed here either.
 
@@ -154,6 +157,12 @@ Example request body:
 ]
 ```
 
+## (GET) /clear
+
+Call this endpoint to clear the current contents of the queue. The drone will no longer pursue the mission, as all waypoints have been removed.
+
+An alternative to this endpoint is to call `POST /queue` with an empty queue as the body, since it overwrites the mission.
+
 ## (GET) /status
 
 GET request returns the aircraft status.
@@ -207,7 +216,7 @@ Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Re
 
 ## (GET) /land
 
-Aircraft stops at its current position and lands. Returns a Bad Request status code and error message if the drone could not execute the operation.
+Aircraft stops at its current position and lands. Enters loiter mode before landing. Returns a Bad Request status code and error message if the drone could not execute the operation.
 
 ## (POST) /home
 
@@ -248,6 +257,21 @@ Each of these key-value pairs is optional; you can include any, all, or none of 
     "flight_mode": "loiter",
     "drone_type": "vtol",
     "altitude_standard": "ASL"
+}
+```
+
+## (POST) /insert
+Inserts a new waypoint at the beginning of the queue. Drone should immediately head to this waypoint when the request is sent.
+
+Example request body:
+
+```json
+{
+    "id": 2,
+    "name": "Beta",
+    "longitude": 18.43731,
+    "latitude": -19.24251,
+    "altitude": 42.7
 }
 ```
 

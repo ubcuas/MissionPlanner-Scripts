@@ -41,7 +41,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             #print(f"                  hdg: {current_hdg} vel: {current_vel}")
 
             # Updated shared obj with location data
-            self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel)})
+            self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel), 'current_wpn':float(current_wpn)})
 
             # Send instruction to UAV
             socket.sendto(self.next_instruction(int(float(current_wpn))), self.client_address)
@@ -75,6 +75,10 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         altitude_standard = self.server._so.altitude_standard_get()
         if altitude_standard != "":
             self.server._instructions.push(f"ALTSTD {altitude_standard}")
+        
+        arm = self.server._so.arm_get()
+        if arm is not None:
+            self.server._instructions.push(f"ARM {arm}")
 
         # Check if there is a new home
         newhome = self.server._so.mps_newhome_get()
