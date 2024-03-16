@@ -60,12 +60,12 @@ following:
 
     On Windows (Powershell)
     ```
-    poetry run python .\src\main.py --dev --port=9000
+    poetry run python .\src\main.py
     ```
 
     On MacOS
     ```
-    poetry run python src/main.py --dev --port=9000
+    poetry run python src/main.py
     ```
 
     The server will listen on the specified port (default 9000) for HTTP requests, and will use port 4000 to communicate with MissionPlanner.
@@ -199,7 +199,6 @@ Example request body:
 {
     "altitude": 50.7
 }
-
 ```
 
 ## (POST) /rtl

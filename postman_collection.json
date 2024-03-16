@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "dfb1110d-f3f4-4ca2-b452-e147f5b7715d",
+		"_postman_id": "31a592ea-234d-4966-96a1-83c372dbb843",
 		"name": "./Insomnia_spec",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "30810844"
+		"_exporter_id": "32319969"
 	},
 	"item": [
 		{
@@ -32,7 +32,8 @@
 								"fence",
 								"inclusive"
 							]
-						}
+						},
+						"description": "Sets all inclusive polygonal fences."
 					},
 					"response": []
 				},
@@ -59,7 +60,8 @@
 								"fence",
 								"exclusive"
 							]
-						}
+						},
+						"description": "Sets all exclusive polygonal fences."
 					},
 					"response": []
 				}
@@ -81,7 +83,8 @@
 							"path": [
 								"rtl"
 							]
-						}
+						},
+						"description": "Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Request status code and error message if the drone could not execute the operation."
 					},
 					"response": []
 				},
@@ -98,7 +101,8 @@
 							"path": [
 								"land"
 							]
-						}
+						},
+						"description": "Aircraft stops at its current position and lands. Returns a Bad Request status code and error message if the drone could not execute the operation."
 					},
 					"response": []
 				},
@@ -124,7 +128,8 @@
 							"path": [
 								"home"
 							]
-						}
+						},
+						"description": "POST request containing a waypoint whose longitude, latitiude and altitiude will be the basis for the new home waypoint. All other fields will be ignored.\n\nLongitude, latitude and altitude must not be null/empty. Returns a Bad Request status code and error message in that case.\n\nLongitude and latitude in degrees. Altitude in meters and is relative to sea level. Return status code 200 if successfully POSTed.\n\nExample request body:\n\n``` json\n{\n    \"id\": 1,\n    \"name\": \"Alpha\",\n    \"longitude\": 38.83731,\n    \"latitude\": -20.48321,\n    \"altitude\": 50.7\n}\n\n ```"
 					},
 					"response": []
 				}
@@ -146,7 +151,8 @@
 							"path": [
 								"unlock"
 							]
-						}
+						},
+						"description": "Resume moving the aircraft based on the currently stored queue. Returns a Bad Request status code and an error message if the aircraft is already unlocked."
 					},
 					"response": []
 				}
@@ -177,7 +183,8 @@
 							"path": [
 								"takeoff"
 							]
-						}
+						},
+						"description": "POST request containing an altitude that is measured relative to sea level.\n\nThe altitude cannot be null. Returns a Bad Request status code and error message in that case. Altitude is in meters. Return status code 200 if successfully POSTed.\n\nExample request body:\n\n``` json\n{\n    \"altitude\": 50.7\n}\n\n ```"
 					},
 					"response": []
 				}
@@ -199,7 +206,8 @@
 							"path": [
 								"lock"
 							]
-						}
+						},
+						"description": "Stops the aircraft from moving based on the Mission Planner scripts' waypoint queue loading functionality, maintaining the queue internally. Return Bad Request if the aircraft is already locked, or the queue is empty.\n\nIt is still be possible to run (POST) /queue while the aircraft is locked.\n\nThis won't literally lock the aircraft either, i.e. we can still manually set waypoints with Mission Planner. This just pauses the loading functionality of the queue program. If currently moving toward a waypoint, stop moving toward it by removing it."
 					},
 					"response": []
 				}
@@ -226,7 +234,8 @@
 							"path": [
 								"queue"
 							]
-						}
+						},
+						"description": "Returns the current list of waypoints in the queue, in the order of their names. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.\n\nWaypoints that have been passed and removed from the queue, obviously, should not be displayed here either.\n\nAltitude is measured relative to sea level.\n\n``` json\n[\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": 50.7\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Beta\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": 50.7\n    }\n]\n\n ```"
 					},
 					"response": []
 				},
@@ -252,7 +261,8 @@
 							"path": [
 								"queue"
 							]
-						}
+						},
+						"description": "POST request containing a list of waypoints with names and longitude, latitude, and altitude values. If altitude is nil, carry on with the same altitude as you had last waypoint.\n\nPrevious queue should be overwritten if there is already one in place.\n\nLongitude, name, and latitude must not be null/empty. Returns a Bad Request status code and error message in that case. Longitude and latitude in degrees, altitude in meters.\n\nAltitude is measured relative to sea level.\n\nReturn status code 200 if successfully POSTed.\n\nExample request body:\n\n``` json\n[\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": 50.7\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Beta\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": null\n    }\n]\n\n ```"
 					},
 					"response": []
 				}
@@ -274,7 +284,8 @@
 							"path": [
 								"status"
 							]
-						}
+						},
+						"description": "GET request returns the aircraft status. Velocity in m/s. Altitude in meters and is relative to sea level. Longitude, latitude, heading in degrees.\n\nExample response:\n\n``` json\n{\n    \"velocity\": 22.2,\n    \"longitude\": 38.3182,\n    \"latitude\":  82.111,\n    \"altitude\": 28.1111,\n    \"heading\": 11.2,\n    \"batteryvoltage\": 1.5\n}\n\n ```"
 					},
 					"response": []
 				}
@@ -305,7 +316,8 @@
 							"path": [
 								"flightmode"
 							]
-						}
+						},
+						"description": "This PUT request allows you to modify various settings for a drone:  \n\\- **Flight Mode:** Change the active flight mode by setting the _flight_modekey_ to one of the following: _loiter, stabilize, auto, or guided_.- **Drone Type:** Modify the drone configuration by setting the _drone_type_ key to either _vtol_ or _plane_.- **Altitude Reference:** Update the altitude measurement standard by setting the _altitude_standard_ key to _AGL_ (Above Ground Level) or _ASL_ (Above Sea Level).  \nEach of these key-value pairs is optional; you can include any, all, or none of them in the JSON request body.\n\n``` json\n{\n    \"flight_mode\": \"loiter\",\n    \"drone_type\": \"vtol\",\n    \"altitude_standard\": \"ASL\"\n}\n\n ```"
 					},
 					"response": []
 				}
