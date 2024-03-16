@@ -14,7 +14,7 @@ shapely = "^2.0.1"
 matplotlib = "^3.7.1"
 pytest = "^7.4.2"
 flask-socketio = "^5.3.6"
-gevent = "^23.9.1"
+gevent = "^24.2.1"
 gevent-websocket = "^0.10.1"
 requests = "^2.31.0"
 
