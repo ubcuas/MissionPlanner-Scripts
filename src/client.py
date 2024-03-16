@@ -210,12 +210,22 @@ while 1:
                 MAV.setWP(home,0,ALTSTD)
                 MAV.setWP(takeoff,1,ALTSTD)
                 MAV.setWPACK()
-                Script.ChangeMode("Guided")
-                print("YOU HAVE 10 SECONDS TO ARM MOTORS")
-                time.sleep(10)
-                Script.ChangeMode("Auto")
-                MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
-                print("TOFF - takeoff to {:}m".format(takeoffalt))
+
+                timeout = 10  # Set timeout in seconds
+
+                print("YOU HAVE {} SECONDS TO ARM MOTORS".format(timeout))
+
+                start_time = time.time()
+                while (time.time() - start_time) < timeout and not cs.armed:
+                    # Wait for arming or timeout
+                    pass
+
+                if cs.armed:
+                    Script.ChangeMode("Auto")
+                    MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
+                    print("TOFF - takeoff to {:}m".format(takeoffalt))
+                else:
+                    print("TOFF - ERROR, DRONE NOT ARMED")
             else:
                 print("TOFF - invalid command", msg)
 
