@@ -3,6 +3,7 @@
 import socket
 import struct
 import time
+from datetime import datetime
 import clr
 clr.AddReference("MissionPlanner.Utilities")
 import MissionPlanner
@@ -93,8 +94,9 @@ def interpret_packedmission(recvd):
 
 # Keep talking with the Mission Planner server 
 while 1:
-    # Send location to server
-    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
+
+    # Send telemetry to server
+    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel, str(datetime.now()))
     rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
