@@ -3,6 +3,7 @@
 import socket
 import struct
 import time
+from datetime import datetime
 import clr
 clr.AddReference("MissionPlanner.Utilities")
 import MissionPlanner
@@ -93,8 +94,9 @@ def interpret_packedmission(recvd):
 
 # Keep talking with the Mission Planner server 
 while 1:
-    # Send location to server
-    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel)
+
+    # Send telemetry to server
+    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel, str(datetime.now()))
     rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
@@ -210,12 +212,22 @@ while 1:
                 MAV.setWP(home,0,ALTSTD)
                 MAV.setWP(takeoff,1,ALTSTD)
                 MAV.setWPACK()
-                Script.ChangeMode("Guided")
-                print("YOU HAVE 10 SECONDS TO ARM MOTORS")
-                time.sleep(10)
-                Script.ChangeMode("Auto")
-                MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
-                print("TOFF - takeoff to {:}m".format(takeoffalt))
+
+                timeout = 10  # Set timeout in seconds
+
+                print("YOU HAVE {} SECONDS TO ARM MOTORS".format(timeout))
+
+                start_time = time.time()
+                while (time.time() - start_time) < timeout and not cs.armed:
+                    # Wait for arming or timeout
+                    pass
+
+                if cs.armed:
+                    Script.ChangeMode("Auto")
+                    MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
+                    print("TOFF - takeoff to {:}m".format(takeoffalt))
+                else:
+                    print("TOFF - ERROR, DRONE NOT ARMED")
             else:
                 print("TOFF - invalid command", msg)
 

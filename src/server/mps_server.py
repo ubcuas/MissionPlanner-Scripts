@@ -36,12 +36,14 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             current_wpn = str(parameters[9]).strip(' b\'')
             wind_dir = str(parameters[10]).strip(' b\'')
             wind_vel = str(parameters[11]).strip(' b\'')
+            date = str(parameters[12]).strip(' b\'')
+            time = str(parameters[13]).strip(' b\'')
 
             #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
             #print(f"                  hdg: {current_hdg} vel: {current_vel}")
 
             # Updated shared obj with location data
-            self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel), 'current_wpn':float(current_wpn)})
+            self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel), 'current_wpn':float(current_wpn), 'date':date , 'time':time})
 
             # Send instruction to UAV
             socket.sendto(self.next_instruction(int(float(current_wpn))), self.client_address)
@@ -78,6 +80,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         
         arm = self.server._so.arm_get()
         if arm is not None:
+            print("ARMING...")
             self.server._instructions.push(f"ARM {arm}")
 
         # Check if there is a new home
