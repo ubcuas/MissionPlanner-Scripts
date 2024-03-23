@@ -78,6 +78,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         
         arm = self.server._so.arm_get()
         if arm is not None:
+            print("ARMING...")
             self.server._instructions.push(f"ARM {arm}")
 
         # Check if there is a new home
