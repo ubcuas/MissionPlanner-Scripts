@@ -1,0 +1,370 @@
+{
+	"info": {
+		"_postman_id": "31a592ea-234d-4966-96a1-83c372dbb843",
+		"name": "./Insomnia_spec",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32319969"
+	},
+	"item": [
+		{
+			"name": "fence",
+			"item": [
+				{
+					"name": "set all inclusive polygonal fences",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  [\n    {\n      \"id\": 0,\n      \"name\": \"string\",\n      \"longitude\": 0,\n      \"latitude\": 0,\n      \"altitude\": 0\n    }\n  ]\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/fence/inclusive",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"fence",
+								"inclusive"
+							]
+						},
+						"description": "Sets all inclusive polygonal fences."
+					},
+					"response": []
+				},
+				{
+					"name": "set all exclusive polygonal fences",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n  [\n    {\n      \"id\": 0,\n      \"name\": \"string\",\n      \"longitude\": 0,\n      \"latitude\": 0,\n      \"altitude\": 0\n    }\n  ]\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/fence/exclusive",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"fence",
+								"exclusive"
+							]
+						},
+						"description": "Sets all exclusive polygonal fences."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "landing",
+			"item": [
+				{
+					"name": "return to launch",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/rtl",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"rtl"
+							]
+						},
+						"description": "Aircraft returns to home waypoint and lands (return-to-launch). Returns a Bad Request status code and error message if the drone could not execute the operation."
+					},
+					"response": []
+				},
+				{
+					"name": "immediately descend and land",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/land",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"land"
+							]
+						},
+						"description": "Aircraft stops at its current position and lands. Returns a Bad Request status code and error message if the drone could not execute the operation."
+					},
+					"response": []
+				},
+				{
+					"name": "set the home waypoint of the drone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 0,\n  \"name\": \"Alpha\",\n  \"latitude\": -35.3627798,\n  \"longitude\": 149.1651830,\n  \"altitude\": 583\n}"
+						},
+						"url": {
+							"raw": "{{ base_url }}/home",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"home"
+							]
+						},
+						"description": "POST request containing a waypoint whose longitude, latitiude and altitiude will be the basis for the new home waypoint. All other fields will be ignored.\n\nLongitude, latitude and altitude must not be null/empty. Returns a Bad Request status code and error message in that case.\n\nLongitude and latitude in degrees. Altitude in meters and is relative to sea level. Return status code 200 if successfully POSTed.\n\nExample request body:\n\n``` json\n{\n    \"id\": 1,\n    \"name\": \"Alpha\",\n    \"longitude\": 38.83731,\n    \"latitude\": -20.48321,\n    \"altitude\": 50.7\n}\n\n ```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "unlock",
+			"item": [
+				{
+					"name": "Resume aircraft movement based on the queue",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/unlock",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"unlock"
+							]
+						},
+						"description": "Resume moving the aircraft based on the currently stored queue. Returns a Bad Request status code and an error message if the aircraft is already unlocked."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "takeoff",
+			"item": [
+				{
+					"name": "Lift off to a given altitude",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"altitude\": 100\n}"
+						},
+						"url": {
+							"raw": "{{ base_url }}/takeoff",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"takeoff"
+							]
+						},
+						"description": "POST request containing an altitude that is measured relative to sea level.\n\nThe altitude cannot be null. Returns a Bad Request status code and error message in that case. Altitude is in meters. Return status code 200 if successfully POSTed.\n\nExample request body:\n\n``` json\n{\n    \"altitude\": 50.7\n}\n\n ```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "lock",
+			"item": [
+				{
+					"name": "Prevent the aircraft from moving based on the queue",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/lock",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"lock"
+							]
+						},
+						"description": "Stops the aircraft from moving based on the Mission Planner scripts' waypoint queue loading functionality, maintaining the queue internally. Return Bad Request if the aircraft is already locked, or the queue is empty.\n\nIt is still be possible to run (POST) /queue while the aircraft is locked.\n\nThis won't literally lock the aircraft either, i.e. we can still manually set waypoints with Mission Planner. This just pauses the loading functionality of the queue program. If currently moving toward a waypoint, stop moving toward it by removing it."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "queue",
+			"item": [
+				{
+					"name": "Returns the current list of waypoints in the queue",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data"
+							}
+						],
+						"url": {
+							"raw": "{{ base_url }}/queue",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"queue"
+							]
+						},
+						"description": "Returns the current list of waypoints in the queue, in the order of their names. GCOM stores longitudes and latitudes internally, so we really only need the order of names of waypoints.\n\nWaypoints that have been passed and removed from the queue, obviously, should not be displayed here either.\n\nAltitude is measured relative to sea level.\n\n``` json\n[\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": 50.7\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Beta\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": 50.7\n    }\n]\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "Overwrite the queue with a new list of waypoints",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"id\": 0,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3138859,\n        \"longitude\": -76.5499234,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.313949,\n        \"longitude\": -76.5493333,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3136755,\n        \"longitude\": -76.5486789,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 3,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3132419,\n        \"longitude\": -76.5486306,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 4,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128589,\n        \"longitude\": -76.5489203,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 5,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128168,\n        \"longitude\": -76.5494245,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 6,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128715,\n        \"longitude\": -76.5500629,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 7,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3131325,\n        \"longitude\": -76.5503258,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 8,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3134271,\n        \"longitude\": -76.550315,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 9,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3137302,\n        \"longitude\": -76.5501004,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 10,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3142016,\n        \"longitude\": -76.5494299,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 11,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141637,\n        \"longitude\": -76.5490758,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 12,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141006,\n        \"longitude\": -76.5485287,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 13,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3138522,\n        \"longitude\": -76.5480512,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 14,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3135955,\n        \"longitude\": -76.5479761,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 15,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3133808,\n        \"longitude\": -76.5480405,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 16,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3131577,\n        \"longitude\": -76.548121,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 17,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3130441,\n        \"longitude\": -76.5483195,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 18,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3127915,\n        \"longitude\": -76.548593,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 19,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3126569,\n        \"longitude\": -76.549049,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 20,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3126653,\n        \"longitude\": -76.5496606,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 21,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3128,\n        \"longitude\": -76.5504491,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 22,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3132419,\n        \"longitude\": -76.5506852,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 23,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3137344,\n        \"longitude\": -76.5507281,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 24,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.314008,\n        \"longitude\": -76.5505993,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 25,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141932,\n        \"longitude\": -76.5503418,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 26,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3143742,\n        \"longitude\": -76.5499824,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 27,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3144878,\n        \"longitude\": -76.5495425,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 28,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3145551,\n        \"longitude\": -76.5487593,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 29,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3143952,\n        \"longitude\": -76.5480673,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 30,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3141258,\n        \"longitude\": -76.5476221,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 31,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3138101,\n        \"longitude\": -76.5475255,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 32,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.313486,\n        \"longitude\": -76.5475845,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 33,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3131535,\n        \"longitude\": -76.5476865,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 34,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3130062,\n        \"longitude\": -76.5478098,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 35,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3129136,\n        \"longitude\": -76.54796,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 36,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3127663,\n        \"longitude\": -76.5481371,\n        \"altitude\": 100\n    }\n]"
+						},
+						"url": {
+							"raw": "{{ base_url }}/queue",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"queue"
+							]
+						},
+						"description": "POST request containing a list of waypoints with names and longitude, latitude, and altitude values. If altitude is nil, carry on with the same altitude as you had last waypoint.\n\nPrevious queue should be overwritten if there is already one in place.\n\nLongitude, name, and latitude must not be null/empty. Returns a Bad Request status code and error message in that case. Longitude and latitude in degrees, altitude in meters.\n\nAltitude is measured relative to sea level.\n\nReturn status code 200 if successfully POSTed.\n\nExample request body:\n\n``` json\n[\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": 50.7\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Beta\",\n        \"longitude\": 38.83731,\n        \"latitude\": -20.48321,\n        \"altitude\": null\n    }\n]\n\n ```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "status",
+			"item": [
+				{
+					"name": "Obtain the aircraft status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{ base_url }}/status",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"status"
+							]
+						},
+						"description": "GET request returns the aircraft status. Velocity in m/s. Altitude in meters and is relative to sea level. Longitude, latitude, heading in degrees.\n\nExample response:\n\n``` json\n{\n    \"velocity\": 22.2,\n    \"longitude\": 38.3182,\n    \"latitude\":  82.111,\n    \"altitude\": 28.1111,\n    \"heading\": 11.2,\n    \"batteryvoltage\": 1.5\n}\n\n ```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "mode",
+			"item": [
+				{
+					"name": "Update current flight mode",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mode\": \"vtol\" \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ base_url }}/flightmode",
+							"host": [
+								"{{ base_url }}"
+							],
+							"path": [
+								"flightmode"
+							]
+						},
+						"description": "This PUT request allows you to modify various settings for a drone:  \n\\- **Flight Mode:** Change the active flight mode by setting the _flight_modekey_ to one of the following: _loiter, stabilize, auto, or guided_.- **Drone Type:** Modify the drone configuration by setting the _drone_type_ key to either _vtol_ or _plane_.- **Altitude Reference:** Update the altitude measurement standard by setting the _altitude_standard_ key to _AGL_ (Above Ground Level) or _ASL_ (Above Sea Level).  \nEach of these key-value pairs is optional; you can include any, all, or none of them in the JSON request body.\n\n``` json\n{\n    \"flight_mode\": \"loiter\",\n    \"drone_type\": \"vtol\",\n    \"altitude_standard\": \"ASL\"\n}\n\n ```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "{{ base_url }}/invoke",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"message\": \"Hello world\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ base_url }}/invoke",
+					"host": [
+						"{{ base_url }}"
+					],
+					"path": [
+						"invoke"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Test Endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{ base_url }}/",
+					"host": [
+						"{{ base_url }}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
