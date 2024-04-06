@@ -416,7 +416,7 @@ class GCOM_Server():
             if input['arm'] in [1, 0]:
                 print(f"arming {int(input['arm'])}")
                 self._so.arm_set(int(input['arm']))
-                return f"OK! {"Armed drone" if input["arm"] else "Disarmed drone"}", 200
+                return f"OK! {'Armed drone' if input['arm'] else 'Disarmed drone'}", 200
             else:
                 return f"Unrecognized arm command", 400
         
