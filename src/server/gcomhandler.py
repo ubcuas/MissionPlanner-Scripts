@@ -201,7 +201,15 @@ class GCOM_Server():
             print(f"Taking off to altitude {altitude}")
             self._so.gcom_takeoffalt_set(altitude)
 
-            return "Takeoff command received", 200
+            result = None 
+            while result == None:
+                result = self._so.takeoff_get_result()
+                time.sleep(0.05)
+            
+            if result == 1:
+                return "Takeoff command received", 200
+            else:
+                return "Takeoff unsuccessful", 418
 
         @app.route("/home", methods=["POST"])
         def home():
@@ -416,9 +424,18 @@ class GCOM_Server():
             if input['arm'] in [1, 0]:
                 print(f"arming {int(input['arm'])}")
                 self._so.arm_set(int(input['arm']))
-                return f"OK! {'Armed drone' if input['arm'] else 'Disarmed drone'}", 200
+
+                result = None
+                while result == None:
+                    result = self._so.arm_get_result()
+                    time.sleep(0.05)
+                
+                if result == 1:
+                    return f"OK! {'Armed drone' if input['arm'] else 'Disarmed drone'}", 200
+                else:
+                    return f"Arm/disarm failed - drone is NOT in the requested state", 418
             else:
-                return f"Unrecognized arm command", 400
+                return f"Unrecognized arm/disarm command parameter", 400
         
         #Socket stuff
         @socketio.on("connect")
