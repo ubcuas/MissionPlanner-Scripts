@@ -213,15 +213,6 @@ while 1:
                 MAV.setWP(takeoff,1,ALTSTD)
                 MAV.setWPACK()
 
-                timeout = 10  # Set timeout in seconds
-
-                print("YOU HAVE {} SECONDS TO ARM MOTORS".format(timeout))
-
-                start_time = time.time()
-                while (time.time() - start_time) < timeout and not cs.armed:
-                    # Wait for arming or timeout
-                    pass
-
                 if cs.armed:
                     Script.ChangeMode("Auto")
                     MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
