@@ -60,6 +60,24 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             for i in range(0, wp_count):
                 print(f"{wp_list[i]._lat} {wp_list[i]._lng} {wp_list[i]._alt}")
             self.server._so.mps_currentmission_updatequeue(wp_list)
+        
+        elif data_type == "success_takeoff":
+            result = int(parameters[0])
+            if result == 1:
+                #successful takeoff
+                print("Successful takeoff")
+            else:
+                #unsuccessful
+                print("Unsuccessful takeoff")
+            self.server._so.takeoff_set_result(result)
+
+        elif data_type == "success_arm":
+            result = int(parameters[0])
+            if result == 1:
+                print("Successful arm/disarm")
+            else:
+                print("Unsuccessful arm/disarm")
+            self.server._so.arm_set_result(result)
     
     def next_instruction(self, current_wpn):
         # Place new instructions onto the queue

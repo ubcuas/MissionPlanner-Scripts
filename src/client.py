@@ -217,10 +217,16 @@ while 1:
                     Script.ChangeMode("Auto")
                     MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
                     print("TOFF - takeoff to {:}m".format(takeoffalt))
+
+                    rsock.sendto(bytes("success_takeoff 1", 'utf-8'), (HOST, RPORT))
                 else:
                     print("TOFF - ERROR, DRONE NOT ARMED")
+
+                    rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
             else:
-                print("TOFF - invalid command", msg)
+                print("TOFF - invalid command")
+
+                rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
 
         elif cmd == "HOME":
             MAV.doCommand(MAVLink.MAV_CMD.DO_SET_HOME,0,0,0,0,float(argv[0]),float(argv[1]),float(argv[2]))
@@ -229,6 +235,18 @@ while 1:
         elif cmd == "ARM":
             MAV.doCommand(MAVLink.MAV_CMD.COMPONENT_ARM_DISARM, int(argv[0]), 0, 0, 0, 0, 0, 0, 0)
             print("ARM - arm/disarm motors")
+            
+            #cs.armed can take some time to change - give it time before we consider it failed
+            for i in range(0, 30):
+                #print("{:.1f}".format(i * 0.1), cs.armed)
+                if cs.armed == (int(argv[0]) == 1):
+                    break
+                time.sleep(0.1)
+
+            if cs.armed == (int(argv[0]) == 1):
+                rsock.sendto(bytes("success_arm 1", 'utf-8'), (HOST, RPORT))
+            else:
+                rsock.sendto(bytes("success_arm 0", 'utf-8'), (HOST, RPORT))
 
         elif cmd == "RTL":
             rtl_altitude = float(argv[0]) * 100
@@ -299,7 +317,7 @@ while 1:
             queue_info = "queue {:}".format(numwp)
             for wp in wplist:
                 queue_info += " {:} {:} {:}".format(wp[0], wp[1], wp[2])
-            print("DEBUG queue_info string ", queue_info)
+
             rsock.sendto(bytes(queue_info, 'utf-8'), (HOST, RPORT))
         
         elif cmd == "CONFIG":
