@@ -209,7 +209,7 @@ class GCOM_Server():
             if result == 1:
                 return "Takeoff command received", 200
             else:
-                return "Takeoff unsuccessful", 418
+                return "Takeoff unsuccessful", 400
 
         @app.route("/home", methods=["POST"])
         def home():
