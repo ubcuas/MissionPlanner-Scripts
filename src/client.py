@@ -243,10 +243,11 @@ while 1:
             rtl_altitude = float(argv[0]) * 100
             if MODE == 'plane':
                 MAV.setParam('ALT_HOLD_RTL', rtl_altitude)
+                Script.ChangeMode("QRTL")
             else:
                 MAV.setParam('RTL_ALT', rtl_altitude)
+                Script.ChangeMode("RTL")
             
-            MAV.doCommand(MAVLink.MAV_CMD.RETURN_TO_LAUNCH,0,0,0,0,0,0,0)
             print("RTL - returning to launch")
 
         elif cmd == "LAND":
