@@ -196,7 +196,9 @@ class GCOM_Server():
 
             if not('altitude' in payload):
                 return "Altitude cannot be null", 400
-
+            
+            # if isVTOL is not present, assume not VTOL
+            isVTOLtakeoff = int(payload.get('isVTOL', 0))
             altitude = int(payload['altitude'])
             print(f"Taking off to altitude {altitude}")
             self._so.gcom_takeoffalt_set(altitude)

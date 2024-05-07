@@ -16,7 +16,8 @@ if __name__ == "__main__":
     for arg in sys.argv:
         k, *v = arg.split('=', 1)
         arguments[k] = v
-
+    
+    print("before argument check");
     # Process options
     if "--test" in arguments.keys():
         print("starting test environment")
@@ -33,6 +34,8 @@ if __name__ == "__main__":
     if '--socket-port' in arguments.keys():
         SOCKET_PORT = int(arguments['--socket-port'][0])
         
+    print("after argument check")
+
     print(f"HTTPServer listening on port {PORT}")
 
     # Instantiate shared object

@@ -10,6 +10,7 @@ import MissionPlanner
 clr.AddReference("MissionPlanner.Utilities") # Includes the Utilities class
 from MissionPlanner.Utilities import Locationwp
 clr.AddReference("MAVLink")
+
 import MAVLink
 
 MissionPlanner.MainV2.speechEnable = True
@@ -195,6 +196,7 @@ while 1:
         elif cmd == "TOFF":
             if (len(argv) == 1):
                 takeoffalt = float(argv[0])
+
                 Script.ChangeMode("Loiter")
                 # Set up takeoff waypoint
                 home = Locationwp()
@@ -203,7 +205,10 @@ while 1:
                 Locationwp.lng.SetValue(home, cs.lng)
                 Locationwp.alt.SetValue(home, 0)
                 takeoff = Locationwp()
-                Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.TAKEOFF))
+                if MODE == 'plane':
+                    Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.VTOL_TAKEOFF))
+                else:
+                    Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.TAKEOFF))
                 Locationwp.lat.SetValue(takeoff, cs.lat)
                 Locationwp.lng.SetValue(takeoff, cs.lng)
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
