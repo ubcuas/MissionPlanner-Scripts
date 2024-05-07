@@ -101,7 +101,7 @@ while 1:
     rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
-
+    print(" mode\n", MODE)
     try:
         recvd = rsock.recv(4096)
         #print("received {:} bytes".format(len(recvd)))
@@ -205,6 +205,7 @@ while 1:
                 Locationwp.lng.SetValue(home, cs.lng)
                 Locationwp.alt.SetValue(home, 0)
                 takeoff = Locationwp()
+                
                 if MODE == 'plane':
                     Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.VTOL_TAKEOFF))
                 else:
