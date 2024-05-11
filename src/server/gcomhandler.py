@@ -399,8 +399,6 @@ class GCOM_Server():
         #end of endpoints
         @app.route("/invoke", methods=["POST"])
         def invoke():
-            input = request.get_json()
-            self._so.voice_set(input['message'])
             return f"Deprecated endpoint. Nothing happened", 410
         
         @app.route("/flightmode", methods=["PUT"])
