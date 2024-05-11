@@ -10,6 +10,7 @@ import MissionPlanner
 clr.AddReference("MissionPlanner.Utilities") # Includes the Utilities class
 from MissionPlanner.Utilities import Locationwp
 clr.AddReference("MAVLink")
+import inspect
 
 import MAVLink
 
@@ -101,7 +102,20 @@ while 1:
     rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
-    print(" mode\n", MODE)
+    print(" mode ", cs.vtol_state)
+    # Assuming `MAVLink.MAV_CMD` is an object with attributes
+    obj = MAVLink.MAV_CMD
+
+    # Get all members of the object
+    members = inspect.getmembers(obj)
+
+    # Filter out methods
+    methods = [m[0] for m in members if inspect.ismethod(m[1])]
+
+    # Print the method names
+    print("Methods:", methods)
+    
+
     try:
         recvd = rsock.recv(4096)
         #print("received {:} bytes".format(len(recvd)))
@@ -163,14 +177,18 @@ while 1:
             wptotal = MAV.getWPCount()
 
             MAV.setWPTotal(wptotal + 1)
-            # Upload waypoints
-            newwp = Locationwp()
-            Locationwp.lat.SetValue(newwp, float(argv[0]))
-            Locationwp.lng.SetValue(newwp, float(argv[1]))
-            Locationwp.alt.SetValue(newwp, float(argv[2]))
-            Locationwp.id.SetValue(newwp, int(MAVLink.MAV_CMD.WAYPOINT))
-            MAV.setWP(newwp, wptotal, ALTSTD)
-            MAV.setWPACK()
+            # # Upload waypoints
+            # newwp = Locationwp()
+            # Locationwp.lat.SetValue(newwp, float(argv[0]))
+            # Locationwp.lng.SetValue(newwp, float(argv[1]))
+            # Locationwp.alt.SetValue(newwp, float(argv[2]))
+            # Locationwp.id.SetValue(newwp, int(MAVLink.MAV_CMD.DO_VTOL_TRANSITION))
+
+            MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,4,0,0,0,float(argv[0]),float(argv[1]),float(argv[2]))
+            print("this is testing the new feature btw...")
+
+            # MAV.setWP(newwp, wptotal, ALTSTD)
+            # MAV.setWPACK()
             print("PUSH - waypoint pushed")
 
         elif cmd == "CONT":
