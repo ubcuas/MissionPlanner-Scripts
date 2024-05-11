@@ -123,12 +123,12 @@ while 1:
         print("Entered Manual Mode")
         break
     else:
-        if cmd == "NEWM":
+        if cmd == "NEW_MISSION":
             #Enter guided and await new mission waypoints
             Script.ChangeMode("Guided")
             wp_array = []
             upcoming_mission = True
-            print("NEWM - About to recieve new mission")
+            print("NEW_MISSION - About to recieve new mission")
 
         elif cmd == "NEXT":
             upcoming_mission = False
@@ -142,7 +142,7 @@ while 1:
                 float_alt = float(argv[3 * idx + 2])
 
                 wp_array.append((float_lat, float_lng, float_alt))
-                print("NEXT - received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
+                print("received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
             
             #set mission
             upload_mission(wp_array)
@@ -177,7 +177,7 @@ while 1:
             #print("IDLE")
             pass
 
-        elif cmd == "TOFF":
+        elif cmd == "TAKEOFF":
             if (len(argv) == 1):
                 takeoffalt = float(argv[0])
                 Script.ChangeMode("Loiter")
@@ -201,15 +201,15 @@ while 1:
                 if cs.armed:
                     Script.ChangeMode("Auto")
                     MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
-                    print("TOFF - takeoff to {:}m".format(takeoffalt))
+                    print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
 
                     rsock.sendto(bytes("success_takeoff 1", 'utf-8'), (HOST, RPORT))
                 else:
-                    print("TOFF - ERROR, DRONE NOT ARMED")
+                    print("TAKEOFF - ERROR, DRONE NOT ARMED")
 
                     rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
             else:
-                print("TOFF - invalid command")
+                print("TAKEOFF - invalid command")
 
                 rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
 
@@ -248,7 +248,7 @@ while 1:
             MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("LAND - landing in place")
         
-        elif cmd == "VTOLLAND":
+        elif cmd == "VTOL_LAND":
             landlat = float(argv[0])
             landlng = float(argv[1])
 
@@ -270,18 +270,18 @@ while 1:
             MAV.setWPACK()
             Script.ChangeMode("Auto")
             # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
-            print("LAND - landing at {:}, {:}".format(landlat, landlng))
+            print("VTOL_LAND - landing at {:}, {:}".format(landlat, landlng))
         
         elif cmd == "MODE":
             MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)
         
-        elif cmd == "FMDE":
+        elif cmd == "FLIGHT_MODE":
             if MODE == 'plane' and argv[0] in ['loiter', 'stabilize']:
                 Script.ChangeMode("q{:}".format(argv[0]))
             else:
                 Script.ChangeMode(argv[0])
 
-        elif cmd == "QGET":
+        elif cmd == "QUEUE_GET":
             #get info
             numwp = MAV.getWPCount()
             wplist = []

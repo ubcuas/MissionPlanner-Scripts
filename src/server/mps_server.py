@@ -116,7 +116,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
         # Check if we should send back updated mission queue
         if self.server._so.mps_currentmission_shouldupdate():
-            self.server._instructions.push(f"QGET")
+            self.server._instructions.push(f"QUEUE_GET")
 
         # Check if there is a flight config update request
         newmode = self.server._so.flightConfig_get()
@@ -138,12 +138,12 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         vtol_land = self.server._so.mps_vtol_land_get()
         if vtol_land != None:
             wp = Waypoint(vtol_land['id'], vtol_land['name'], vtol_land['latitude'], vtol_land['longitude'], vtol_land['altitude'])
-            self.server._instructions.push(f"VTOLLAND {str(wp)}")
+            self.server._instructions.push(f"VTOL_LAND {str(wp)}")
 
         # Check takeoff altitude
         takeoffalt = self.server._so.mps_takeoffalt_get()
         if takeoffalt != 0:
-            self.server._instructions.push(f"TOFF {takeoffalt}")
+            self.server._instructions.push(f"TAKEOFF {takeoffalt}")
 
         # Check if we should rtl
         elif self.server._so._rtl_flag:
@@ -161,7 +161,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         # Check if we should switch modes
         elif self.server._so._flightmode_flag:
             mode = self.server._so.flightmode_get()
-            self.server._instructions.push(f"FMDE {mode}")
+            self.server._instructions.push(f"FLIGHT_MODE {mode}")
         
         # Check if we should arm/disarm the motors
         arm = self.server._so.arm_get()
@@ -182,7 +182,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             self.server._current_mission = Mission(nextwpq)
             
             # Place instruction for the new mission onto the queue
-            self.server._instructions.push("NEWM")
+            self.server._instructions.push("NEW_MISSION")
 
             #Prepare packed mission
             missionbytes = b""
