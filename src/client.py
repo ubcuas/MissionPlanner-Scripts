@@ -12,8 +12,6 @@ from MissionPlanner.Utilities import Locationwp
 clr.AddReference("MAVLink")
 import MAVLink
 
-MissionPlanner.MainV2.speechEnable = True
-
 HOST = 'localhost' # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
 RPORT = 9001 # Arbitrary non-privileged port
@@ -89,8 +87,6 @@ def interpret_packedmission(recvd):
 
     #print(ret)
     return ret
-
-# MissionPlanner.MainV2.speechEngine.SpeakAsync("Ready to receive requests")
 
 # Keep talking with the Mission Planner server 
 while 1:
@@ -295,13 +291,6 @@ while 1:
                 Script.ChangeMode("q{:}".format(argv[0]))
             else:
                 Script.ChangeMode(argv[0])
-        
-        elif cmd == "TTS":
-            #text = ""
-            #for word in argv:
-            #    text += word + " "
-            #MissionPlanner.MainV2.speechEngine.SpeakAsync(text)
-            pass
 
         elif cmd == "QGET":
             #get info
