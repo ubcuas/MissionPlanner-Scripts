@@ -176,17 +176,6 @@ while 1:
             # IDLE - do nothing
             #print("IDLE")
             pass
-        elif cmd == "LOCK":
-            # LOCK - lock/unlock the UAV
-            flag = int(argv[0])
-            if flag:
-                #lock the UAV
-                Script.ChangeMode("Guided")
-                print("LOCK - locked the UAV")
-            else:
-                #unlock the UAV
-                Script.ChangeMode("Auto")
-                print("LOCK - unlocked the UAV")
 
         elif cmd == "TOFF":
             if (len(argv) == 1):
