@@ -20,10 +20,6 @@ class SharedObject():
         self._status = ()
         self._status_lk = Lock()
 
-        # Lock fields
-        self._locked = False 
-        self._locked_lk = Lock()
-
         # Takeoff fields
         self._takeoffalt = 0
         self._takeoffalt_lk = Lock()
@@ -193,23 +189,6 @@ class SharedObject():
         self._status_lk.release()
         return ret
 
-    # Lock methods
-    def gcom_locked_set(self, locked):
-        ret = True
-        self._locked_lk.acquire()
-        if self._locked == locked:
-            ret = False
-        self._locked = locked 
-        self._locked_lk.release()
-        return ret
-    
-    def mps_locked_get(self):
-        ret = True 
-        self._locked_lk.acquire()
-        ret = self._locked 
-        self._locked_lk.release()
-        return ret
-
     # takeoff methods
     def gcom_takeoffalt_set(self, alt):
         self._takeoffalt_lk.acquire()
@@ -317,21 +296,6 @@ class SharedObject():
         self._vtol_lk.acquire()
         ret = self._vtol_mode
         self._vtol_lk.release()
-        return ret
-
-    # voice methods
-    def voice_set(self, text):
-        self._voice_lk.acquire()
-        self._voice_flag = True
-        self._voice_text = text
-        self._voice_lk.release()
-
-    def voice_get(self):
-        self._voice_lk.acquire()
-        ret = self._voice_text
-        self._voice_text = ""
-        self._voice_flag = False
-        self._voice_lk.release()
         return ret
     
     # flightmode methods

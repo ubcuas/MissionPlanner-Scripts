@@ -1,7 +1,7 @@
 openapi: 3.0.2
 info:
   title: MissionPlanner Scripts
-  version: 1.4.1
+  version: 2.0.0
   description: "This is the API that the MissionPlanner Scripts server exposes to GCOM."
   contact:
     name: Amin Fahiminia, Hansen Dan
@@ -9,27 +9,30 @@ servers:
   - url: http://localhost:9000
 tags:
   - name: queue
-    description: Access to aircraft waypoint queue
+    description: Access to the waypoint queue
   - name: status
-    description: Current aircraft status
-  - name: lock
-    description: Toggle queue-based movement
+    description: Access to aircraft status
   - name: takeoff
-    description: Take off after motors are armed
+    description: Access to takeoff and arming motors
   - name: landing
-    description: Landing, RTL, and setting Home
+    description: Access to landing, RTL, and home waypoint
   - name: options
-    description: Configure flight options
+    description: Access to flight options
 paths:
+  /:
+    get:
+      summary: Call this to see if the server's running.
+      responses:
+        "200":
+          description: server is running
   /queue:
     get:
       tags:
         - queue
-      summary: Returns the current list of waypoints in the queue
+      summary: Returns the current list of waypoints remaining in the queue
       description: >-
-        Returns the current list of waypoints in the queue, in the order of their names. 
+        Returns the current list of queue of waypoints to hit. 
         Waypoints that have been passed and removed from the queue are not displayed.
-      operationId: api.queue_get
       responses:
         "200":
           description: successful operation
@@ -45,13 +48,13 @@ paths:
       summary: Overwrite the queue with a new list of waypoints 
       description: >-
         POST request containing a list of waypoints with names and longitude, 
-        latitude, and altitude values. If altitude is nil, carry on with the 
-        same altitude as you had last waypoint.
-        Previous queue should be overwritten if there is already one in place.
+        latitude, and altitude values. If the altitude for a waypoint is null, 
+        uses the altitude of the previous waypoint (in the case of the first 
+        waypoint, uses the current altitude of the drone).
+        The existing waypoint queue will be overwritten and lost.
         Longitude, name, and latitude must not be null/empty. Returns a Bad 
         Request status code and error message in that case. Longitude and 
         latitude in degrees, altitude in meters.
-      operationId: api.queue_post
       requestBody:
         $ref: "#/components/requestBodies/Queue"
       responses:
@@ -59,6 +62,36 @@ paths:
           description: successful operation
         "400":
           description: bad request
+  /prepend:
+    post:
+      tags:
+       - queue
+      summary: Insert a waypoint onto the front of the queue.
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: bad request
+  /append:
+    post:
+      tags:
+       - queue
+      summary: Insert a waypoint onto the back of the queue.
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: bad request
+  /clear:
+    get:
+      tags:
+        - queue
+      summary: Clear the waypoint queue. 
+      description: >-
+        Idempotent with POST'ing an empty queue to /queue.
+      responses:
+        "200":
+          description: Queue successfully emptied.
   /status:
     get:
       tags:
@@ -68,7 +101,6 @@ paths:
         GET request returns the aircraft status. Velocity in m/s. Altitude 
         in meters and is relative to sea level. Longitude, latitude, heading 
         in degrees.
-      operationId: api.status_get
       responses:
         "200":
           description: Successful operation
@@ -76,45 +108,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Status"
-  /lock:
-    get:
-      tags:
-        - lock
-      summary: Prevent the aircraft from moving based on the queue
-      description: >-
-        Stops the aircraft from moving based on the Mission Planner Scripts' 
-        waypoint queue loading functionality, maintaining the queue internally. 
-        Return Bad Request if the aircraft is already locked, or the queue is empty.
-      operationId: api.lock_get
-      responses:
-        "200":
-          description: Successful operation
-        "400":
-          description: Aircraft already locked or queue empty
-  /unlock:
-    get:
-      tags:
-        - lock
-      summary: Resume aircraft movement based on the queue
-      description: >-
-        Resume moving the aircraft based on the currently stored queue. 
-        Returns a Bad Request status code and an error message if the aircraft 
-        is already unlocked.
-      operationId: api.unlock_get
-      responses:
-        "200":
-          description: Successful operation
-        "400":
-          description: Aircraft already unlocked
   /takeoff:
     post:
       tags:
         - takeoff
       summary: Lift off to a given altitude
       description: >-
-        POST request containing an altitude to take off to that is measured 
-        relative to sea level. Don't put an altitude that would be underground.
-      operationId: api.takeoff_post
+        POST request containing an altitude to take off to.
+        Don't put an altitude that would be underground.
       requestBody:
         required: true
         content:
@@ -139,12 +140,36 @@ paths:
         Aircraft returns to home waypoint and lands (return-to-launch). 
         Returns a Bad Request status code and error message if the drone 
         could not execute the operation.
-      operationId: api.rtl_get
       responses:
         "200":
           description: Successful, drone has initiated RTL procedure
         "400":
-          description: Initiating RTL unsuccessful
+          description: Could not initiate RTL
+    post:
+      tags:
+        - landing
+      summary: return to launch at specified altitude
+      description: >-
+        Aircraft returns to home waypoint and lands (return-to-launch). 
+        Returns a Bad Request status code and error message if the drone 
+        could not execute the operation.
+        POST request body contains the altitude the drone should be at 
+        while transiting back towards the launch point.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                altitude:
+                  type: number
+                  format: float64
+      responses:
+        "200":
+          description: Successful, drone has initiated RTL procedure
+        "400":
+          description: Could not initiate RTL
   /land:
     get:
       tags:
@@ -154,19 +179,17 @@ paths:
         Aircraft stops at its current position and lands. 
         Returns a Bad Request status code and error message if the drone 
         could not execute the operation.
-      operationId: api.land_get
       responses:
         "200":
           description: Successful, drone has started landing procedure
         "400":
-          description: Initiating landing unsuccessful
+          description: Could not initiate landing
     post: 
       tags: 
         - landing 
       summary: land at designated location (VTOL-compatible)
       description: >-
         VTOL compatible land at the location in the request.
-      operationId: api.land_post 
       requestBody:
         content:
           application/json:
@@ -175,6 +198,8 @@ paths:
       responses:
         "200":
           description: Successful, drone has started landing procedure 
+        "400":
+          description: Invalid coordinates - latitude and/or longitude value was null 
   /home:
     post:
       tags:
@@ -184,7 +209,6 @@ paths:
         POST request containing a waypoint whose longitude, latitiude and 
         altitiude will be the basis for the new home waypoint. All other 
         fields will be ignored.
-      operationId: api.home_post
       requestBody:
         content:
           application/json:
@@ -203,8 +227,7 @@ paths:
       description: >-
         Returns the current flight mode of the aircraft. The values 
         correspond to those in the MAV commands, so 3 indicates VTOL flight 
-        while 4 indicates fixed wing flight. 
-      operationId: api.vtol_transition_get
+        while 4 indicates fixed wing flight.
       responses:
         "200":
           description: Returned flight mode 
@@ -224,7 +247,6 @@ paths:
         specified by the mode property in the request body. As in 
         the GET endpoint, use 3 to indicate VTOL and 4 to indicate 
         fixed wing.
-      operationId: api.vtol_transition_post
       requestBody:
         content:
           application/json: 
@@ -236,6 +258,8 @@ paths:
       responses:
         "200": 
           description: Flight mode changed
+        "400":
+          description: Invalid flight mode
   /diversion:
     post: 
       tags: 
@@ -248,7 +272,6 @@ paths:
         process the information, produce a diverted path, and pass 
         that to the aircraft, returning 200. Note that 200 will be 
         returned whether or not the new path is applied or not.
-      operationId: api.diversion_post
       requestBody:
         content:
           application/json:
@@ -271,7 +294,6 @@ paths:
       summary: Change flight mode of the aircraft
       description: >-
         Set the flight mode of the aircraft to Loiter, Stabilize, Auto, or Guided
-      operationId: api.mode_put
       requestBody:
         content:
           application/json:
@@ -286,33 +308,32 @@ paths:
           description: Operation processed
         "400":
           description: Unrecognized mode
-  /invoke:
-    post:
+  /arm:
+    put:
       tags:
-        - options
-      summary: Invoke as specified in post request
-      description: >-
-        Performs a crucial functionality
-      operationId: api.invoke_post
+        - takeoff
+      summary: Arm or disarm the motors. Take care.
       requestBody:
         content:
           application/json:
-            schema: 
-              type: object 
+            schema:
+              type: object
               properties:
-                message:
-                  type: string
+                arm:
+                  type: integer
+                  enum: [0, 1]
       responses:
         "200":
-          description: "Important invokation is underway"
+          description: Arm/disarm successful.
+        "400":
+          description: Arm/disarm failed - drone is NOT in the requested state
   /altstandard:
     put:
       tags:
         - options
-      summary: TODO
+      summary: UNIMPLEMENTED
       description: >-
-        TODO
-      operationId: api.altstandard_put
+        UNIMPLEMENTED
       requestBody:
         content:
           application/json:
@@ -323,10 +344,8 @@ paths:
                   type: string
                   enum: ['AGL', 'MSL']
       responses:
-        "200":
-          description: OK
-        "400":
-          description: Unrecognized standard
+        "410":
+          description: "UNIMPLEMENTED"
 components:
   requestBodies:
     Queue:
@@ -363,13 +382,16 @@ components:
     Status:
       type: object
       properties:
-        velocity:
+        airspeed:
           type: number
           format: float64
-        longitude:
+        groundspeed:
           type: number
           format: float64
         latitude:
+          type: number
+          format: float64
+        longitude:
           type: number
           format: float64
         altitude:
@@ -381,5 +403,17 @@ components:
         batteryvoltage:
           type: number
           format: float64
+        winddirection:
+          type: number
+          format: float64
+        windvelocity:
+          type: number
+          format: float64
+        current_wpn:
+          type: integer
+        date:
+          type: integer
+        time:
+          type: integer
       xml:
         name: Status

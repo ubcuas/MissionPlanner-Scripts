@@ -131,28 +131,6 @@
 			]
 		},
 		{
-			"name": "unlock",
-			"item": [
-				{
-					"name": "Resume aircraft movement based on the queue",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{ base_url }}/unlock",
-							"host": [
-								"{{ base_url }}"
-							],
-							"path": [
-								"unlock"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "takeoff",
 			"item": [
 				{
@@ -176,28 +154,6 @@
 							],
 							"path": [
 								"takeoff"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "lock",
-			"item": [
-				{
-					"name": "Prevent the aircraft from moving based on the queue",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{ base_url }}/lock",
-							"host": [
-								"{{ base_url }}"
-							],
-							"path": [
-								"lock"
 							]
 						}
 					},
@@ -341,38 +297,7 @@
 			]
 		},
 		{
-			"name": "invoke",
-			"item": [
-				{
-					"name": "Use Text-To-Speech",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"message\": \"Hello world\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{ base_url }}/invoke",
-							"host": [
-								"{{ base_url }}"
-							],
-							"path": [
-								"invoke"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "insert",
+			"name": "prepend",
 			"item": [
 				{
 					"name": "Insert waypoint at beginning of queue",
@@ -389,12 +314,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{ base_url }}/insert",
+							"raw": "{{ base_url }}/prepend",
 							"host": [
 								"{{ base_url }}"
 							],
 							"path": [
-								"insert"
+								"prepend"
 							]
 						}
 					},
@@ -408,7 +333,7 @@
 				{
 					"name": "Arm or Disarm the Drone",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [],
 						"body": {
 							"mode": "raw",

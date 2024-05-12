@@ -65,31 +65,6 @@ class GCOM_Server():
 
             return retJSON
 
-        @app.route("/lock", methods=["GET"])
-        def lock():
-            status = self._so.gcom_locked_set(True)
-            if status:
-                print("Locked by GCOM")
-                return "Mission Queue Locked", 200
-
-            else:
-                print("Lock failed")
-
-                return "Mission Queue Lock Error: Already Locked", 400
-
-
-        @app.route("/unlock", methods=["GET"])
-        def unlock():
-            status = self._so.gcom_locked_set(False)
-            if status:
-                print("unlocked by GCOM")
-
-                return "Mission Queue unlocked", 200
-            else:
-                print("Unlock failed")
-
-                return "Mission Queue Unlock Error: Already Unlocked", 400
-
         @app.route("/land", methods=["GET"])
         def land():
             print("Landing")
@@ -100,12 +75,12 @@ class GCOM_Server():
 
         @app.route("/rtl", methods=["GET", "POST"])
         def rtl():
-            altitude = request.get_json().get('altitude', 5)
+            altitude = request.get_json().get('altitude', 50)
 
             print(f"RTL at {altitude}")
             self._so.gcom_rtl_set(altitude)
 
-            return "Returning to Land", 200
+            return "Returning to Launch", 200
 
         # VTOL LAND ENDPOINT
 
@@ -144,7 +119,7 @@ class GCOM_Server():
 
             return "ok", 200
         
-        @app.route("/insert", methods=['POST'])
+        @app.route("/prepend", methods=['POST'])
         def insert_wp():
             payload = request.get_json()
 
@@ -396,11 +371,6 @@ class GCOM_Server():
             self._so.gcom_locked_set(False)
             return "diverting"
         
-        #end of endpoints
-        @app.route("/invoke", methods=["POST"])
-        def invoke():
-            return f"Deprecated endpoint. Nothing happened", 410
-        
         @app.route("/flightmode", methods=["PUT"])
         def change_flight_mode():
             input = request.get_json()
@@ -415,7 +385,7 @@ class GCOM_Server():
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
         
-        @app.route("/arm", methods=["POST"])
+        @app.route("/arm", methods=["PUT"])
         def arm_disarm_drone():
             input = request.get_json()
 
@@ -434,6 +404,11 @@ class GCOM_Server():
                     return f"Arm/disarm failed - drone is NOT in the requested state", 418
             else:
                 return f"Unrecognized arm/disarm command parameter", 400
+        
+        @app.route("/altstandard", methods=["PUT"])
+        def altstandard():
+            #Call into altitude_standard_set
+            return "UNIMPLMENTED", 410
         
         #Socket stuff
         @socketio.on("connect")
