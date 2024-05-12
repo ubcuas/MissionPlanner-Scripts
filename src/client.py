@@ -200,9 +200,16 @@ while 1:
                 Locationwp.lng.SetValue(takeoff, cs.lng)
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
 
-                MAV.setWPTotal(2)
+                loiter_unlim = Locationwp()
+                Locationwp.id.SetValue(loiter_unlim, int(MAVLink.MAV_CMD.LOITER_UNLIM))
+                Locationwp.lat.SetValue(loiter_unlim, cs.lat)
+                Locationwp.lng.SetValue(loiter_unlim, cs.lng)
+                Locationwp.alt.SetValue(loiter_unlim, 0)
+
+                MAV.setWPTotal(3)
                 MAV.setWP(home,0,ALTSTD)
                 MAV.setWP(takeoff,1,ALTSTD)
+                MAV.setWP(loiter_unlim,2,ALTSTD)
                 MAV.setWPACK()
 
                 DELAY_SECONDS = 15
