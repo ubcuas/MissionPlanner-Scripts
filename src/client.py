@@ -262,7 +262,7 @@ while 1:
             Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.VTOL_LAND))
             Locationwp.lat.SetValue(landing, landlat)
             Locationwp.lng.SetValue(landing, landlng)
-            Locationwp.alt.SetValue(landing, takeoffalt)
+            Locationwp.alt.SetValue(landing, 0)
 
             MAV.setWPTotal(2)
             MAV.setWP(home,0,ALTSTD)
