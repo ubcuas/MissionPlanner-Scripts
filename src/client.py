@@ -40,6 +40,14 @@ def get_altitude_standard(standard):
     else:
         return MAVLink.MAV_FRAME.GLOBAL
 
+def command_to_MAV_CMD(command):
+    temp_dict = {
+        0 : MAVLink.MAV_CMD.WAYPOINT,
+        1 : MAVLink.MAV_CMD.LOITER_UNLIM,
+        2 : MAVLink.MAV_CMD.DO_VTOL_TRANSITION,
+    }
+    return temp_dict[command]
+
 def upload_mission(wp_array):
     """
     Uploads a mission to the aircraft based on a given set of waypoints.
@@ -62,7 +70,7 @@ def upload_mission(wp_array):
         Locationwp.lat.SetValue(wp, wp_array[i][0])
         Locationwp.lng.SetValue(wp, wp_array[i][1])
         Locationwp.alt.SetValue(wp, wp_array[i][2])
-        Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
+        Locationwp.id.SetValue(wp, int(command_to_MAV_CMD(wp_array[i][3])))
         MAV.setWP(wp, i + 1, ALTSTD)
     # Final ack
     MAV.setWPACK()
@@ -128,15 +136,18 @@ while 1:
         elif cmd == "NEXT":
             upcoming_mission = False
 
-            if (len(argv) % 3 != 0):
-                print("recieved {:} waypoint params, not divisible by 3}".format(len(argv)))
+            print(cmd, argv)
 
-            for idx in range(0, len(argv) // 3):
-                float_lat = float(argv[3 * idx])
-                float_lng = float(argv[3 * idx + 1])
-                float_alt = float(argv[3 * idx + 2])
+            if (len(argv) % 4 != 0):
+                print("recieved {:} waypoint params, not divisible by 4".format(len(argv)))
 
-                wp_array.append((float_lat, float_lng, float_alt))
+            for idx in range(0, len(argv) // 4):
+                float_lat = float(argv[4 * idx])
+                float_lng = float(argv[4 * idx + 1])
+                float_alt = float(argv[4 * idx + 2])
+                command = int(argv[4 * idx + 3])
+
+                wp_array.append((float_lat, float_lng, float_alt, command))
                 print("received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
             
             #set mission

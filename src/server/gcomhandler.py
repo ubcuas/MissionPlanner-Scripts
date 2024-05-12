@@ -1,4 +1,4 @@
-    # from gevent import pywsgi
+# from gevent import pywsgi
 # from geventwebsocket.handler import WebSocketHandler
 from flask import Flask, request
 import json
@@ -105,12 +105,16 @@ class GCOM_Server():
 
             wpq = []
             for wpdict in payload:
+                command = wpdict.get('command')
+                if command == None or command == "" or command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION"]:
+                    command = "WAYPOINT"
+                
                 if wpdict['altitude'] != None:
-                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'])
+                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], wpdict['altitude'], command)
                     wpq.append(wp)
                     last_altitude = wpdict['altitude']
                 else:
-                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude)
+                    wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude, command)
                     wpq.append(wp)
             
             self._so.gcom_newmission_set(WaypointQueue(wpq.copy()))

@@ -377,8 +377,9 @@ components:
         altitude:
           type: number
           format: float64
-      xml:
-        name: Queue
+        command:
+          type: string
+          enum: ['', 'WAYPOINT', 'LOITER_UNLIM', 'DO_VTOL_TRANSITION']
     Status:
       type: object
       properties:
@@ -415,5 +416,3 @@ components:
           type: integer
         time:
           type: integer
-      xml:
-        name: Status
