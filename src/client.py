@@ -29,9 +29,6 @@ timeout = 5
 rsock.settimeout(timeout)
 print("Sockets Created")
 
-Script.ChangeMode("Guided") # Changes mode to "Guided"
-print("Entered Guided Mode")
-
 wp_array = []
 upcoming_mission = False
 fence_exclusive = False
@@ -119,13 +116,11 @@ while 1:
     cmd = argv.pop(0)
     
     if cs.mode == 'MANUAL': # Safety Manual Mode Switch
-        Script.ChangeMode("Manual")
         print("Entered Manual Mode")
         break
     else:
         if cmd == "NEW_MISSION":
             #Enter guided and await new mission waypoints
-            Script.ChangeMode("Guided")
             wp_array = []
             upcoming_mission = True
             print("NEW_MISSION - About to recieve new mission")
@@ -148,13 +143,12 @@ while 1:
             upload_mission(wp_array)
             # Empty array
             wp_array = []
-            # Enter auto mode
+            # Quickly switch out of Auto mode so drone recognizes new mission
+            #Script.ChangeMode("Loiter") #Uncomment for testing May 12
             Script.ChangeMode("Auto")
             print("NEXT - new mission set")   
         
         elif cmd == "PUSH":
-            #is this unused?
-            print("DEBUG", cmd, argv)
             wptotal = MAV.getWPCount()
 
             MAV.setWPTotal(wptotal + 1)
@@ -167,28 +161,33 @@ while 1:
             MAV.setWP(newwp, wptotal, ALTSTD)
             MAV.setWPACK()
             print("PUSH - waypoint pushed")
-
+        
         elif cmd == "CONT":
             # CONT - continue
             #print("CONT")
             pass
+
         elif cmd == "IDLE":
             # IDLE - do nothing
             #print("IDLE")
             pass
 
         elif cmd == "TAKEOFF":
-            if (len(argv) == 1):
+            if (len(argv) != 1):
+                print("TAKEOFF - invalid command")
+
+                rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
+            else:
                 takeoffalt = float(argv[0])
-                Script.ChangeMode("Loiter")
                 # Set up takeoff waypoint
                 home = Locationwp()
                 Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
                 Locationwp.lat.SetValue(home, cs.lat)
                 Locationwp.lng.SetValue(home, cs.lng)
                 Locationwp.alt.SetValue(home, 0)
+                
                 takeoff = Locationwp()
-                Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.TAKEOFF))
+                Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.VTOL_TAKEOFF) if MODE == "plane" else int(MAVLink.MAV_CMD.TAKEOFF))
                 Locationwp.lat.SetValue(takeoff, cs.lat)
                 Locationwp.lng.SetValue(takeoff, cs.lng)
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
@@ -198,20 +197,20 @@ while 1:
                 MAV.setWP(takeoff,1,ALTSTD)
                 MAV.setWPACK()
 
-                if cs.armed:
-                    Script.ChangeMode("Auto")
-                    MAV.doCommand(MAVLink.MAV_CMD.MISSION_START,0,0,0,0,0,0,0) # Arm motors
-                    print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
+                DELAY_SECONDS = 15
+                for i in range(0, DELAY_SECONDS * 10):
+                    if cs.mode == "AUTO":
+                        break
+                    time.sleep(0.1)
 
+                if cs.mode == "AUTO":
+                    #take off
+                    print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
                     rsock.sendto(bytes("success_takeoff 1", 'utf-8'), (HOST, RPORT))
                 else:
-                    print("TAKEOFF - ERROR, DRONE NOT ARMED")
-
+                    print("TAKEOFF - ERROR, MODE NOT AUTO")
                     rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
-            else:
-                print("TAKEOFF - invalid command")
 
-                rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
 
         elif cmd == "HOME":
             MAV.doCommand(MAVLink.MAV_CMD.DO_SET_HOME,0,0,0,0,float(argv[0]),float(argv[1]),float(argv[2]))
@@ -222,7 +221,8 @@ while 1:
             print("ARM - arm/disarm motors")
             
             #cs.armed can take some time to change - give it time before we consider it failed
-            for i in range(0, 30):
+            DELAY_SECONDS = 3
+            for i in range(0, DELAY_SECONDS * 10):
                 #print("{:.1f}".format(i * 0.1), cs.armed)
                 if cs.armed == (int(argv[0]) == 1):
                     break
