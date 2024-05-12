@@ -160,6 +160,11 @@ while 1:
             Locationwp.id.SetValue(newwp, int(MAVLink.MAV_CMD.WAYPOINT))
             MAV.setWP(newwp, wptotal, ALTSTD)
             MAV.setWPACK()
+
+            # Quickly switch out of Auto mode so drone recognizes new mission
+            #Script.ChangeMode("Loiter") #Uncomment for testing May 12
+            Script.ChangeMode("Auto")
+
             print("PUSH - waypoint pushed")
         
         elif cmd == "CONT":
@@ -180,6 +185,9 @@ while 1:
             else:
                 takeoffalt = float(argv[0])
                 # Set up takeoff waypoint
+                # NOTE: drone can't be in Auto on the ground when sending the initial takeoff mission - if it is, it won't take off
+                # May 12 testing - verify if this is the behaviour on the actual drone - if so, we may consider switching the mode
+                # to something safe like 'loiter' here just in case
                 home = Locationwp()
                 Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
                 Locationwp.lat.SetValue(home, cs.lat)
