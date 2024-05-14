@@ -194,6 +194,11 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 missionbytes += bytes(struct.pack("f", curr._lat))
                 missionbytes += bytes(struct.pack("f", curr._lng))
                 missionbytes += bytes(struct.pack("f", curr._alt))
+                missionbytes += bytes(struct.pack("B", self.command_string_to_int(curr._com)))
+                missionbytes += bytes(struct.pack("h", curr._param1))
+                missionbytes += bytes(struct.pack("h", curr._param2))
+                missionbytes += bytes(struct.pack("h", curr._param3))
+                missionbytes += bytes(struct.pack("h", curr._param4))
 
             self.server._instructions.push(missionbytes)
         else:
@@ -204,6 +209,15 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 self.server._newmc -= 1
             #self.server._instructions.push("CONT")
             pass
+    
+    def command_string_to_int(self, command):
+        temp_dict = {
+            "WAYPOINT":0,
+            "LOITER_UNLIM":1,
+            "DO_VTOL_TRANSITION":2,
+            "DO_CHANGE_SPEED":3,
+        }
+        return temp_dict[command]
             
 
 class MPS_Internal_Server(socketserver.UDPServer):

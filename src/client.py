@@ -40,16 +40,27 @@ def get_altitude_standard(standard):
     else:
         return MAVLink.MAV_FRAME.GLOBAL
 
+def command_to_MAV_CMD(command):
+    temp_dict = {
+        0 : MAVLink.MAV_CMD.WAYPOINT,
+        1 : MAVLink.MAV_CMD.LOITER_UNLIM,
+        2 : MAVLink.MAV_CMD.DO_VTOL_TRANSITION,
+        3 : MAVLink.MAV_CMD.DO_CHANGE_SPEED,
+    }
+    return temp_dict[command]
+
 def upload_mission(wp_array):
     """
     Uploads a mission to the aircraft based on a given set of waypoints.
 
     Parameters:
-        - wp_array: ordered list of waypoints
+        - wp_array: ordered list of waypoints (each waypoint is a tuple)
     """
     #start = time.monotonic_ns()
+
     # Set waypoint total
     MAV.setWPTotal(len(wp_array) + 1)
+
     # Upload waypoints
     dummy = Locationwp()
     Locationwp.lat.SetValue(dummy, 0)
@@ -57,15 +68,22 @@ def upload_mission(wp_array):
     Locationwp.alt.SetValue(dummy, 0)
     Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
     MAV.setWP(dummy, 0, ALTSTD)
+
     for i in range(0, len(wp_array)):
         wp = Locationwp()
         Locationwp.lat.SetValue(wp, wp_array[i][0])
         Locationwp.lng.SetValue(wp, wp_array[i][1])
         Locationwp.alt.SetValue(wp, wp_array[i][2])
-        Locationwp.id.SetValue(wp, int(MAVLink.MAV_CMD.WAYPOINT))
+        Locationwp.id.SetValue(wp, int(command_to_MAV_CMD(wp_array[i][3])))
+        Locationwp.p1.SetValue(wp, wp_array[i][4])
+        Locationwp.p2.SetValue(wp, wp_array[i][5])
+        Locationwp.p3.SetValue(wp, wp_array[i][6])
+        Locationwp.p4.SetValue(wp, wp_array[i][7])
         MAV.setWP(wp, i + 1, ALTSTD)
+
     # Final ack
     MAV.setWPACK()
+
     #end = time.monotonic_ns()
     #print("Uploading mission took {:}ms".format((end - start) / 1000000))
 
@@ -77,12 +95,18 @@ def interpret_packedmission(recvd):
     ret = ["NEXT"]
 
     #print(recvd)
-    for i in range(len(recvd) // 4):
-        idx = 4 * i
-        #print(recvd[idx:idx + 8])
-        ret.append(struct.unpack('f', recvd[idx:idx + 4])[0])
+    for i in range(len(recvd) // 21):
+        wp_idx = 21 * i
+        
+        ret.append(struct.unpack('f', recvd[wp_idx + 0  : wp_idx + 4 ])[0]) #lat
+        ret.append(struct.unpack('f', recvd[wp_idx + 4  : wp_idx + 8 ])[0]) #lng
+        ret.append(struct.unpack('f', recvd[wp_idx + 8  : wp_idx + 12])[0]) #alt
+        ret.append(struct.unpack('B', recvd[wp_idx + 12 : wp_idx + 13])[0]) #com
+        ret.append(struct.unpack('h', recvd[wp_idx + 13 : wp_idx + 15])[0]) #p1
+        ret.append(struct.unpack('h', recvd[wp_idx + 15 : wp_idx + 17])[0]) #p2
+        ret.append(struct.unpack('h', recvd[wp_idx + 17 : wp_idx + 19])[0]) #p3
+        ret.append(struct.unpack('h', recvd[wp_idx + 19 : wp_idx + 21])[0]) #p4
 
-    #print(ret)
     return ret
 
 # Keep talking with the Mission Planner server 
@@ -128,23 +152,31 @@ while 1:
         elif cmd == "NEXT":
             upcoming_mission = False
 
-            if (len(argv) % 3 != 0):
-                print("recieved {:} waypoint params, not divisible by 3}".format(len(argv)))
+            print(cmd, argv)
 
-            for idx in range(0, len(argv) // 3):
-                float_lat = float(argv[3 * idx])
-                float_lng = float(argv[3 * idx + 1])
-                float_alt = float(argv[3 * idx + 2])
+            if (len(argv) % 8 != 0):
+                print("recieved {:} waypoint params, not divisible by 8".format(len(argv)))
+                continue
 
-                wp_array.append((float_lat, float_lng, float_alt))
-                print("received waypoint {:} {:} {:}".format(float_lat, float_lng, float_alt))
+            for idx in range(0, len(argv) // 8):
+                float_lat = float(argv[8 * idx])
+                float_lng = float(argv[8 * idx + 1])
+                float_alt = float(argv[8 * idx + 2])
+                command   = int  (argv[8 * idx + 3])
+                p1        = int  (argv[8 * idx + 4])
+                p2        = int  (argv[8 * idx + 5])
+                p3        = int  (argv[8 * idx + 6])
+                p4        = int  (argv[8 * idx + 7])
+
+                wp_array.append((float_lat, float_lng, float_alt, command, p1, p2, p3, p4))
+                print("received waypoint {:} {:} {:} {:} {:} {:} {:} {:}".format(float_lat, float_lng, float_alt, command, p1, p2, p3, p4))
             
             #set mission
             upload_mission(wp_array)
             # Empty array
             wp_array = []
-            # Quickly switch out of Auto mode so drone recognizes new mission
-            #Script.ChangeMode("Loiter") #Uncomment for testing May 12
+            # Cycles mode so drone responds to new mission
+            Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
             print("NEXT - new mission set")   
         
@@ -161,8 +193,8 @@ while 1:
             MAV.setWP(newwp, wptotal, ALTSTD)
             MAV.setWPACK()
 
-            # Quickly switch out of Auto mode so drone recognizes new mission
-            #Script.ChangeMode("Loiter") #Uncomment for testing May 12
+            # Cycles mode so drone responds to new mission
+            Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
 
             print("PUSH - waypoint pushed")
@@ -200,9 +232,17 @@ while 1:
                 Locationwp.lng.SetValue(takeoff, cs.lng)
                 Locationwp.alt.SetValue(takeoff, takeoffalt)
 
-                MAV.setWPTotal(2)
+                loiter_unlim = Locationwp()
+                Locationwp.id.SetValue(loiter_unlim, int(MAVLink.MAV_CMD.LOITER_UNLIM))
+                Locationwp.lat.SetValue(loiter_unlim, cs.lat)
+                Locationwp.lng.SetValue(loiter_unlim, cs.lng)
+                Locationwp.alt.SetValue(loiter_unlim, 0)
+                Locationwp.p3.SetValue(loiter_unlim, 1)
+
+                MAV.setWPTotal(3)
                 MAV.setWP(home,0,ALTSTD)
                 MAV.setWP(takeoff,1,ALTSTD)
+                MAV.setWP(loiter_unlim,2,ALTSTD)
                 MAV.setWPACK()
 
                 DELAY_SECONDS = 15
@@ -242,7 +282,7 @@ while 1:
                 rsock.sendto(bytes("success_arm 0", 'utf-8'), (HOST, RPORT))
 
         elif cmd == "RTL":
-            rtl_altitude = float(argv[0]) * 100
+            rtl_altitude = float(argv[0]) * 100 #argv[0] (meters) -> RTL_ALT param (centimeters)
             if MODE == 'plane':
                 MAV.setParam('ALT_HOLD_RTL', rtl_altitude)
                 Script.ChangeMode("QRTL")
