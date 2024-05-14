@@ -56,7 +56,12 @@ paths:
         Request status code and error message in that case. Longitude and 
         latitude in degrees, altitude in meters.
       requestBody:
-        $ref: "#/components/requestBodies/Queue"
+        content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Waypoint"
       responses:
         "200":
           description: successful operation
@@ -347,19 +352,7 @@ paths:
         "410":
           description: "UNIMPLEMENTED"
 components:
-  requestBodies:
-    Queue:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Queue"
-      description: Queue of waypoints
-      required: true
   schemas:
-    Queue:
-      type: array
-      items:
-        $ref: "#/components/schemas/Waypoint"
     Waypoint:
       type: object
       properties:
@@ -379,7 +372,19 @@ components:
           format: float64
         command:
           type: string
-          enum: ['', 'WAYPOINT', 'LOITER_UNLIM', 'DO_VTOL_TRANSITION']
+          enum: ['', 'WAYPOINT', 'LOITER_UNLIM', 'DO_VTOL_TRANSITION', 'DO_CHANGE_SPEED']
+        param1:
+          type: number
+          format: integer
+        param2:
+          type: number
+          format: integer
+        param3:
+          type: number
+          format: integer
+        param4:
+          type: number
+          format: integer
     Status:
       type: object
       properties:
