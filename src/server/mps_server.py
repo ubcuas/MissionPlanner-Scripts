@@ -4,7 +4,7 @@ import struct
 from server.common.missions import Mission
 from server.common.wpqueue import Waypoint, Queue
 from server.common.sharedobject import SharedObject
-from server.common.encoders import waypoint_encode
+from server.common.encoders import waypoint_encode, waypoint_decode, waypoint_size
 
 # Define request handler
 class MPS_Handler(socketserver.BaseRequestHandler):
@@ -65,25 +65,27 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             # Send instruction to UAV
             socket.sendto(self.next_instruction(int(float(current_wpn))), self.client_address)
         
-        elif data_type == b"QI": #queue info
-            parameters = payload.decode().split()
-            #receive data about current queue
-            wp_count = int(parameters[0])
-            wp_list = []
+        elif data_type == b"QI": #queue info, receive data about current queue
+            #unpack the number of waypoints from the first byte
+            wp_count = payload[0]
+            wp_list: list[Waypoint] = []
+            idx = 1
 
             for i in range(0, wp_count):
-                wp_list.append(Waypoint("","", float(parameters[1 + 3*i]), float(parameters[1 + 3*i + 1]), float(parameters[1 + 3*i + 2])))
+                wp_list.append(waypoint_decode(payload[idx : idx + waypoint_size()]))
+                idx += waypoint_size()
             
                 #TODO - ID resolution would occur here
 
             print(f"DEBUG Recieved Waypoint List ({wp_count}):")
             for i in range(0, wp_count):
-                print(f"{wp_list[i]._lat} {wp_list[i]._lng} {wp_list[i]._alt}")
+                print(f"{wp_list[i].get_coords_gps()} {wp_list[i].get_command()}")
+
             self.server._so.mps_currentmission_updatequeue(wp_list)
         
         elif data_type == b"ST": #successful takeoff
-            parameters = payload.decode().split()
-            result = int(parameters[0])
+            #first byte of payload is indicator
+            result = payload[0]
             if result == 1:
                 #successful takeoff
                 print("Successful takeoff")
@@ -93,8 +95,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             self.server._so.takeoff_set_result(result)
 
         elif data_type == b"SA": #successful arm
-            parameters = payload.decode().split()
-            result = int(parameters[0])
+            #first byte of payload is indicator
+            result = payload[0]
             if result == 1:
                 print("Successful arm/disarm")
             else:

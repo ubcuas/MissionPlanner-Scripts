@@ -306,18 +306,17 @@ while 1:
 
         elif cmd == "QUEUE_GET":
             #get info
+            numwp = MAV.getWPCount()
+
             queue_info = b"QI"
-            queue_info += bytes(" {:}".format(MAV.getWPCount()), 'utf-8') #struct.pack('B', MAV.getWPCount())
-            wplist = []
-            for i in range(0, MAV.getWPCount()):
+            queue_info += struct.pack('B', numwp)
+
+            for i in range(0, numwp):
                 try:
                     wp = MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i)
-                    wplist.append((wp.lat, wp.lng, wp.alt))
+                    queue_info += struct.pack("3f5h", wp.lat, wp.lng, wp.alt, wp.id, int(wp.p1), int(wp.p2), int(wp.p3), int(wp.p4))
                 except:
                     print("WARNING - waypoint get failed for waypoint number", i)
-            #send info
-            for wp in wplist:
-                queue_info += bytes(" {:} {:} {:}".format(wp[0], wp[1], wp[2]), 'utf-8')
 
             rsock.sendto(queue_info, (HOST, RPORT))
         

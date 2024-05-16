@@ -10,7 +10,7 @@ from server.common.wpqueue import Waypoint
 # EXACTLY with the values of MissionPlanner's MAV_CMD enums. 
 # https://mavlink.io/en/messages/common.html#mav_commands <- number in parentheses next to waypoint is the enum value.
 # https://github.com/ArduPilot/MissionPlanner/blob/master/Resources/MAVCmd.txt
-command_mappings = [
+command_mappings: list[tuple[str, int]] = [
     ("WAYPOINT", 16),
     ("LOITER_UNLIM", 17),
     ("DO_VTOL_TRANSITION", 3000),
@@ -51,3 +51,6 @@ def waypoint_decode(wp: bytes) -> Waypoint:
                     param2,
                     param3,
                     param4)
+
+def waypoint_size() -> int:
+    return struct.calcsize('3f5h')
