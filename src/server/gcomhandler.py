@@ -4,7 +4,7 @@ from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
-from flask_socketio import SocketIO
+#from flask_socketio import SocketIO
 import time
 
 from server.common.conversion import *
@@ -28,11 +28,12 @@ class GCOM_Server():
     def __init__(self, so):
         self._so = so
 
-        print("GCOM_Server Initialized")
+        #print("GCOM_Server Initialized")
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
+        print("GCOM HTTP Server starting...")
         app = Flask(__name__)
-        socketio = SocketIO(app)
+        #socketio = SocketIO(app)
 
         # GET endpoints
         @app.route("/", methods=["GET"])
@@ -52,7 +53,7 @@ class GCOM_Server():
                 wp_dict.update(wp.get_command())
                 formatted.append(wp_dict)
             
-            wpno = int(self._so.gcom_status_get()._wpn)
+            wpno = int(self._so.get_status()._wpn)
             remaining = formatted[wpno-1:]
             retJSON = json.dumps(remaining) # This should convert the dict to JSON
 
@@ -62,7 +63,7 @@ class GCOM_Server():
 
         @app.route("/status", methods=["GET"])
         def get_status():
-            ret: Status = self._so.gcom_status_get()
+            ret: Status = self._so.get_status()
             retJSON = json.dumps(ret.as_dictionary())
 
             print("Status sent to GCOM")
@@ -104,7 +105,7 @@ class GCOM_Server():
         def post_queue():
             payload = request.get_json()
 
-            ret: Status = self._so.gcom_status_get()
+            ret: Status = self._so.get_status()
             last_altitude = ret._alt if ret != () else 50
 
             wpq = []
@@ -146,7 +147,7 @@ class GCOM_Server():
                 pass
             ret = self._so.gcom_currentmission_get()
             
-            wpno = int(self._so.gcom_status_get()._wpn)
+            wpno = int(self._so.get_status()._wpn)
             remaining = ret[wpno-1:]
             wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], payload['altitude'])
 
@@ -166,7 +167,7 @@ class GCOM_Server():
             if not('latitude' in payload) or not('longitude' in payload):
                 return "Latitude and Longitude cannot be null", 400
 
-            ret: Status = self._so.gcom_status_get()
+            ret: Status = self._so.get_status()
             last_altitude = ret._alt if ret != () else 50
 
             wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
@@ -425,24 +426,24 @@ class GCOM_Server():
             #Call into altitude_standard_set
             return "UNIMPLMENTED", 410
         
-        #Socket stuff
-        @socketio.on("connect")
-        def handle_connect():
-            print("Client connected to socket")
-            socketio.emit('okay', {'data': 'Connected'})
+        # #Socket stuff
+        # @socketio.on("connect")
+        # def handle_connect():
+        #     print("Client connected to socket")
+        #     socketio.emit('okay', {'data': 'Connected'})
 
-        @socketio.on("disconnect")
-        def handle_disconnect():
-            print("Client disconnected")
+        # @socketio.on("disconnect")
+        # def handle_disconnect():
+        #     print("Client disconnected")
 
-        @socketio.on("message")
-        def handle_message(data):
-            ret: Status = self._so.gcom_status_get()
-            retJSON =  json.dumps(ret.as_dictionary())
+        # @socketio.on("message")
+        # def handle_message(data):
+        #     ret: Status = self._so.get_status()
+        #     retJSON =  json.dumps(ret.as_dictionary())
 
-            print("Status sent to GCOM")
+        #     print("Status sent to GCOM")
             
-            socketio.emit('status_response', {'status_data': retJSON})
+        #     socketio.emit('status_response', {'status_data': retJSON})
             
         # # #run server
         # # if production:
@@ -452,4 +453,4 @@ class GCOM_Server():
         # else:
             # Option 2: Using socketio.run for development (supports WebSocket)
             #socketio.start_background_task(background_task)
-        socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)
+        # socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)

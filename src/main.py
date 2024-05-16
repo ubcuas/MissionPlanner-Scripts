@@ -5,11 +5,12 @@ from threading import Thread
 from server.common.sharedobject import SharedObject
 from server.gcomhandler import GCOM_Server
 from server.mps_server import MPS_Server
-from server.socket_handler import Socket_Handler
+from server.status_wsclient import Status_Client
 
 # Process command line args
 production = True
 HOST, PORT, SOCKET_PORT = "localhost", 9000, 9001
+STATUS_HOST, STATUS_PORT = "localhost", 1323
 if __name__ == "__main__":
     # Extract arguments
     arguments = {}
@@ -32,8 +33,14 @@ if __name__ == "__main__":
 
     if '--socket-port' in arguments.keys():
         SOCKET_PORT = int(arguments['--socket-port'][0])
+
+    if '--status-host' in arguments.keys():
+        STATUS_HOST = arguments['--status-host'][0]
+    
+    if '--status-port' in arguments.keys():
+        STATUS_PORT = arguments['--status-port'][0]
         
-    print(f"HTTPServer listening on port {PORT}")
+    print(f"Starting... HTTP server listening at {HOST}:{PORT}. Status WS connecting to {STATUS_HOST}:{STATUS_PORT}.")
 
     # Instantiate shared object
     so = SharedObject()
@@ -41,7 +48,7 @@ if __name__ == "__main__":
     # Create server
     mpss = MPS_Server(so)
     gcmh = GCOM_Server(so)
-    skth = Socket_Handler(so)
+    skth = Status_Client(so)
 
     # mpss thread
     mpss_thread = Thread(target=mpss.serve_forever)
@@ -49,7 +56,11 @@ if __name__ == "__main__":
     # gcmh thread
     gcmh_thread = Thread(target=gcmh.serve_forever, args=[production, HOST, PORT])
 
+    #status websocket client thread
+    skth_thread = Thread(target=skth.ping_forever, args=[production, STATUS_HOST, STATUS_PORT])
+
+    print("\nStarting threads...\n")
+
     mpss_thread.start()
     gcmh_thread.start()
-
-    skth.serve_forever(production, HOST, SOCKET_PORT)
+    skth_thread.start()

@@ -179,12 +179,12 @@ class SharedObject():
             return None
     
     # Status methods
-    def mps_status_set(self, updated: Status) -> None:
+    def set_status(self, updated: Status) -> None:
         self._status_lk.acquire()
         self._status = updated 
         self._status_lk.release()
 
-    def gcom_status_get(self) -> Status:
+    def get_status(self) -> Status:
         ret = ()
         self._status_lk.acquire()
         ret = self._status 

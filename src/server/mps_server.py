@@ -44,7 +44,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             status.decode_status(payload)
 
             # Updated shared obj with location data
-            self.server._so.mps_status_set(status)
+            self.server._so.set_status(status)
 
             # Send instruction to UAV
             socket.sendto(self.next_instruction(int(float(status._wpn))), self.client_address)
@@ -210,15 +210,16 @@ class MPS_Internal_Server(socketserver.UDPServer):
 
         # Superclass constructor
         super().__init__(hptuple, handler)
-        print("MPS_Internal_Server initialized")
+        #print("MPS_Internal_Server initialized")
 
 class MPS_Server():
     def __init__(self, so: SharedObject):
         self._so: SharedObject = so
 
-        print("MPS_Server initialized")
+        #print("MPS_Server initialized")
 
     def serve_forever(self):
+        print("MissionPlanner Server starting...")
         HOST, PORT = "localhost", 9001
         self._server = MPS_Internal_Server((HOST, PORT), MPS_Handler, self._so)
         self._server.serve_forever()
