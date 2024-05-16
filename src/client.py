@@ -101,8 +101,13 @@ def interpret_packedmission(recvd):
 while 1:
 
     # Send telemetry to server
-    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel, str(datetime.now()))
-    rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
+    telemetry = b"TL"
+    telemetry += bytes("{:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}"
+                            .format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, 
+                                cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, 
+                                cs.wpno, cs.wind_dir, cs.wind_vel, str(datetime.now())),
+                       'utf-8') #TODO - correct timestamp format, then change to struct
+    rsock.sendto(telemetry, (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
 
@@ -183,7 +188,7 @@ while 1:
             if (len(argv) != 1):
                 print("TAKEOFF - invalid command")
 
-                rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
             else:
                 takeoffalt = float(argv[0])
                 # Set up takeoff waypoint
@@ -224,10 +229,10 @@ while 1:
                 if cs.mode == "AUTO":
                     #take off
                     print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
-                    rsock.sendto(bytes("success_takeoff 1", 'utf-8'), (HOST, RPORT))
+                    rsock.sendto(bytes("ST1", 'utf-8'), (HOST, RPORT))
                 else:
                     print("TAKEOFF - ERROR, MODE NOT AUTO")
-                    rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
+                    rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
 
 
         elif cmd == "HOME":
@@ -247,9 +252,9 @@ while 1:
                 time.sleep(0.1)
 
             if cs.armed == (int(argv[0]) == 1):
-                rsock.sendto(bytes("success_arm 1", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("SA1", 'utf-8'), (HOST, RPORT))
             else:
-                rsock.sendto(bytes("success_arm 0", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("SA0", 'utf-8'), (HOST, RPORT))
 
         elif cmd == "RTL":
             rtl_altitude = float(argv[0]) * 100 #argv[0] (meters) -> RTL_ALT param (centimeters)
@@ -301,20 +306,20 @@ while 1:
 
         elif cmd == "QUEUE_GET":
             #get info
-            numwp = MAV.getWPCount()
+            queue_info = b"QI"
+            queue_info += bytes(" {:}".format(MAV.getWPCount()), 'utf-8') #struct.pack('B', MAV.getWPCount())
             wplist = []
-            for i in range(0, numwp):
+            for i in range(0, MAV.getWPCount()):
                 try:
                     wp = MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i)
                     wplist.append((wp.lat, wp.lng, wp.alt))
                 except:
                     print("WARNING - waypoint get failed for waypoint number", i)
             #send info
-            queue_info = "queue {:}".format(numwp)
             for wp in wplist:
-                queue_info += " {:} {:} {:}".format(wp[0], wp[1], wp[2])
+                queue_info += bytes(" {:} {:} {:}".format(wp[0], wp[1], wp[2]), 'utf-8')
 
-            rsock.sendto(bytes(queue_info, 'utf-8'), (HOST, RPORT))
+            rsock.sendto(queue_info, (HOST, RPORT))
         
         elif cmd == "CONFIG":
             if argv[0] in ["vtol", "plane"]:

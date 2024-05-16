@@ -32,12 +32,14 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         rawdata = self.request[0]
         socket = self.request[1]
 
-        data = rawdata.strip().decode()
-        data = data.split()
-        data_type = data[0]
-        parameters = data[1:]
+        data = rawdata.strip()
 
-        if data_type == "telemetry":
+        #the first two bytes are for the header
+        data_type = data[0:2]
+        payload = data[2:]
+
+        if data_type == b"TL": #telemetry
+            parameters = payload.decode().split()
             # Receive location data
             current_lat = str(parameters[0]).strip(' b\'')
             current_lng = str(parameters[1]).strip(' b\'')
@@ -63,7 +65,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             # Send instruction to UAV
             socket.sendto(self.next_instruction(int(float(current_wpn))), self.client_address)
         
-        elif data_type == "queue":
+        elif data_type == b"QI": #queue info
+            parameters = payload.decode().split()
             #receive data about current queue
             wp_count = int(parameters[0])
             wp_list = []
@@ -78,7 +81,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 print(f"{wp_list[i]._lat} {wp_list[i]._lng} {wp_list[i]._alt}")
             self.server._so.mps_currentmission_updatequeue(wp_list)
         
-        elif data_type == "success_takeoff":
+        elif data_type == b"ST": #successful takeoff
+            parameters = payload.decode().split()
             result = int(parameters[0])
             if result == 1:
                 #successful takeoff
@@ -88,7 +92,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 print("Unsuccessful takeoff")
             self.server._so.takeoff_set_result(result)
 
-        elif data_type == "success_arm":
+        elif data_type == b"SA": #successful arm
+            parameters = payload.decode().split()
             result = int(parameters[0])
             if result == 1:
                 print("Successful arm/disarm")
