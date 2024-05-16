@@ -372,7 +372,7 @@ components:
           format: float64
         command:
           type: string
-          enum: ['', 'WAYPOINT', 'LOITER_UNLIM', 'DO_VTOL_TRANSITION', 'DO_CHANGE_SPEED']
+          enum: ['WAYPOINT', 'LOITER_UNLIM', 'DO_VTOL_TRANSITION', 'DO_CHANGE_SPEED']
         param1:
           type: number
           format: integer

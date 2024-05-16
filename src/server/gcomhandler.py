@@ -42,7 +42,7 @@ class GCOM_Server():
         def get_queue():
             self._so.gcom_currentmission_trigger_update()
             while self._so._currentmission_flg_ready == False:
-                pass
+                time.sleep(0.01)
             ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
             formatted = []
             for wp in ret:
@@ -112,7 +112,7 @@ class GCOM_Server():
                     altitude = last_altitude
 
                 command = wpdict.get('command', "WAYPOINT") 
-                if command == "" or command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION", "DO_CHANGE_SPEED"]:
+                if command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION", "DO_CHANGE_SPEED"]:
                     command = "WAYPOINT"
 
                 param1 = wpdict.get('param1', 0)
