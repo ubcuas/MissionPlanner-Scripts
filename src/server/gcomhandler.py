@@ -43,10 +43,13 @@ class GCOM_Server():
             self._so.gcom_currentmission_trigger_update()
             while self._so._currentmission_flg_ready == False:
                 time.sleep(0.01)
+
             ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
             formatted = []
             for wp in ret:
-                formatted.append(wp.get_asdict())
+                wp_dict = wp.get_asdict()
+                wp_dict.update(wp.get_command())
+                formatted.append(wp_dict)
             
             wpno = int(self._so.gcom_status_get()['current_wpn'])
             remaining = formatted[wpno-1:]

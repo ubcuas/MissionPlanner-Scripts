@@ -21,10 +21,10 @@ class Waypoint():
     def get_coords_gps(self):
         return (self._lat, self._lng, self._alt)
     
-    def get_asdict(self):
+    def get_asdict(self) -> dict:
         return {'id':self._id, 'name':self._name, 'latitude':self._lat, 'longitude':self._lng, 'altitude':self._alt}
     
-    def get_command(self):
+    def get_command(self) -> dict:
         return {'command':self._com, 'param1':self._param1, 'param2':self._param2, 'param3':self._param3, 'param4':self._param4}
     
     def get_coords_utm(self):
