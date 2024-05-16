@@ -1,25 +1,31 @@
 import struct
 
 class Status():
-    def __init__(self):
-        self._timestamp: int = 0
-        self._wpn: int = -1 #current waypoint number
-
-        self._lat: float = 0
-        self._lng: float = 0
-        self._alt: float = 0
-
-        self._rol: float = 0 #roll
-        self._pch: float = 0 #pitch
-        self._yaw: float = 0 #yaw
-
-        self._asp: float = 0 #airspeed
-        self._gsp: float = 0 #groundspeed
-
-        self._btv: float = 0 #battery voltage
+    def __init__(self, timestamp = 0, waypoint_number = -1, 
+                 latitude = 0, longitude = 0, altitude = 0,
+                 roll = 0, pitch = 0, yaw = 0, 
+                 airspeed = 0, groundspeed = 0, 
+                 battery_voltage = 0, 
+                 wind_direction = 0, wind_velocity = 0):
         
-        self._wdr: float = 0 #wind direction
-        self._wvl: float = 0 #wind velocity
+        self._timestamp: int = timestamp
+        self._wpn: int = waypoint_number
+
+        self._lat: float = latitude
+        self._lng: float = longitude
+        self._alt: float = altitude
+
+        self._rol: float = roll
+        self._pch: float = pitch
+        self._yaw: float = yaw
+
+        self._asp: float = airspeed
+        self._gsp: float = groundspeed
+
+        self._btv: float = battery_voltage
+        
+        self._wdr: float = wind_direction
+        self._wvl: float = wind_velocity
     
     def encoded_status(self) -> bytes:
         return struct.pack('2i11f',
