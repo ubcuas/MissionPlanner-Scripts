@@ -388,12 +388,10 @@ components:
     Status:
       type: object
       properties:
-        airspeed:
-          type: number
-          format: float64
-        groundspeed:
-          type: number
-          format: float64
+        timestamp:
+          type: integer
+        current_wpn:
+          type: integer
         latitude:
           type: number
           format: float64
@@ -401,6 +399,21 @@ components:
           type: number
           format: float64
         altitude:
+          type: number
+          format: float64
+        roll:
+          type: number
+          format: float64
+        pitch:
+          type: number
+          format: float64
+        yaw:
+          type: number
+          format: float64
+        airspeed:
+          type: number
+          format: float64
+        groundspeed:
           type: number
           format: float64
         heading:
@@ -415,9 +428,3 @@ components:
         windvelocity:
           type: number
           format: float64
-        current_wpn:
-          type: integer
-        date:
-          type: integer
-        time:
-          type: integer

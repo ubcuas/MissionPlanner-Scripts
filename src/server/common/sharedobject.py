@@ -1,6 +1,8 @@
 #from multiprocessing import Lock
 from threading import Lock
 
+from server.common.status import Status
+
 class SharedObject():
     def __init__(self):
         # Current mission fields
@@ -17,7 +19,7 @@ class SharedObject():
         self._newmission_flag_lk = Lock()
 
         # Status fields
-        self._status = ()
+        self._status: Status = Status()
         self._status_lk = Lock()
 
         # Takeoff fields
@@ -177,12 +179,12 @@ class SharedObject():
             return None
     
     # Status methods
-    def mps_status_set(self, updated):
+    def mps_status_set(self, updated: Status) -> None:
         self._status_lk.acquire()
         self._status = updated 
         self._status_lk.release()
 
-    def gcom_status_get(self):
+    def gcom_status_get(self) -> Status:
         ret = ()
         self._status_lk.acquire()
         ret = self._status 

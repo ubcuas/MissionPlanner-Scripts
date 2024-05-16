@@ -3,9 +3,10 @@
 import socket
 import struct
 import time
-from datetime import datetime
 
+# Due to the IronPython environment we're running in, we can't import our own modules. Maybe one day.
 #from server.common.encoders import waypoint_decode
+#from server.common.status import Status
 
 import clr
 clr.AddReference("MissionPlanner.Utilities")
@@ -102,18 +103,18 @@ while 1:
 
     # Send telemetry to server
     telemetry = b"TL"
-    telemetry += bytes("{:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}"
-                            .format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, 
-                                cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, 
-                                cs.wpno, cs.wind_dir, cs.wind_vel, str(datetime.now())),
-                       'utf-8') #TODO - correct timestamp format, then change to struct
+    telemetry += struct.pack('2i11f', int(time.time()), int(cs.wpno),
+                             cs.lat, cs.lng, cs.alt,
+                             cs.roll, cs.pitch, cs.yaw,
+                             cs.airspeed, cs.groundspeed,
+                             cs.battery_voltage,
+                             cs.wind_dir, cs.wind_vel)
     rsock.sendto(telemetry, (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
 
     try:
         recvd = rsock.recv(4096)
-        #print("received {:} bytes".format(len(recvd)))
     except socket.timeout:
         print("Socket timeout")
         time.sleep(DELAY)
@@ -121,7 +122,6 @@ while 1:
     except socket.error as e:
         print(e)
         print("Socket error - trying again in 10 seconds...")
-        # MissionPlanner.MainV2.speechEngine.SpeakAsync("Socket connection error. Trying again in 10 seconds. skill issue")
         time.sleep(10)
         continue
 

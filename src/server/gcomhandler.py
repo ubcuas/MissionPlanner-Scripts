@@ -6,9 +6,10 @@ from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
 from flask_socketio import SocketIO
 import time
-from server.common.conversion import *
 
+from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
+from server.common.status import Status
 
 def plot_shape(points, color, close=False, scatter=True):
     adjust = 0 if close else 1
@@ -61,8 +62,8 @@ class GCOM_Server():
 
         @app.route("/status", methods=["GET"])
         def get_status():
-            ret = self._so.gcom_status_get() # This should be a dict of status (hopefully)
-            retJSON = json.dumps(ret) # This should convert the dict to JSON
+            ret: Status = self._so.gcom_status_get()
+            retJSON = json.dumps(ret.as_dictionary())
 
             print("Status sent to GCOM")
 

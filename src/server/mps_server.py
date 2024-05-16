@@ -5,6 +5,7 @@ from server.common.missions import Mission
 from server.common.wpqueue import Waypoint, Queue
 from server.common.sharedobject import SharedObject
 from server.common.encoders import waypoint_encode, waypoint_decode, waypoint_size
+from server.common.status import Status
 
 # Define request handler
 class MPS_Handler(socketserver.BaseRequestHandler):
@@ -39,31 +40,14 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         payload = data[2:]
 
         if data_type == b"TL": #telemetry
-            parameters = payload.decode().split()
-            # Receive location data
-            current_lat = str(parameters[0]).strip(' b\'')
-            current_lng = str(parameters[1]).strip(' b\'')
-            current_alt = str(parameters[2]).strip(' b\'')
-            current_rol = str(parameters[3]).strip(' b\'')
-            current_pch = str(parameters[4]).strip(' b\'')
-            current_yaw = str(parameters[5]).strip(' b\'')
-            current_asp = str(parameters[6]).strip(' b\'')
-            current_gsp = str(parameters[7]).strip(' b\'')
-            current_btv = str(parameters[8]).strip(' b\'')
-            current_wpn = str(parameters[9]).strip(' b\'')
-            wind_dir = str(parameters[10]).strip(' b\'')
-            wind_vel = str(parameters[11]).strip(' b\'')
-            date = str(parameters[12]).strip(' b\'')
-            time = str(parameters[13]).strip(' b\'')
-
-            #print(f"Current Location: lat: {current_lat} lng: {current_lng} alt: {current_alt}")
-            #print(f"                  hdg: {current_hdg} vel: {current_vel}")
+            status = Status()
+            status.decode_status(payload)
 
             # Updated shared obj with location data
-            self.server._so.mps_status_set({"airspeed":float(current_asp), "groundspeed":float(current_gsp), "latitude":float(current_lat), "longitude":float(current_lng), "altitude":float(current_alt), "heading":float(current_yaw), "batteryvoltage":float(current_btv), "winddirection":float(wind_dir), "windvelocity":float(wind_vel), 'current_wpn':int(float(current_wpn)), 'date':date , 'time':time})
+            self.server._so.mps_status_set(status)
 
             # Send instruction to UAV
-            socket.sendto(self.next_instruction(int(float(current_wpn))), self.client_address)
+            socket.sendto(self.next_instruction(int(float(status._wpn))), self.client_address)
         
         elif data_type == b"QI": #queue info, receive data about current queue
             #unpack the number of waypoints from the first byte
@@ -215,8 +199,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             pass
 
 class MPS_Internal_Server(socketserver.UDPServer):
-    def __init__(self, hptuple, handler, so):
-        self._so = so
+    def __init__(self, hptuple, handler, so: SharedObject):
+        self._so: SharedObject = so
 
         self._current_mission = Mission() # Empty mission
         self._instructions = Queue()
@@ -229,8 +213,8 @@ class MPS_Internal_Server(socketserver.UDPServer):
         print("MPS_Internal_Server initialized")
 
 class MPS_Server():
-    def __init__(self, so):
-        self._so = so
+    def __init__(self, so: SharedObject):
+        self._so: SharedObject = so
 
         print("MPS_Server initialized")
 
