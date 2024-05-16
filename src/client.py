@@ -43,6 +43,20 @@ def get_altitude_standard(standard):
         return MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT
     else:
         return MAVLink.MAV_FRAME.GLOBAL
+    
+def create_waypoint(id = int(MAVLink.MAV_CMD.WAYPOINT), lat = 0, lng = 0, alt = 0, p1 = 0, p2 = 0, p3 = 0, p4 = 0):
+    wp = Locationwp()
+
+    Locationwp.id.SetValue(wp, id)
+    Locationwp.lat.SetValue(wp, lat)
+    Locationwp.lng.SetValue(wp, lng)
+    Locationwp.alt.SetValue(wp, alt)
+    Locationwp.p1.SetValue(wp, p1)
+    Locationwp.p2.SetValue(wp, p2)
+    Locationwp.p3.SetValue(wp, p3)
+    Locationwp.p4.SetValue(wp, p4)
+
+    return wp
 
 def upload_mission(wp_array):
     """
@@ -57,23 +71,12 @@ def upload_mission(wp_array):
     MAV.setWPTotal(len(wp_array) + 1)
 
     # Upload waypoints
-    dummy = Locationwp()
-    Locationwp.lat.SetValue(dummy, 0)
-    Locationwp.lng.SetValue(dummy, 0)
-    Locationwp.alt.SetValue(dummy, 0)
-    Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
+    dummy = create_waypoint()
     MAV.setWP(dummy, 0, ALTSTD)
 
     for i in range(0, len(wp_array)):
-        wp = Locationwp()
-        Locationwp.lat.SetValue(wp, wp_array[i][0])
-        Locationwp.lng.SetValue(wp, wp_array[i][1])
-        Locationwp.alt.SetValue(wp, wp_array[i][2])
-        Locationwp.id.SetValue(wp, wp_array[i][3])
-        Locationwp.p1.SetValue(wp, wp_array[i][4])
-        Locationwp.p2.SetValue(wp, wp_array[i][5])
-        Locationwp.p3.SetValue(wp, wp_array[i][6])
-        Locationwp.p4.SetValue(wp, wp_array[i][7])
+        wp = create_waypoint(wp_array[i][3], wp_array[i][0], wp_array[i][1], wp_array[i][2], 
+                             wp_array[i][4], wp_array[i][5], wp_array[i][6], wp_array[i][7])
         MAV.setWP(wp, i + 1, ALTSTD)
 
     # Final ack
@@ -150,12 +153,14 @@ while 1:
             #set mission
             upload_mission(argv)
 
-            # Cycle mode so drone responds to new mission
+            # Cycles mode so drone responds to new mission
             Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
+
             print("NEXT - new mission set")   
         
         elif cmd == "PUSH":
+            #TODO: currently nonfunctional - must refactor - see #75 on github
             wptotal = MAV.getWPCount()
 
             MAV.setWPTotal(wptotal + 1)
@@ -192,27 +197,11 @@ while 1:
             else:
                 takeoffalt = float(argv[0])
                 # Set up takeoff waypoint
-                # NOTE: drone can't be in Auto on the ground when sending the initial takeoff mission - if it is, it won't take off
-                # May 12 testing - verify if this is the behaviour on the actual drone - if so, we may consider switching the mode
-                # to something safe like 'loiter' here just in case
-                home = Locationwp()
-                Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
-                Locationwp.lat.SetValue(home, cs.lat)
-                Locationwp.lng.SetValue(home, cs.lng)
-                Locationwp.alt.SetValue(home, 0)
-                
-                takeoff = Locationwp()
-                Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.VTOL_TAKEOFF) if MODE == "plane" else int(MAVLink.MAV_CMD.TAKEOFF))
-                Locationwp.lat.SetValue(takeoff, cs.lat)
-                Locationwp.lng.SetValue(takeoff, cs.lng)
-                Locationwp.alt.SetValue(takeoff, takeoffalt)
-
-                loiter_unlim = Locationwp()
-                Locationwp.id.SetValue(loiter_unlim, int(MAVLink.MAV_CMD.LOITER_UNLIM))
-                Locationwp.lat.SetValue(loiter_unlim, cs.lat)
-                Locationwp.lng.SetValue(loiter_unlim, cs.lng)
-                Locationwp.alt.SetValue(loiter_unlim, 0)
-                Locationwp.p3.SetValue(loiter_unlim, 1)
+                # TODO: drone can't be in Auto on the ground when sending the initial takeoff mission - if it is, it won't take off
+                # Confirmed in SITL and live drone. We should switch the mode here to something safe. 'loiter'?
+                home = create_waypoint(lat = cs.lat, lng = cs.lng, alt = 0)
+                takeoff = create_waypoint(int(MAVLink.MAV_CMD.VTOL_TAKEOFF) if MODE == "plane" else int(MAVLink.MAV_CMD.TAKEOFF), cs.lat, cs.lng, takeoffalt)
+                loiter_unlim = create_waypoint(int(MAVLink.MAV_CMD.LOITER_UNLIM), cs.lat, cs.lng, 0, p3 = 1)
 
                 MAV.setWPTotal(3)
                 MAV.setWP(home,0,ALTSTD)
@@ -276,21 +265,16 @@ while 1:
             landlng = float(argv[1])
 
             # Set up landing waypoint
-            home = Locationwp()
-            Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
-            Locationwp.lat.SetValue(home, landlat)
-            Locationwp.lng.SetValue(home, landlng)
-            Locationwp.alt.SetValue(home, 0)
-            landing = Locationwp()
-            Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.VTOL_LAND))
-            Locationwp.lat.SetValue(landing, landlat)
-            Locationwp.lng.SetValue(landing, landlng)
-            Locationwp.alt.SetValue(landing, 0)
+            home = create_waypoint(lat = landlat, lng = landlng)
+            landing = create_waypoint(int(MAVLink.MAV_CMD.VTOL_LAND), landlat, landlng, 0)
 
             MAV.setWPTotal(2)
             MAV.setWP(home,0,ALTSTD)
             MAV.setWP(landing,1,ALTSTD)
             MAV.setWPACK()
+
+            # Cycles mode so drone responds to new mission
+            Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
             # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("VTOL_LAND - landing at {:}, {:}".format(landlat, landlng))
