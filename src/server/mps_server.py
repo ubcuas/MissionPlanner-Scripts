@@ -4,6 +4,7 @@ import struct
 from server.common.missions import Mission
 from server.common.wpqueue import Waypoint, Queue
 from server.common.sharedobject import SharedObject
+from server.common.encoders import waypoint_encode
 
 # Define request handler
 class MPS_Handler(socketserver.BaseRequestHandler):
@@ -16,7 +17,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
     def handle(self):
         """
-        Handles one 'cycle' of MPS -> client communications.
+        Handles one 'cycle' of MPS <-> client communications.
         Performs different actions based on the recieved datatype:
             telemetry:  This is the main 'back and forth' between the client and MPS.
                         Here, we receive an update from the client with the latest drone telemetry.
@@ -28,9 +29,10 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             success_takeoff, success_arm: Indicates whether a takeoff or arm command was successful. 
         """
 
-        data = self.request[0].strip().decode()
+        rawdata = self.request[0]
         socket = self.request[1]
 
+        data = rawdata.strip().decode()
         data = data.split()
         data_type = data[0]
         parameters = data[1:]
@@ -69,6 +71,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             for i in range(0, wp_count):
                 wp_list.append(Waypoint("","", float(parameters[1 + 3*i]), float(parameters[1 + 3*i + 1]), float(parameters[1 + 3*i + 2])))
             
+                #TODO - ID resolution would occur here
+
             print(f"DEBUG Recieved Waypoint List ({wp_count}):")
             for i in range(0, wp_count):
                 print(f"{wp_list[i]._lat} {wp_list[i]._lng} {wp_list[i]._alt}")
@@ -189,16 +193,9 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
             self.server._newmc = 1
             while (not nextwpq.empty()):
-                curr = nextwpq.pop()
+                curr: Waypoint = nextwpq.pop()
                 self.server._newmc += 1
-                missionbytes += bytes(struct.pack("f", curr._lat))
-                missionbytes += bytes(struct.pack("f", curr._lng))
-                missionbytes += bytes(struct.pack("f", curr._alt))
-                missionbytes += bytes(struct.pack("B", self.command_string_to_int(curr._com)))
-                missionbytes += bytes(struct.pack("h", curr._param1))
-                missionbytes += bytes(struct.pack("h", curr._param2))
-                missionbytes += bytes(struct.pack("h", curr._param3))
-                missionbytes += bytes(struct.pack("h", curr._param4))
+                missionbytes += waypoint_encode(curr)
 
             self.server._instructions.push(missionbytes)
         else:
@@ -209,16 +206,6 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 self.server._newmc -= 1
             #self.server._instructions.push("CONT")
             pass
-    
-    def command_string_to_int(self, command):
-        temp_dict = {
-            "WAYPOINT":0,
-            "LOITER_UNLIM":1,
-            "DO_VTOL_TRANSITION":2,
-            "DO_CHANGE_SPEED":3,
-        }
-        return temp_dict[command]
-            
 
 class MPS_Internal_Server(socketserver.UDPServer):
     def __init__(self, hptuple, handler, so):

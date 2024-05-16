@@ -4,6 +4,9 @@ import socket
 import struct
 import time
 from datetime import datetime
+
+#from server.common.encoders import waypoint_decode
+
 import clr
 clr.AddReference("MissionPlanner.Utilities")
 import MissionPlanner
@@ -40,15 +43,6 @@ def get_altitude_standard(standard):
     else:
         return MAVLink.MAV_FRAME.GLOBAL
 
-def command_to_MAV_CMD(command):
-    temp_dict = {
-        0 : MAVLink.MAV_CMD.WAYPOINT,
-        1 : MAVLink.MAV_CMD.LOITER_UNLIM,
-        2 : MAVLink.MAV_CMD.DO_VTOL_TRANSITION,
-        3 : MAVLink.MAV_CMD.DO_CHANGE_SPEED,
-    }
-    return temp_dict[command]
-
 def upload_mission(wp_array):
     """
     Uploads a mission to the aircraft based on a given set of waypoints.
@@ -74,7 +68,7 @@ def upload_mission(wp_array):
         Locationwp.lat.SetValue(wp, wp_array[i][0])
         Locationwp.lng.SetValue(wp, wp_array[i][1])
         Locationwp.alt.SetValue(wp, wp_array[i][2])
-        Locationwp.id.SetValue(wp, int(command_to_MAV_CMD(wp_array[i][3])))
+        Locationwp.id.SetValue(wp, wp_array[i][3])
         Locationwp.p1.SetValue(wp, wp_array[i][4])
         Locationwp.p2.SetValue(wp, wp_array[i][5])
         Locationwp.p3.SetValue(wp, wp_array[i][6])
@@ -95,17 +89,11 @@ def interpret_packedmission(recvd):
     ret = ["NEXT"]
 
     #print(recvd)
-    for i in range(len(recvd) // 21):
-        wp_idx = 21 * i
+    sizeof_waypoint = struct.calcsize('3f5h')
+    for i in range(len(recvd) // sizeof_waypoint):
+        wp_idx = sizeof_waypoint * i
         
-        ret.append(struct.unpack('f', recvd[wp_idx + 0  : wp_idx + 4 ])[0]) #lat
-        ret.append(struct.unpack('f', recvd[wp_idx + 4  : wp_idx + 8 ])[0]) #lng
-        ret.append(struct.unpack('f', recvd[wp_idx + 8  : wp_idx + 12])[0]) #alt
-        ret.append(struct.unpack('B', recvd[wp_idx + 12 : wp_idx + 13])[0]) #com
-        ret.append(struct.unpack('h', recvd[wp_idx + 13 : wp_idx + 15])[0]) #p1
-        ret.append(struct.unpack('h', recvd[wp_idx + 15 : wp_idx + 17])[0]) #p2
-        ret.append(struct.unpack('h', recvd[wp_idx + 17 : wp_idx + 19])[0]) #p3
-        ret.append(struct.unpack('h', recvd[wp_idx + 19 : wp_idx + 21])[0]) #p4
+        ret.append(struct.unpack('3f5h', recvd[wp_idx : wp_idx + sizeof_waypoint])) 
 
     return ret
 
@@ -153,29 +141,11 @@ while 1:
             upcoming_mission = False
 
             print(cmd, argv)
-
-            if (len(argv) % 8 != 0):
-                print("recieved {:} waypoint params, not divisible by 8".format(len(argv)))
-                continue
-
-            for idx in range(0, len(argv) // 8):
-                float_lat = float(argv[8 * idx])
-                float_lng = float(argv[8 * idx + 1])
-                float_alt = float(argv[8 * idx + 2])
-                command   = int  (argv[8 * idx + 3])
-                p1        = int  (argv[8 * idx + 4])
-                p2        = int  (argv[8 * idx + 5])
-                p3        = int  (argv[8 * idx + 6])
-                p4        = int  (argv[8 * idx + 7])
-
-                wp_array.append((float_lat, float_lng, float_alt, command, p1, p2, p3, p4))
-                print("received waypoint {:} {:} {:} {:} {:} {:} {:} {:}".format(float_lat, float_lng, float_alt, command, p1, p2, p3, p4))
             
             #set mission
-            upload_mission(wp_array)
-            # Empty array
-            wp_array = []
-            # Cycles mode so drone responds to new mission
+            upload_mission(argv)
+
+            # Cycle mode so drone responds to new mission
             Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
             print("NEXT - new mission set")   
@@ -338,7 +308,7 @@ while 1:
                     wp = MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i)
                     wplist.append((wp.lat, wp.lng, wp.alt))
                 except:
-                    pass
+                    print("WARNING - waypoint get failed for waypoint number", i)
             #send info
             queue_info = "queue {:}".format(numwp)
             for wp in wplist:
