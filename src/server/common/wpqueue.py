@@ -4,21 +4,21 @@ from server.common.conversion import convert_gps_to_utm
 
 class Waypoint():
     def __init__(self, id, name, lat, lng, alt, command="", p1 = 0, p2 = 0, p3 = 0, p4 = 0):
-        self._id = id
-        self._param1 = p1
-        self._param2 = p2
-        self._param3 = p3
-        self._param4 = p4
-        self._name = name
-        self._lat = float(lat)
-        self._lng = float(lng)
-        self._alt = float(alt)
-        self._com = command
+        self._id: int = id
+        self._name: str = name
+        self._lat: float = float(lat)
+        self._lng: float = float(lng)
+        self._alt: float = float(alt)
+        self._com: str = command
+        self._param1: int = p1
+        self._param2: int = p2
+        self._param3: int = p3
+        self._param4: int = p4
 
     def __str__(self):
         return f"{self._lat} {self._lng} {self._alt}"
     
-    def get_coords_gps(self):
+    def get_coords_gps(self) -> tuple[float, float, float]:
         return (self._lat, self._lng, self._alt)
     
     def get_asdict(self) -> dict:
@@ -27,11 +27,11 @@ class Waypoint():
     def get_command(self) -> dict:
         return {'command':self._com, 'param1':self._param1, 'param2':self._param2, 'param3':self._param3, 'param4':self._param4}
     
-    def get_coords_utm(self):
+    def get_coords_utm(self) -> tuple[float, float, float]:
         this_utm = convert_gps_to_utm(self._lat, self._lng)
         return (this_utm[0], this_utm[1], self._alt)
 
-    def distance(self, other_wp, altitude=True):
+    def distance(self, other_wp, altitude=True) -> float:
         this_utm = self.get_coords_utm()
         other_utm = other_wp.get_coords_utm()
 
@@ -52,7 +52,7 @@ class Queue():
             ret += f"{i} : {str(self._list[i])}\n"
         return ret
     
-    def clear(self):
+    def clear(self) -> None:
         self._list = []
     
     def front(self):
@@ -61,13 +61,13 @@ class Queue():
     def back(self):
         return self._list[-1]
 
-    def empty(self):
+    def empty(self) -> bool:
         return (len(self._list) == 0)
     
-    def size(self):
+    def size(self) -> int:
         return len(self._list)
     
-    def push(self, wp):
+    def push(self, wp) -> None:
         self._list.append(wp)
 
     def pop(self):
