@@ -52,7 +52,7 @@ class GCOM_Server():
                 wp_dict.update(wp.get_command())
                 formatted.append(wp_dict)
             
-            wpno = int(self._so.gcom_status_get()['current_wpn'])
+            wpno = int(self._so.gcom_status_get()._wpn)
             remaining = formatted[wpno-1:]
             retJSON = json.dumps(remaining) # This should convert the dict to JSON
 
@@ -104,8 +104,8 @@ class GCOM_Server():
         def post_queue():
             payload = request.get_json()
 
-            ret = self._so.gcom_status_get()
-            last_altitude = ret['altitude'] if ret != () else 50
+            ret: Status = self._so.gcom_status_get()
+            last_altitude = ret._alt if ret != () else 50
 
             wpq = []
             for wpdict in payload:
@@ -146,7 +146,7 @@ class GCOM_Server():
                 pass
             ret = self._so.gcom_currentmission_get()
             
-            wpno = int(self._so.gcom_status_get()['current_wpn'])
+            wpno = int(self._so.gcom_status_get()._wpn)
             remaining = ret[wpno-1:]
             wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], payload['altitude'])
 
@@ -166,8 +166,8 @@ class GCOM_Server():
             if not('latitude' in payload) or not('longitude' in payload):
                 return "Latitude and Longitude cannot be null", 400
 
-            ret = self._so.gcom_status_get()
-            last_altitude = ret['altitude'] if ret != () else 50
+            ret: Status = self._so.gcom_status_get()
+            last_altitude = ret._alt if ret != () else 50
 
             wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
             self._so.append_wp_set(wp)
@@ -437,8 +437,8 @@ class GCOM_Server():
 
         @socketio.on("message")
         def handle_message(data):
-            ret = self._so.gcom_status_get()
-            retJSON =  json.dumps(ret)
+            ret: Status = self._so.gcom_status_get()
+            retJSON =  json.dumps(ret.as_dictionary())
 
             print("Status sent to GCOM")
             
