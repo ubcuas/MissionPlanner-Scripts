@@ -57,7 +57,7 @@ if __name__ == "__main__":
     gcmh_thread = Thread(target=gcmh.serve_forever, args=[production, HOST, PORT])
 
     #status websocket client thread
-    skth_thread = Thread(target=skth.ping_forever, args=[production, STATUS_HOST, STATUS_PORT])
+    skth_thread = Thread(target=skth.connect_to, args=[production, STATUS_HOST, STATUS_PORT])
 
     print("\nStarting threads...\n")
 

@@ -1,6 +1,6 @@
 import time
 import json
-import websocket
+import socketio
 
 from server.common.sharedobject import SharedObject
 from server.common.status import Status
@@ -11,34 +11,30 @@ class Status_Client():
         self._url: str = ""
         self._delay = 1
 
-    def get_status(self) -> str:
+    def get_status_json(self) -> str:
         return json.dumps(self._so.get_status().as_dictionary())
-
-    def on_message(self, ws, message):
-        time.sleep(self._delay)
-        ws.send(self.get_status())
-        print(message)
-
-    def on_error(self, ws, error):
-        time.sleep(self._delay)
-        ws.send(self.get_status())
-        print(error)
-
-    def on_close(self, ws, close_status_code, close_msg):
-        print("### closed ###")
-
-    def on_open(self, ws):
-        print("Opened connection with status server")
-        ws.send(self.get_status())
-
-    def ping_forever(self, production: bool, host: str, port: int):
+    
+    def handle_error(self, data):
+        print(f"Error sending status data: {data}")
+    
+    def connect_to(self, production: bool, host: str, port: int):
         print("Status Websocket Client starting...")
-        self._url = "ws://echo.websocket.events/"#f"ws://{host}:{port}/socket.io/"
+        self._url = f"ws://{host}:{port}/socket.io/"
 
-        self._ws = websocket.WebSocketApp(self._url,
-                                          on_open=self.on_open,
-                                          on_message=self.on_message,
-                                          on_error=self.on_error,
-                                          on_close=self.on_close)
-        
-        self._ws.run_forever(reconnect=5)
+        self.sio = socketio.SimpleClient()
+
+        self.sio.connect(self._url)
+        self.sio.on('pong', )
+        self.sio.on('error', self.handle_error)
+
+        while True:
+            try:
+                self.sio.call("ping", timeout=60)
+                break
+            except TimeoutError:
+                #ping was not returned, cycle again
+                pass
+
+        while True:
+            self.sio.emit('drone_update', self.get_status_json())
+            time.sleep(self._delay)
