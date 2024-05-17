@@ -106,10 +106,10 @@ while 1:
 
     # Send telemetry to server
     telemetry = b"TL"
-    telemetry += struct.pack('2i11f', int(time.time()), int(cs.wpno),
+    telemetry += struct.pack('2i12f', int(time.time()), int(cs.wpno),
                              cs.lat, cs.lng, cs.alt,
                              cs.roll, cs.pitch, cs.yaw,
-                             cs.airspeed, cs.groundspeed,
+                             cs.airspeed, cs.groundspeed, cs.verticalspeed,
                              cs.battery_voltage,
                              cs.wind_dir, cs.wind_vel)
     rsock.sendto(telemetry, (HOST, RPORT))

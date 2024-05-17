@@ -30,6 +30,6 @@ class Status_Client():
                 print(f"Status Websocket Client: Connection failed, retrying in {RECONNECT} second(s)")
 
         while True:
-            self.sio.emit('drone_update', self._so.get_status().as_dictionary())
+            self.sio.emit('drone_update', self._so.get_status().as_reduced_status())
             time.sleep(DELAY)
             #A BadNamespaceError will occur when GCOM disconnects suddenly - leverage this for a reconnect?
