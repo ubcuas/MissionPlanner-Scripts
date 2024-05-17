@@ -30,6 +30,8 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             success_takeoff, success_arm: Indicates whether a takeoff or arm command was successful. 
         """
 
+        self.server: MPS_Internal_Server
+
         rawdata = self.request[0]
         socket = self.request[1]
 
@@ -205,8 +207,8 @@ class MPS_Internal_Server(socketserver.UDPServer):
         self._current_mission = Mission() # Empty mission
         self._instructions = Queue()
 
-        self._newmc = 0
-        self._flight_mode = 3
+        self._newmc: int = 0
+        self._flight_mode: int = 3
 
         # Superclass constructor
         super().__init__(hptuple, handler)

@@ -1,15 +1,13 @@
-# from gevent import pywsgi
-# from geventwebsocket.handler import WebSocketHandler
 from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
-#from flask_socketio import SocketIO
 import time
 
 from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
+from server.common.sharedobject import SharedObject
 
 def plot_shape(points, color, close=False, scatter=True):
     adjust = 0 if close else 1
@@ -26,7 +24,7 @@ def plot_shape(points, color, close=False, scatter=True):
 
 class GCOM_Server():
     def __init__(self, so):
-        self._so = so
+        self._so: SharedObject = so
 
         #print("GCOM_Server Initialized")
 
