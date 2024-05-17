@@ -5,11 +5,13 @@ import socketio
 from server.common.sharedobject import SharedObject
 from server.common.status import Status
 
+DELAY = 1
+RECONNECT = 15
+
 class Status_Client():
     def __init__(self, shared_obj: SharedObject):
         self._so: SharedObject = shared_obj
         self._url: str = ""
-        self._delay = 1
 
     def get_status_json(self) -> str:
         return json.dumps(self._so.get_status().as_dictionary())
@@ -21,20 +23,16 @@ class Status_Client():
         print("Status Websocket Client starting...")
         self._url = f"ws://{host}:{port}/socket.io/"
 
-        self.sio = socketio.SimpleClient()
-
-        self.sio.connect(self._url)
-        self.sio.on('pong', )
+        self.sio = socketio.Client()
         self.sio.on('error', self.handle_error)
 
         while True:
             try:
-                self.sio.call("ping", timeout=60)
+                self.sio.connect(self._url)
                 break
-            except TimeoutError:
-                #ping was not returned, cycle again
-                pass
+            except:
+                print(f"Status Websocket Client: Connection failed, retrying in {RECONNECT} second(s)")
 
         while True:
             self.sio.emit('drone_update', self.get_status_json())
-            time.sleep(self._delay)
+            time.sleep(DELAY)
