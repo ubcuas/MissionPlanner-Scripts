@@ -20,7 +20,7 @@ HOST = 'localhost' # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
 RPORT = 9001 # Arbitrary non-privileged port
 
-DELAY = 1 # Seconds
+DELAY = 0.2 # Seconds
 
 REMOTE = ''
 # Datagram (udp) socket 

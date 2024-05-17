@@ -4,7 +4,7 @@ import socketio
 from server.common.sharedobject import SharedObject
 from server.common.status import Status
 
-DELAY = 1
+DELAY = 0.1
 RECONNECT = 15
 
 class Status_Client():
