@@ -28,8 +28,13 @@ class Status_Client():
                 break
             except:
                 print(f"Status Websocket Client: Connection failed, retrying in {RECONNECT} second(s)")
+                time.sleep(RECONNECT)
 
         while True:
-            self.sio.emit('drone_update', self._so.get_status().as_reduced_status())
-            time.sleep(DELAY)
-            #A BadNamespaceError will occur when GCOM disconnects suddenly - leverage this for a reconnect?
+            try:
+                self.sio.emit('drone_update', self._so.get_status().as_reduced_status())
+                time.sleep(DELAY)
+            except:
+                #A BadNamespaceError will occur when GCOM disconnects suddenly - leverage this for a reconnect?
+                print(f"Something bad happened... waiting {RECONNECT} second(s)")
+                time.sleep(RECONNECT)
