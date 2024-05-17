@@ -64,3 +64,7 @@ if __name__ == "__main__":
     mpss_thread.start()
     gcmh_thread.start()
     skth_thread.start()
+
+    mpss_thread.join()
+    gcmh_thread.join()
+    skth_thread.join()

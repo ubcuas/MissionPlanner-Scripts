@@ -3,6 +3,7 @@ import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
 import time
+from flask_socketio import SocketIO
 
 from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
@@ -31,7 +32,7 @@ class GCOM_Server():
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         print("GCOM HTTP Server starting...")
         app = Flask(__name__)
-        #socketio = SocketIO(app)
+        socketio = SocketIO(app)
 
         # GET endpoints
         @app.route("/", methods=["GET"])
@@ -424,31 +425,31 @@ class GCOM_Server():
             #Call into altitude_standard_set
             return "UNIMPLMENTED", 410
         
-        # #Socket stuff
-        # @socketio.on("connect")
-        # def handle_connect():
-        #     print("Client connected to socket")
-        #     socketio.emit('okay', {'data': 'Connected'})
+        #Socket stuff
+        @socketio.on("connect")
+        def handle_connect():
+            print("Client connected to socket")
+            socketio.emit('okay', {'data': 'Connected'})
 
-        # @socketio.on("disconnect")
-        # def handle_disconnect():
-        #     print("Client disconnected")
+        @socketio.on("disconnect")
+        def handle_disconnect():
+            print("Client disconnected")
 
-        # @socketio.on("message")
-        # def handle_message(data):
-        #     ret: Status = self._so.get_status()
-        #     retJSON =  json.dumps(ret.as_dictionary())
+        @socketio.on("message")
+        def handle_message(data):
+            ret: Status = self._so.get_status()
+            retJSON =  json.dumps(ret.as_dictionary())
 
-        #     print("Status sent to GCOM")
+            print("Status sent to GCOM")
             
-        #     socketio.emit('status_response', {'status_data': retJSON})
+            socketio.emit('status_response', {'status_data': retJSON})
             
-        # # #run server
-        # # if production:
-        # #     # Option 1: Using gevent and gevent-websocket for production
-        # #     server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
-        # #     server.serve_forever()
+        #run server
+        # if production:
+        #     # Option 1: Using gevent and gevent-websocket for production
+        #     server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
+        #     server.serve_forever()
         # else:
-            # Option 2: Using socketio.run for development (supports WebSocket)
-            #socketio.start_background_task(background_task)
-        # socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)
+        #     # Option 2: Using socketio.run for development (supports WebSocket)
+        #     socketio.start_background_task(background_task)
+        socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)
