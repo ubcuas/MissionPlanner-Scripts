@@ -3,7 +3,11 @@
 import socket
 import struct
 import time
-from datetime import datetime
+
+# Due to the IronPython environment we're running in, we can't import our own modules. Maybe one day.
+#from server.common.encoders import waypoint_decode
+#from server.common.status import Status
+
 import clr
 clr.AddReference("MissionPlanner.Utilities")
 import MissionPlanner
@@ -16,7 +20,7 @@ HOST = 'localhost' # Symbolic name meaning all available interfaces
 #SPORT = 5000 # Arbitrary non-privileged port  
 RPORT = 9001 # Arbitrary non-privileged port
 
-DELAY = 1 # Seconds
+DELAY = 0.2 # Seconds
 
 REMOTE = ''
 # Datagram (udp) socket 
@@ -39,15 +43,20 @@ def get_altitude_standard(standard):
         return MAVLink.MAV_FRAME.GLOBAL_RELATIVE_ALT
     else:
         return MAVLink.MAV_FRAME.GLOBAL
+    
+def create_waypoint(id = int(MAVLink.MAV_CMD.WAYPOINT), lat = 0, lng = 0, alt = 0, p1 = 0, p2 = 0, p3 = 0, p4 = 0):
+    wp = Locationwp()
 
-def command_to_MAV_CMD(command):
-    temp_dict = {
-        0 : MAVLink.MAV_CMD.WAYPOINT,
-        1 : MAVLink.MAV_CMD.LOITER_UNLIM,
-        2 : MAVLink.MAV_CMD.DO_VTOL_TRANSITION,
-        3 : MAVLink.MAV_CMD.DO_CHANGE_SPEED,
-    }
-    return temp_dict[command]
+    Locationwp.id.SetValue(wp, id)
+    Locationwp.lat.SetValue(wp, lat)
+    Locationwp.lng.SetValue(wp, lng)
+    Locationwp.alt.SetValue(wp, alt)
+    Locationwp.p1.SetValue(wp, p1)
+    Locationwp.p2.SetValue(wp, p2)
+    Locationwp.p3.SetValue(wp, p3)
+    Locationwp.p4.SetValue(wp, p4)
+
+    return wp
 
 def upload_mission(wp_array):
     """
@@ -62,23 +71,12 @@ def upload_mission(wp_array):
     MAV.setWPTotal(len(wp_array) + 1)
 
     # Upload waypoints
-    dummy = Locationwp()
-    Locationwp.lat.SetValue(dummy, 0)
-    Locationwp.lng.SetValue(dummy, 0)
-    Locationwp.alt.SetValue(dummy, 0)
-    Locationwp.id.SetValue(dummy, int(MAVLink.MAV_CMD.WAYPOINT))
+    dummy = create_waypoint()
     MAV.setWP(dummy, 0, ALTSTD)
 
     for i in range(0, len(wp_array)):
-        wp = Locationwp()
-        Locationwp.lat.SetValue(wp, wp_array[i][0])
-        Locationwp.lng.SetValue(wp, wp_array[i][1])
-        Locationwp.alt.SetValue(wp, wp_array[i][2])
-        Locationwp.id.SetValue(wp, int(command_to_MAV_CMD(wp_array[i][3])))
-        Locationwp.p1.SetValue(wp, wp_array[i][4])
-        Locationwp.p2.SetValue(wp, wp_array[i][5])
-        Locationwp.p3.SetValue(wp, wp_array[i][6])
-        Locationwp.p4.SetValue(wp, wp_array[i][7])
+        wp = create_waypoint(wp_array[i][3], wp_array[i][0], wp_array[i][1], wp_array[i][2], 
+                             wp_array[i][4], wp_array[i][5], wp_array[i][6], wp_array[i][7])
         MAV.setWP(wp, i + 1, ALTSTD)
 
     # Final ack
@@ -95,17 +93,11 @@ def interpret_packedmission(recvd):
     ret = ["NEXT"]
 
     #print(recvd)
-    for i in range(len(recvd) // 21):
-        wp_idx = 21 * i
+    sizeof_waypoint = struct.calcsize('3f5h')
+    for i in range(len(recvd) // sizeof_waypoint):
+        wp_idx = sizeof_waypoint * i
         
-        ret.append(struct.unpack('f', recvd[wp_idx + 0  : wp_idx + 4 ])[0]) #lat
-        ret.append(struct.unpack('f', recvd[wp_idx + 4  : wp_idx + 8 ])[0]) #lng
-        ret.append(struct.unpack('f', recvd[wp_idx + 8  : wp_idx + 12])[0]) #alt
-        ret.append(struct.unpack('B', recvd[wp_idx + 12 : wp_idx + 13])[0]) #com
-        ret.append(struct.unpack('h', recvd[wp_idx + 13 : wp_idx + 15])[0]) #p1
-        ret.append(struct.unpack('h', recvd[wp_idx + 15 : wp_idx + 17])[0]) #p2
-        ret.append(struct.unpack('h', recvd[wp_idx + 17 : wp_idx + 19])[0]) #p3
-        ret.append(struct.unpack('h', recvd[wp_idx + 19 : wp_idx + 21])[0]) #p4
+        ret.append(struct.unpack('3f5h', recvd[wp_idx : wp_idx + sizeof_waypoint])) 
 
     return ret
 
@@ -113,14 +105,19 @@ def interpret_packedmission(recvd):
 while 1:
 
     # Send telemetry to server
-    location = "telemetry {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:} {:}".format(cs.lat, cs.lng, cs.alt, cs.roll, cs.pitch, cs.yaw, cs.airspeed, cs.groundspeed, cs.battery_voltage, cs.wpno, cs.wind_dir, cs.wind_vel, str(datetime.now()))
-    rsock.sendto(bytes(location, 'utf-8'), (HOST, RPORT))
+    telemetry = b"TL"
+    telemetry += struct.pack('2i12f', int(time.time()), int(cs.wpno),
+                             cs.lat, cs.lng, cs.alt,
+                             cs.roll, cs.pitch, cs.yaw,
+                             cs.airspeed, cs.groundspeed, cs.verticalspeed,
+                             cs.battery_voltage,
+                             cs.wind_dir, cs.wind_vel)
+    rsock.sendto(telemetry, (HOST, RPORT))
 
     #print("Waypoint Count", MAV.getWPCount())
 
     try:
         recvd = rsock.recv(4096)
-        #print("received {:} bytes".format(len(recvd)))
     except socket.timeout:
         print("Socket timeout")
         time.sleep(DELAY)
@@ -128,7 +125,6 @@ while 1:
     except socket.error as e:
         print(e)
         print("Socket error - trying again in 10 seconds...")
-        # MissionPlanner.MainV2.speechEngine.SpeakAsync("Socket connection error. Trying again in 10 seconds. skill issue")
         time.sleep(10)
         continue
 
@@ -153,34 +149,18 @@ while 1:
             upcoming_mission = False
 
             print(cmd, argv)
-
-            if (len(argv) % 8 != 0):
-                print("recieved {:} waypoint params, not divisible by 8".format(len(argv)))
-                continue
-
-            for idx in range(0, len(argv) // 8):
-                float_lat = float(argv[8 * idx])
-                float_lng = float(argv[8 * idx + 1])
-                float_alt = float(argv[8 * idx + 2])
-                command   = int  (argv[8 * idx + 3])
-                p1        = int  (argv[8 * idx + 4])
-                p2        = int  (argv[8 * idx + 5])
-                p3        = int  (argv[8 * idx + 6])
-                p4        = int  (argv[8 * idx + 7])
-
-                wp_array.append((float_lat, float_lng, float_alt, command, p1, p2, p3, p4))
-                print("received waypoint {:} {:} {:} {:} {:} {:} {:} {:}".format(float_lat, float_lng, float_alt, command, p1, p2, p3, p4))
             
             #set mission
-            upload_mission(wp_array)
-            # Empty array
-            wp_array = []
+            upload_mission(argv)
+
             # Cycles mode so drone responds to new mission
             Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
+
             print("NEXT - new mission set")   
         
         elif cmd == "PUSH":
+            #TODO: currently nonfunctional - must refactor - see #75 on github
             wptotal = MAV.getWPCount()
 
             MAV.setWPTotal(wptotal + 1)
@@ -213,31 +193,15 @@ while 1:
             if (len(argv) != 1):
                 print("TAKEOFF - invalid command")
 
-                rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
             else:
                 takeoffalt = float(argv[0])
                 # Set up takeoff waypoint
-                # NOTE: drone can't be in Auto on the ground when sending the initial takeoff mission - if it is, it won't take off
-                # May 12 testing - verify if this is the behaviour on the actual drone - if so, we may consider switching the mode
-                # to something safe like 'loiter' here just in case
-                home = Locationwp()
-                Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
-                Locationwp.lat.SetValue(home, cs.lat)
-                Locationwp.lng.SetValue(home, cs.lng)
-                Locationwp.alt.SetValue(home, 0)
-                
-                takeoff = Locationwp()
-                Locationwp.id.SetValue(takeoff, int(MAVLink.MAV_CMD.VTOL_TAKEOFF) if MODE == "plane" else int(MAVLink.MAV_CMD.TAKEOFF))
-                Locationwp.lat.SetValue(takeoff, cs.lat)
-                Locationwp.lng.SetValue(takeoff, cs.lng)
-                Locationwp.alt.SetValue(takeoff, takeoffalt)
-
-                loiter_unlim = Locationwp()
-                Locationwp.id.SetValue(loiter_unlim, int(MAVLink.MAV_CMD.LOITER_UNLIM))
-                Locationwp.lat.SetValue(loiter_unlim, cs.lat)
-                Locationwp.lng.SetValue(loiter_unlim, cs.lng)
-                Locationwp.alt.SetValue(loiter_unlim, 0)
-                Locationwp.p3.SetValue(loiter_unlim, 1)
+                # TODO: drone can't be in Auto on the ground when sending the initial takeoff mission - if it is, it won't take off
+                # Confirmed in SITL and live drone. We should switch the mode here to something safe. 'loiter'?
+                home = create_waypoint(lat = cs.lat, lng = cs.lng, alt = 0)
+                takeoff = create_waypoint(int(MAVLink.MAV_CMD.VTOL_TAKEOFF) if MODE == "plane" else int(MAVLink.MAV_CMD.TAKEOFF), cs.lat, cs.lng, takeoffalt)
+                loiter_unlim = create_waypoint(int(MAVLink.MAV_CMD.LOITER_UNLIM), cs.lat, cs.lng, 0, p3 = 1)
 
                 MAV.setWPTotal(3)
                 MAV.setWP(home,0,ALTSTD)
@@ -254,10 +218,10 @@ while 1:
                 if cs.mode == "AUTO":
                     #take off
                     print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
-                    rsock.sendto(bytes("success_takeoff 1", 'utf-8'), (HOST, RPORT))
+                    rsock.sendto(bytes("ST1", 'utf-8'), (HOST, RPORT))
                 else:
                     print("TAKEOFF - ERROR, MODE NOT AUTO")
-                    rsock.sendto(bytes("success_takeoff 0", 'utf-8'), (HOST, RPORT))
+                    rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
 
 
         elif cmd == "HOME":
@@ -277,9 +241,9 @@ while 1:
                 time.sleep(0.1)
 
             if cs.armed == (int(argv[0]) == 1):
-                rsock.sendto(bytes("success_arm 1", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("SA1", 'utf-8'), (HOST, RPORT))
             else:
-                rsock.sendto(bytes("success_arm 0", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("SA0", 'utf-8'), (HOST, RPORT))
 
         elif cmd == "RTL":
             rtl_altitude = float(argv[0]) * 100 #argv[0] (meters) -> RTL_ALT param (centimeters)
@@ -301,21 +265,16 @@ while 1:
             landlng = float(argv[1])
 
             # Set up landing waypoint
-            home = Locationwp()
-            Locationwp.id.SetValue(home, int(MAVLink.MAV_CMD.WAYPOINT))
-            Locationwp.lat.SetValue(home, landlat)
-            Locationwp.lng.SetValue(home, landlng)
-            Locationwp.alt.SetValue(home, 0)
-            landing = Locationwp()
-            Locationwp.id.SetValue(landing, int(MAVLink.MAV_CMD.VTOL_LAND))
-            Locationwp.lat.SetValue(landing, landlat)
-            Locationwp.lng.SetValue(landing, landlng)
-            Locationwp.alt.SetValue(landing, 0)
+            home = create_waypoint(lat = landlat, lng = landlng)
+            landing = create_waypoint(int(MAVLink.MAV_CMD.VTOL_LAND), landlat, landlng, 0)
 
             MAV.setWPTotal(2)
             MAV.setWP(home,0,ALTSTD)
             MAV.setWP(landing,1,ALTSTD)
             MAV.setWPACK()
+
+            # Cycles mode so drone responds to new mission
+            Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
             # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("VTOL_LAND - landing at {:}, {:}".format(landlat, landlng))
@@ -332,19 +291,18 @@ while 1:
         elif cmd == "QUEUE_GET":
             #get info
             numwp = MAV.getWPCount()
-            wplist = []
+
+            queue_info = b"QI"
+            queue_info += struct.pack('B', numwp)
+
             for i in range(0, numwp):
                 try:
                     wp = MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i)
-                    wplist.append((wp.lat, wp.lng, wp.alt))
+                    queue_info += struct.pack("3f5h", wp.lat, wp.lng, wp.alt, wp.id, int(wp.p1), int(wp.p2), int(wp.p3), int(wp.p4))
                 except:
-                    pass
-            #send info
-            queue_info = "queue {:}".format(numwp)
-            for wp in wplist:
-                queue_info += " {:} {:} {:}".format(wp[0], wp[1], wp[2])
+                    print("WARNING - waypoint get failed for waypoint number", i)
 
-            rsock.sendto(bytes(queue_info, 'utf-8'), (HOST, RPORT))
+            rsock.sendto(queue_info, (HOST, RPORT))
         
         elif cmd == "CONFIG":
             if argv[0] in ["vtol", "plane"]:

@@ -1,14 +1,14 @@
-# from gevent import pywsgi
-# from geventwebsocket.handler import WebSocketHandler
 from flask import Flask, request
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
-from flask_socketio import SocketIO
 import time
-from server.common.conversion import *
+from flask_socketio import SocketIO
 
+from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
+from server.common.status import Status
+from server.common.sharedobject import SharedObject
 
 def plot_shape(points, color, close=False, scatter=True):
     adjust = 0 if close else 1
@@ -25,11 +25,12 @@ def plot_shape(points, color, close=False, scatter=True):
 
 class GCOM_Server():
     def __init__(self, so):
-        self._so = so
+        self._so: SharedObject = so
 
-        print("GCOM_Server Initialized")
+        #print("GCOM_Server Initialized")
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
+        print("GCOM HTTP Server starting...")
         app = Flask(__name__)
         socketio = SocketIO(app)
 
@@ -42,13 +43,16 @@ class GCOM_Server():
         def get_queue():
             self._so.gcom_currentmission_trigger_update()
             while self._so._currentmission_flg_ready == False:
-                pass
+                time.sleep(0.01)
+
             ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
             formatted = []
             for wp in ret:
-                formatted.append(wp.get_asdict())
+                wp_dict = wp.get_asdict()
+                wp_dict.update(wp.get_command())
+                formatted.append(wp_dict)
             
-            wpno = int(self._so.gcom_status_get()['current_wpn'])
+            wpno = int(self._so.get_status()._wpn)
             remaining = formatted[wpno-1:]
             retJSON = json.dumps(remaining) # This should convert the dict to JSON
 
@@ -58,8 +62,8 @@ class GCOM_Server():
 
         @app.route("/status", methods=["GET"])
         def get_status():
-            ret = self._so.gcom_status_get() # This should be a dict of status (hopefully)
-            retJSON = json.dumps(ret) # This should convert the dict to JSON
+            ret: Status = self._so.get_status()
+            retJSON = json.dumps(ret.as_dictionary())
 
             print("Status sent to GCOM")
 
@@ -100,8 +104,8 @@ class GCOM_Server():
         def post_queue():
             payload = request.get_json()
 
-            ret = self._so.gcom_status_get()
-            last_altitude = ret['altitude'] if ret != () else 50
+            ret: Status = self._so.get_status()
+            last_altitude = ret._alt if ret != () else 50
 
             wpq = []
             for wpdict in payload:
@@ -112,7 +116,7 @@ class GCOM_Server():
                     altitude = last_altitude
 
                 command = wpdict.get('command', "WAYPOINT") 
-                if command == "" or command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION", "DO_CHANGE_SPEED"]:
+                if command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION", "DO_CHANGE_SPEED"]:
                     command = "WAYPOINT"
 
                 param1 = wpdict.get('param1', 0)
@@ -142,7 +146,7 @@ class GCOM_Server():
                 pass
             ret = self._so.gcom_currentmission_get()
             
-            wpno = int(self._so.gcom_status_get()['current_wpn'])
+            wpno = int(self._so.get_status()._wpn)
             remaining = ret[wpno-1:]
             wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], payload['altitude'])
 
@@ -162,8 +166,8 @@ class GCOM_Server():
             if not('latitude' in payload) or not('longitude' in payload):
                 return "Latitude and Longitude cannot be null", 400
 
-            ret = self._so.gcom_status_get()
-            last_altitude = ret['altitude'] if ret != () else 50
+            ret: Status = self._so.get_status()
+            last_altitude = ret._alt if ret != () else 50
 
             wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
             self._so.append_wp_set(wp)
@@ -433,19 +437,19 @@ class GCOM_Server():
 
         @socketio.on("message")
         def handle_message(data):
-            ret = self._so.gcom_status_get()
-            retJSON =  json.dumps(ret)
+            ret: Status = self._so.get_status()
+            retJSON =  json.dumps(ret.as_dictionary())
 
             print("Status sent to GCOM")
             
             socketio.emit('status_response', {'status_data': retJSON})
             
-        # # #run server
-        # # if production:
-        # #     # Option 1: Using gevent and gevent-websocket for production
-        # #     server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
-        # #     server.serve_forever()
+        #run server
+        # if production:
+        #     # Option 1: Using gevent and gevent-websocket for production
+        #     server = pywsgi.WSGIServer(('0.0.0.0', PORT), app, handler_class=WebSocketHandler)
+        #     server.serve_forever()
         # else:
-            # Option 2: Using socketio.run for development (supports WebSocket)
-            #socketio.start_background_task(background_task)
+        #     # Option 2: Using socketio.run for development (supports WebSocket)
+        #     socketio.start_background_task(background_task)
         socketio.run(app, host='0.0.0.0', port=PORT, debug=True, use_reloader=False)
