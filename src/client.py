@@ -81,6 +81,8 @@ def upload_mission(wp_array):
     # Final ack
     MAV.setWPACK()
 
+    MAV.doCommand(MAVLink.MAV_CMD.DO_SET_MISSION_CURRENT, 0, 1, 0, 0, 0, 0, 0, 0)
+
     #end = time.monotonic_ns()
     #print("Uploading mission took {:}ms".format((end - start) / 1000000))
 
