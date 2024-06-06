@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "ca2d086f-3956-40cf-ae15-4403aa2f65fd",
+		"_postman_id": "03a8d1c7-9e89-471a-8146-9fd532858571",
 		"name": "MissionPlannerScripts",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "32319969"
+		"_exporter_id": "30667343"
 	},
 	"item": [
 		{
@@ -24,7 +24,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\n  {\n    \"id\": 0,\n    \"name\": \"string\",\n    \"longitude\": 0,\n    \"latitude\": 0,\n    \"altitude\": 0\n  }\n]",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -56,7 +56,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "[\n    {\n        \"id\": 0,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3138848,\n        \"longitude\": -76.5499264,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3180233,\n        \"longitude\": -76.5576053,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3200772,\n        \"longitude\": -76.5527773,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 3,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3195385,\n        \"longitude\": -76.5394735,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 4,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3112889,\n        \"longitude\": -76.5240669,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 5,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3035098,\n        \"longitude\": -76.5376282,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 6,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3012197,\n        \"longitude\": -76.5467262,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 7,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3050253,\n        \"longitude\": -76.5667677,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 8,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.2929007,\n        \"longitude\": -76.5730762,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 9,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.2917892,\n        \"longitude\": -76.5388727,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 10,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3024995,\n        \"longitude\": -76.5376711,\n        \"altitude\": 100\n    }\n]"
+							"raw": "[\n    {\n        \"id\": 0,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3143531,\n        \"longitude\": -76.5594292,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 6,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3012197,\n        \"longitude\": -76.5467262,\n        \"altitude\": 100,\n        \"command\":\"DO_CHANGE_SPEED\",\n        \"param1\":1,\n        \"param2\":10\n    },\n    {\n        \"id\": 1,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3180233,\n        \"longitude\": -76.5576053,\n        \"altitude\": 100,\n        \"command\":\"WAYPOINT\",\n        \"param1\":3,\n        \"param2\":4,\n        \"param3\":5,\n        \"param4\":6\n    },\n    {\n        \"id\": 5,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3035098,\n        \"longitude\": -76.5376282,\n        \"altitude\": 100,\n        \"command\":\"DO_VTOL_TRANSITION\",\n        \"param1\":3,\n        \"param4\":4\n    },\n    {\n        \"id\": 2,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3200772,\n        \"longitude\": -76.5527773,\n        \"altitude\": 100,\n        \"command\":\"LOITER_UNLIM\",\n        \"param3\":0\n    },\n    {\n        \"id\": 3,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3195385,\n        \"longitude\": -76.5394735,\n        \"altitude\": 100\n    },\n    {\n        \"id\": 4,\n        \"name\": \"Alpha\",\n        \"latitude\": 38.3112889,\n        \"longitude\": -76.5240669,\n        \"altitude\": 100,\n        \"param3\":-1\n    }\n    \n]"
 						},
 						"url": {
 							"raw": "{{ base_url }}/queue",
@@ -72,13 +72,13 @@
 					"response": []
 				},
 				{
-					"name": "prepend",
+					"name": "insert",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\r\n        \"id\": 0,\r\n        \"name\": \"Inserted\",\r\n        \"latitude\": 38.3138848,\r\n        \"longitude\": -76.5499264,\r\n        \"altitude\": 100\r\n    }",
+							"raw": "[{\r\n    \"id\": 0,\r\n    \"name\": \"Inserted\",\r\n    \"latitude\": 38.3096384,\r\n    \"longitude\": -76.5514048,\r\n    \"altitude\": 100\r\n}]",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -86,33 +86,15 @@
 							}
 						},
 						"url": {
-							"raw": "{{ base_url }}/prepend",
+							"raw": "{{ base_url }}/insert",
 							"host": [
 								"{{ base_url }}"
 							],
 							"path": [
-								"prepend"
+								"insert"
 							]
 						},
-						"description": "Insert waypoint at beginning of queue."
-					},
-					"response": []
-				},
-				{
-					"name": "append",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{ base_url }}/append",
-							"host": [
-								"{{ base_url }}"
-							],
-							"path": [
-								"append"
-							]
-						},
-						"description": "Insert a waypoint onto the back of the queue."
+						"description": "Insert a waypoint onto the front of the queue."
 					},
 					"response": []
 				},
@@ -227,7 +209,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"altitude\": 100\n}"
+							"raw": "{\n    \"altitude\": 25\n}"
 						},
 						"url": {
 							"raw": "{{ base_url }}/takeoff",
@@ -343,6 +325,15 @@
 					"request": {
 						"method": "POST",
 						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\t\"id\": 0,\r\n\t\t\"name\": \"string\",\r\n\t\t\"latitude\": 38.3171058,\r\n\t\t\"longitude\": -76.5517151,\r\n\t\t\"altitude\": 100\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
 						"url": {
 							"raw": "{{ base_url }}/land",
 							"host": [

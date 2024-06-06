@@ -67,21 +67,18 @@ paths:
           description: successful operation
         "400":
           description: bad request
-  /prepend:
+  /insert:
     post:
       tags:
        - queue
-      summary: Insert a waypoint onto the front of the queue.
-      responses:
-        "200":
-          description: successful operation
-        "400":
-          description: bad request
-  /append:
-    post:
-      tags:
-       - queue
-      summary: Insert a waypoint onto the back of the queue.
+      summary: Inserts waypoints immediately before the current waypoint
+      requestBody:
+        content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Waypoint"
       responses:
         "200":
           description: successful operation
