@@ -372,7 +372,7 @@ components:
           format: float64
         command:
           type: string
-          enum: ['WAYPOINT', 'LOITER_UNLIM', 'DO_VTOL_TRANSITION', 'DO_CHANGE_SPEED']
+          description: "Put the waypoint command here as in MissionPlanner, i.e., `LOITER_UNLIM` or `DO_CHANGE_SPEED`. Default value: `WAYPOINT`"
         param1:
           type: number
           format: integer

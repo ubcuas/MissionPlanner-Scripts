@@ -9,6 +9,7 @@ from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.sharedobject import SharedObject
+from server.common.encoders import command_string_to_int, command_int_to_string
 
 def plot_shape(points, color, close=False, scatter=True):
     adjust = 0 if close else 1
@@ -116,8 +117,8 @@ class GCOM_Server():
                     altitude = last_altitude
 
                 command = wpdict.get('command', "WAYPOINT") 
-                if command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION", "DO_CHANGE_SPEED"]:
-                    command = "WAYPOINT"
+                # converts any unknown waypoint types to WAYPOINT
+                command = command_int_to_string(command_string_to_int(command))
 
                 param1 = wpdict.get('param1', 0)
                 param2 = wpdict.get('param2', 0)
