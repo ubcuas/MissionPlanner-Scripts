@@ -135,43 +135,39 @@ class GCOM_Server():
 
             return "ok", 200
         
-        @app.route("/prepend", methods=['POST'])
+        @app.route("/insert", methods=['POST'])
         def insert_wp():
             payload = request.get_json()
-
-            if not('latitude' in payload) or not('longitude' in payload):
-                return "Latitude and Longitude cannot be null", 400
-            
-            self._so.gcom_currentmission_trigger_update()
-            while self._so._currentmission_flg_ready == False:
-                pass
-            ret = self._so.gcom_currentmission_get()
-            
-            wpno = int(self._so.get_status()._wpn)
-            remaining = ret[wpno-1:]
-            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], payload['altitude'])
-
-            if payload['altitude'] is not None:
-                wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], remaining[-1]._alt)
-
-            remaining.insert(1, wp)
-            self._so.gcom_newmission_set(WaypointQueue(remaining.copy()))
-
-            return "ok", 200
-            
-
-        @app.route("/append", methods=['POST'])
-        def append_wp():
-            payload = request.get_json()
-
-            if not('latitude' in payload) or not('longitude' in payload):
-                return "Latitude and Longitude cannot be null", 400
 
             ret: Status = self._so.get_status()
             last_altitude = ret._alt if ret != () else 50
 
-            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
-            self._so.append_wp_set(wp)
+            # gets new waypoints
+            new_waypoints = []
+            for wpdict in payload:
+                altitude = wpdict.get('altitude')
+                if altitude != None:
+                    last_altitude = altitude
+                else:
+                    altitude = last_altitude
+
+                command = wpdict.get('command', "WAYPOINT") 
+                # converts any unknown waypoint types to WAYPOINT
+                command = command_int_to_string(command_string_to_int(command))
+
+                param1 = wpdict.get('param1', 0)
+                param2 = wpdict.get('param2', 0)
+                param3 = wpdict.get('param3', 0)
+                param4 = wpdict.get('param4', 0)
+                
+                wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude, 
+                              command, param1, param2, param3, param4)
+                new_waypoints.append(wp)
+            
+            # insert new waypoints start at index
+            self._so.gcom_newinsert_set(WaypointQueue(new_waypoints.copy()))
+            copy = WaypointQueue(new_waypoints.copy()).aslist()
+            new_waypoints.clear()
 
             return "ok", 200
         

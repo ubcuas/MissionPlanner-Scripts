@@ -171,6 +171,19 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         if push_wp:
             self.server._instructions.push(f"PUSH {str(push_wp)}")
 
+        # Check for a new insertion
+        insertwpq = self.server._so.mps_newinsert_get()
+        if insertwpq != None:
+            # Place instruction for new insertion onto the queue
+            self.server._instructions.push(f"NEW_INSERT {0}")
+
+            # Prepare packed mission
+            missionbytes = b""
+            while (not insertwpq.empty()):
+                curr: Waypoint = insertwpq.pop()
+                missionbytes += waypoint_encode(curr)
+            self.server._instructions.push(missionbytes)
+
         # Check for a new mission
         nextwpq = self.server._so.mps_newmission_get()
         if nextwpq != None:

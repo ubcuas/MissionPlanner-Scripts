@@ -1,7 +1,9 @@
 #from multiprocessing import Lock
 from threading import Lock
+from typing import Optional
 
 from server.common.status import Status
+from server.common.wpqueue import WaypointQueue
 
 class SharedObject():
     def __init__(self):
@@ -13,10 +15,16 @@ class SharedObject():
         self._currentmission_lk = Lock()
 
         # New mission fields
-        self._newmission = []
+        self._newmission: WaypointQueue = []
         self._newmission_lk = Lock()
-        self._newmission_flag = False
+        self._newmission_flag: bool = False
         self._newmission_flag_lk = Lock()
+
+        # New insertion fields
+        self._newinsert: WaypointQueue = []
+        self._newinsert_lk = Lock()
+        self._newinsert_flag: bool = False
+        self._newinsert_flag_lk = Lock()
 
         # Status fields
         self._status: Status = Status()
@@ -142,10 +150,10 @@ class SharedObject():
         self._currentmission_lk.release()
 
     # newmission methods
-    def gcom_newmission_flagcheck(self):
+    def gcom_newmission_flagcheck(self) -> bool:
         return self._newmission_flag
     
-    def gcom_newmission_set(self, wpq):
+    def gcom_newmission_set(self, wpq: WaypointQueue) -> bool:
         self._newmission_flag_lk.acquire()
         self._newmission_flag = True
         
@@ -157,7 +165,7 @@ class SharedObject():
     
         return True
 
-    def mps_newmission_get(self): 
+    def mps_newmission_get(self) -> Optional[WaypointQueue]: 
         if self._newmission_flag:
             self._newmission_flag_lk.acquire()
             self._newmission_flag = False
@@ -173,6 +181,37 @@ class SharedObject():
             self._currentmission = ret.aslist()
             self._currentmission_length = ret.size()
             self._currentmission_lk.release()
+
+            return ret
+        else:
+            return None
+    
+    def gcom_newinsert_flagcheck(self) -> bool:
+        return self._newinsert_flag
+
+    def gcom_newinsert_set(self, wpq: WaypointQueue) -> bool:
+        self._newinsert_flag_lk.acquire()
+        self._newinsert_flag = True
+        
+        self._newinsert_lk.acquire()
+        self._newinsert = wpq
+        
+        self._newinsert_lk.release()
+        self._newinsert_flag_lk.release()
+
+        return True
+
+    def mps_newinsert_get(self) -> Optional[WaypointQueue]: 
+        if self._newinsert_flag:
+            self._newinsert_flag_lk.acquire()
+            self._newinsert_flag = False
+
+            self._newinsert_lk.acquire()
+            ret = self._newinsert
+            self._newinsert = []
+            
+            self._newinsert_lk.release()
+            self._newinsert_flag_lk.release()
 
             return ret
         else:

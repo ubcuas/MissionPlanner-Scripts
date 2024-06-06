@@ -34,9 +34,8 @@ rsock.settimeout(timeout)
 print("Sockets Created")
 
 wp_array = []
-upcoming_mission = False
-fence_exclusive = False
-fence_type = ""
+upcoming_mission = ""
+insert_index = -1
 
 def get_altitude_standard(standard):
     if standard == "AGL":
@@ -90,7 +89,9 @@ def interpret_normal(recvd):
     return msg.split()
 
 def interpret_packedmission(recvd):
-    ret = ["NEXT"]
+    global upcoming_mission
+    ret = [upcoming_mission]
+    upcoming_mission = ""
 
     #print(recvd)
     sizeof_waypoint = struct.calcsize('3f5h')
@@ -128,7 +129,7 @@ while 1:
         time.sleep(10)
         continue
 
-    if (upcoming_mission):
+    if (upcoming_mission != ""):
         argv = interpret_packedmission(recvd)
     else:
         argv = interpret_normal(recvd)
@@ -140,14 +141,12 @@ while 1:
         break
     else:
         if cmd == "NEW_MISSION":
-            #Enter guided and await new mission waypoints
+            #Await new mission waypoints
             wp_array = []
-            upcoming_mission = True
+            upcoming_mission = "NEXT"
             print("NEW_MISSION - About to recieve new mission")
 
         elif cmd == "NEXT":
-            upcoming_mission = False
-
             print(cmd, argv)
             
             #set mission
@@ -159,9 +158,54 @@ while 1:
 
             print("NEXT - new mission set")   
         
+        elif cmd == "NEW_INSERT":
+            #Await new mission waypoints
+            wp_array = []
+            upcoming_mission = "INSERT"
+            insert_index = int(argv[0])
+            print("NEW_INSERT - About to recieve waypoints for insertion")
+        
+        elif cmd == "INSERT":
+            print(cmd, argv)
+
+            #grab old mission
+            old_mission = []
+
+            current_wp = int(cs.wpno)
+            numwp = MAV.getWPCount()
+
+            for i in range(0, numwp):
+                try:
+                    old_mission.append(MAV.getWP(MAV.sysidcurrent, MAV.compidcurrent, i))
+                except:
+                    print("WARNING - waypoint get failed for waypoint number", i)
+
+            #set new mission
+            new_mission = []
+
+            #inserts old mission wps that are before the index
+            #convert each Locationwp instance in old_mission into a tuple for upload_mission
+            new_mission.extend((wp.lat, wp.lng, wp.alt, wp.id, int(wp.p1), int(wp.p2), int(wp.p3), int(wp.p4)) 
+                               for wp in old_mission[current_wp : current_wp + insert_index])
+            
+            #inserts new mission wps 
+            new_mission.extend(argv)
+
+            #inserts old mission wps that are after the index
+            new_mission.extend((wp.lat, wp.lng, wp.alt, wp.id, int(wp.p1), int(wp.p2), int(wp.p3), int(wp.p4)) 
+                               for wp in old_mission[current_wp + insert_index :])
+            
+            upload_mission(new_mission)
+
+            # Cycles mode so drone responds to new mission
+            Script.ChangeMode("Loiter")
+            Script.ChangeMode("Auto")
+
+            print("INSERT - new waypoints inserted")  
+        
         elif cmd == "PUSH":
             #TODO: currently nonfunctional - must refactor - see #75 on github
-            wptotal = MAV.getWPCount()
+            wptotal = MAV.geCount()
 
             MAV.setWPTotal(wptotal + 1)
             # Upload waypoints
