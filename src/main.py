@@ -44,7 +44,7 @@ if __name__ == "__main__":
     if '--disable-status' in arguments.keys():
         DISABLE_STATUS = True
         
-    print(f"Starting... HTTP server listening at {HOST}:{PORT}. " + "" if DISABLE_STATUS else f"Status WS connecting to {STATUS_HOST}:{STATUS_PORT}.")
+    print(f"Starting... HTTP server listening at {HOST}:{PORT}. " + ("" if DISABLE_STATUS else f"Status WS connecting to {STATUS_HOST}:{STATUS_PORT}."))
 
     # Instantiate shared object
     so = SharedObject()

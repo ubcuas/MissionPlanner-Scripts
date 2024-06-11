@@ -92,6 +92,16 @@ Then, enter the src directory and run the `pytest` command via Poetry:
     poetry run pytest
 ```
 
+### Command Line Arguments
+
+| Argument | Description |
+|-|-|
+| `--dev` | If present, server is started in development mode rather than production. |
+| `--port=9000` | Port on which to listen for HTTP requests. |
+| `--status-host=localhost` | Hostname for the status socket to connect to. |
+| `--status-port=1323` | Port for the status socket to connect to. |
+| `--disable-status` | If present, disables the status socket. |
+
 ## Endpoints
 
 See `api_spec.yml` or `postman_collection.json` for up-to-date information on endpoints.
