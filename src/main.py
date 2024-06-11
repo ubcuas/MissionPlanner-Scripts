@@ -11,6 +11,7 @@ from server.status_wsclient import Status_Client
 production = True
 HOST, PORT, SOCKET_PORT = "localhost", 9000, 9001
 STATUS_HOST, STATUS_PORT = "localhost", 1323
+DISABLE_STATUS = False
 if __name__ == "__main__":
     # Extract arguments
     arguments = {}
@@ -39,6 +40,9 @@ if __name__ == "__main__":
     
     if '--status-port' in arguments.keys():
         STATUS_PORT = arguments['--status-port'][0]
+
+    if '--disable-status' in arguments.keys():
+        DISABLE_STATUS = True
         
     print(f"Starting... HTTP server listening at {HOST}:{PORT}. Status WS connecting to {STATUS_HOST}:{STATUS_PORT}.")
 
@@ -57,14 +61,17 @@ if __name__ == "__main__":
     gcmh_thread = Thread(target=gcmh.serve_forever, args=[production, HOST, PORT])
 
     #status websocket client thread
-    skth_thread = Thread(target=skth.connect_to, args=[production, STATUS_HOST, STATUS_PORT])
+    if not DISABLE_STATUS:
+        skth_thread = Thread(target=skth.connect_to, args=[production, STATUS_HOST, STATUS_PORT])
 
     print("\nStarting threads...\n")
 
     mpss_thread.start()
     gcmh_thread.start()
-    skth_thread.start()
+    if not DISABLE_STATUS:
+        skth_thread.start()
 
     mpss_thread.join()
     gcmh_thread.join()
-    skth_thread.join()
+    if not DISABLE_STATUS:
+        skth_thread.join()
