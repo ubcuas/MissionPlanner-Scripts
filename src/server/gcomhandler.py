@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_cors import CORS, cross_origin
 import json
 from shapely.geometry import Point, Polygon, MultiPoint, LineString
 from matplotlib import pyplot as plt
@@ -9,6 +10,7 @@ from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.sharedobject import SharedObject
+from server.common.encoders import command_string_to_int, command_int_to_string
 
 def plot_shape(points, color, close=False, scatter=True):
     adjust = 0 if close else 1
@@ -32,14 +34,19 @@ class GCOM_Server():
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         print("GCOM HTTP Server starting...")
         app = Flask(__name__)
+        CORS(app)
+        cors = CORS(app)
+        app.config['CORS_HEADERS'] = 'Content-Type'
         socketio = SocketIO(app)
 
         # GET endpoints
         @app.route("/", methods=["GET"])
+        @cross_origin()
         def index():
             return "GCOM Server Running", 200
 
         @app.route("/queue", methods=["GET"])
+        @cross_origin()
         def get_queue():
             self._so.gcom_currentmission_trigger_update()
             while self._so._currentmission_flg_ready == False:
@@ -61,6 +68,7 @@ class GCOM_Server():
             return retJSON
 
         @app.route("/status", methods=["GET"])
+        @cross_origin()
         def get_status():
             ret: Status = self._so.get_status()
             retJSON = json.dumps(ret.as_dictionary())
@@ -70,6 +78,7 @@ class GCOM_Server():
             return retJSON
 
         @app.route("/land", methods=["GET"])
+        @cross_origin()
         def land():
             print("Landing")
             self._so.flightmode_set("loiter")
@@ -78,6 +87,7 @@ class GCOM_Server():
             return "Landing in Place", 200
 
         @app.route("/rtl", methods=["GET", "POST"])
+        @cross_origin()
         def rtl():
             altitude = request.get_json().get('altitude', 50)
 
@@ -89,6 +99,7 @@ class GCOM_Server():
         # VTOL LAND ENDPOINT
 
         @app.route("/land", methods=["POST"])
+        @cross_origin()
         def vtol_land():
             land = request.get_json()
             if not 'latitude' in land or not 'longitude' in land:
@@ -101,6 +112,7 @@ class GCOM_Server():
         # POST endpoints
 
         @app.route("/queue", methods=["POST"])
+        @cross_origin()
         def post_queue():
             payload = request.get_json()
 
@@ -116,8 +128,8 @@ class GCOM_Server():
                     altitude = last_altitude
 
                 command = wpdict.get('command', "WAYPOINT") 
-                if command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION", "DO_CHANGE_SPEED"]:
-                    command = "WAYPOINT"
+                # converts any unknown waypoint types to WAYPOINT
+                command = command_int_to_string(command_string_to_int(command))
 
                 param1 = wpdict.get('param1', 0)
                 param2 = wpdict.get('param2', 0)
@@ -134,53 +146,52 @@ class GCOM_Server():
 
             return "ok", 200
         
-        @app.route("/prepend", methods=['POST'])
+        @app.route("/insert", methods=['POST'])
+        @cross_origin()
         def insert_wp():
             payload = request.get_json()
-
-            if not('latitude' in payload) or not('longitude' in payload):
-                return "Latitude and Longitude cannot be null", 400
-            
-            self._so.gcom_currentmission_trigger_update()
-            while self._so._currentmission_flg_ready == False:
-                pass
-            ret = self._so.gcom_currentmission_get()
-            
-            wpno = int(self._so.get_status()._wpn)
-            remaining = ret[wpno-1:]
-            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], payload['altitude'])
-
-            if payload['altitude'] is not None:
-                wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], remaining[-1]._alt)
-
-            remaining.insert(1, wp)
-            self._so.gcom_newmission_set(WaypointQueue(remaining.copy()))
-
-            return "ok", 200
-            
-
-        @app.route("/append", methods=['POST'])
-        def append_wp():
-            payload = request.get_json()
-
-            if not('latitude' in payload) or not('longitude' in payload):
-                return "Latitude and Longitude cannot be null", 400
 
             ret: Status = self._so.get_status()
             last_altitude = ret._alt if ret != () else 50
 
-            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
-            self._so.append_wp_set(wp)
+            # gets new waypoints
+            new_waypoints = []
+            for wpdict in payload:
+                altitude = wpdict.get('altitude')
+                if altitude != None:
+                    last_altitude = altitude
+                else:
+                    altitude = last_altitude
+
+                command = wpdict.get('command', "WAYPOINT") 
+                # converts any unknown waypoint types to WAYPOINT
+                command = command_int_to_string(command_string_to_int(command))
+
+                param1 = wpdict.get('param1', 0)
+                param2 = wpdict.get('param2', 0)
+                param3 = wpdict.get('param3', 0)
+                param4 = wpdict.get('param4', 0)
+                
+                wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude, 
+                              command, param1, param2, param3, param4)
+                new_waypoints.append(wp)
+            
+            # insert new waypoints start at index
+            self._so.gcom_newinsert_set(WaypointQueue(new_waypoints.copy()))
+            copy = WaypointQueue(new_waypoints.copy()).aslist()
+            new_waypoints.clear()
 
             return "ok", 200
         
         @app.route("/clear", methods=['GET'])
+        @cross_origin()
         def clear_queue():
             self._so.gcom_newmission_set(WaypointQueue([]))
 
             return "ok", 200
     
         @app.route("/takeoff", methods=["POST"])
+        @cross_origin()
         def takeoff():
             payload = request.get_json()
 
@@ -202,6 +213,7 @@ class GCOM_Server():
                 return "Takeoff unsuccessful", 400
 
         @app.route("/home", methods=["POST"])
+        @cross_origin()
         def home():
             home = request.get_json()
 
@@ -214,6 +226,7 @@ class GCOM_Server():
         
         # VTOL endpoints
         @app.route("/vtol/transition", methods=["GET", "POST"])
+        @cross_origin()
         def vtol_transition():
             if request.method == "GET":
                 return json.dumps({'mode': self._so.mps_vtol_get()})
@@ -231,6 +244,7 @@ class GCOM_Server():
 
         # FENCE DIVERSION METHOD (BIG BOY)
         @app.route("/diversion", methods=["POST"])
+        @cross_origin()
         def fence_diversion():
             self._so.gcom_locked_set(True)
             
@@ -387,6 +401,7 @@ class GCOM_Server():
             return "diverting"
         
         @app.route("/flightmode", methods=["PUT"])
+        @cross_origin()
         def change_flight_mode():
             input = request.get_json()
             
@@ -401,6 +416,7 @@ class GCOM_Server():
                 return f"Unrecognized mode: {input['mode']}", 400
         
         @app.route("/arm", methods=["PUT"])
+        @cross_origin()
         def arm_disarm_drone():
             input = request.get_json()
 
@@ -421,6 +437,7 @@ class GCOM_Server():
                 return f"Unrecognized arm/disarm command parameter", 400
         
         @app.route("/altstandard", methods=["PUT"])
+        @cross_origin()
         def altstandard():
             #Call into altitude_standard_set
             return "UNIMPLMENTED", 410

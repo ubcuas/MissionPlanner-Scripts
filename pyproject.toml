@@ -18,6 +18,7 @@ gevent = "^23.9.1"
 gevent-websocket = "^0.10.1"
 requests = "^2.31.0"
 python-socketio = {extras = ["client"], version = "^5.11.2"}
+flask-cors = "^4.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
