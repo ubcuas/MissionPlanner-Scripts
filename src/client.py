@@ -109,7 +109,7 @@ while 1:
 
     # Send telemetry to server
     telemetry = b"TL"
-    telemetry += struct.pack('Qi12f', int(time.time() * 1000), int(cs.wpno),
+    telemetry += struct.pack('2i12f', int(time.time()), int(cs.wpno),
                              cs.lat, cs.lng, cs.alt,
                              cs.roll, cs.pitch, cs.yaw,
                              cs.airspeed, cs.groundspeed, cs.verticalspeed,

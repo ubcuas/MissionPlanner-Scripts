@@ -29,7 +29,7 @@ class Status():
         self._wvl: float = wind_velocity
     
     def encoded_status(self) -> bytes:
-        return struct.pack('Qi12f',
+        return struct.pack('2i12f',
                            self._timestamp,
                            self._wpn,
                            self._lat,
@@ -51,7 +51,7 @@ class Status():
         self._rol, self._pch, self._yaw, 
         self._asp, self._gsp, self._vsp,
         self._btv, 
-        self._wdr, self._wvl) = struct.unpack('Qi12f', status_bytes)
+        self._wdr, self._wvl) = struct.unpack('2i12f', status_bytes)
 
     def as_dictionary(self) -> dict:
         return {
