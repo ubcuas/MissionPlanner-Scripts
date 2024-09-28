@@ -52,10 +52,6 @@ class SharedObject():
         self._vtol_land_pos = {}
         self._vtol_land_lk = Lock()
 
-        # vtol flags
-        self._vtol_mode = 3 #start in VTOL
-        self._vtol_lk = Lock()
-
         # voice flags
         self._voice_flag = False
         self._voice_text = ""
@@ -325,19 +321,6 @@ class SharedObject():
             return ret
         else:
             return None
-    
-    # vtol methods
-    def gcom_vtol_set(self, val):
-        self._vtol_lk.acquire()
-        self._vtol_mode = val
-        self._vtol_flag = True
-        self._vtol_lk.release()
-    
-    def mps_vtol_get(self):
-        self._vtol_lk.acquire()
-        ret = self._vtol_mode
-        self._vtol_lk.release()
-        return ret
     
     # flightmode methods
     def flightmode_set(self, mode):

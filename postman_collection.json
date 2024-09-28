@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "03a8d1c7-9e89-471a-8146-9fd532858571",
+		"_postman_id": "20ebd461-c68a-4ab5-99d5-5a4b03c40827",
 		"name": "MissionPlannerScripts",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "30667343"
@@ -380,65 +380,6 @@
 		{
 			"name": "options",
 			"item": [
-				{
-					"name": "transition",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"mode\": 0\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{ base_url }}/vtol/transition",
-							"host": [
-								"{{ base_url }}"
-							],
-							"path": [
-								"vtol",
-								"transition"
-							]
-						},
-						"description": "Return whether the aircraft is in VTOL or fixed wing mode."
-					},
-					"response": []
-				},
-				{
-					"name": "transition",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"mode\": 0\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{ base_url }}/vtol/transition",
-							"host": [
-								"{{ base_url }}"
-							],
-							"path": [
-								"vtol",
-								"transition"
-							]
-						},
-						"description": "Change the aircraft's flight mode."
-					},
-					"response": []
-				},
 				{
 					"name": "flightmode",
 					"request": {

@@ -325,9 +325,6 @@ while 1:
             # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("VTOL_LAND - landing at {:}, {:}".format(landlat, landlng))
         
-        elif cmd == "MODE":
-            MAV.doCommand(MAVLink.MAV_CMD.DO_VTOL_TRANSITION,int(argv[0]),0,0,0,0,0,0)
-        
         elif cmd == "FLIGHT_MODE":
             if MODE == 'plane' and argv[0] in ['loiter', 'stabilize']:
                 Script.ChangeMode("q{:}".format(argv[0]))

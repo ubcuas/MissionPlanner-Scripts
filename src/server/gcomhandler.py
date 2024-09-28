@@ -208,23 +208,6 @@ class GCOM_Server():
             self._so.gcom_newhome_set(home)
 
             return "Setting New Home", 200
-        
-        # VTOL endpoints
-        @app.route("/vtol/transition", methods=["GET", "POST"])
-        def vtol_transition():
-            if request.method == "GET":
-                return json.dumps({'mode': self._so.mps_vtol_get()})
-            
-            elif request.method == "POST":
-                payload = request.get_json(silent=True)
-                mode = int(payload['mode'])
-                if mode == 3 or mode == 4:
-                    self._so.gcom_vtol_set(mode)
-                    return "Changing flight mode", 200
-                else:
-                    return "Invalid flight mode", 400
-            
-            return "Bad Request", 400
 
         # FENCE DIVERSION METHOD (BIG BOY)
         @app.route("/diversion", methods=["POST"])

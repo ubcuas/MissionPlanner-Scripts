@@ -189,9 +189,9 @@ paths:
     post: 
       tags: 
         - landing 
-      summary: land at designated location (VTOL-compatible)
+      summary: land at designated location
       description: >-
-        VTOL compatible land at the location in the request.
+        Land at the location in the request.
       requestBody:
         content:
           application/json:
@@ -221,47 +221,6 @@ paths:
           description: Successfully set new home position
         "400":
           description: Home position could not be set
-  /vtol/transition: 
-    get:
-      tags:
-        - options
-      summary: return whether the aircraft is in VTOL or fixed wing mode
-      description: >-
-        Returns the current flight mode of the aircraft. The values 
-        correspond to those in the MAV commands, so 3 indicates VTOL flight 
-        while 4 indicates fixed wing flight.
-      responses:
-        "200":
-          description: Returned flight mode 
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: 
-                  mode: 
-                    type: integer
-    post:
-      tags:
-        - options
-      summary: change the aircraft's flight mode
-      description: >-
-        Change the aircraft's flight mode. The mode to change to is 
-        specified by the mode property in the request body. As in 
-        the GET endpoint, use 3 to indicate VTOL and 4 to indicate 
-        fixed wing.
-      requestBody:
-        content:
-          application/json: 
-            schema:
-              type: object 
-              properties: 
-                mode: 
-                  type: integer 
-      responses:
-        "200": 
-          description: Flight mode changed
-        "400":
-          description: Invalid flight mode
   /diversion:
     post: 
       tags: 
@@ -295,7 +254,7 @@ paths:
         - options
       summary: Change flight mode of the aircraft
       description: >-
-        Set the flight mode of the aircraft to Loiter, Stabilize, Auto, or Guided
+        Set the flight mode of the aircraft to Loiter, Stabilize, Auto, or Guided, or set the current aircraft type to Copter or Plane.
       requestBody:
         content:
           application/json:
@@ -304,7 +263,7 @@ paths:
               properties:
                 mode:
                   type: string
-                  enum: ['loiter', 'stabilize', 'auto', 'guided']
+                  enum: ['copter', 'plane', 'loiter', 'stabilize', 'auto', 'guided']
       responses:
         "200":
           description: Operation processed
