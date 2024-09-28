@@ -132,10 +132,10 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             self.server._instructions.push(f"HOME {str(wp)}")
 
         # Check if we need to land
-        vtol_land = self.server._so.mps_vtol_land_get()
-        if vtol_land != None:
-            wp = Waypoint(vtol_land['id'], vtol_land['name'], vtol_land['latitude'], vtol_land['longitude'], vtol_land['altitude'])
-            self.server._instructions.push(f"VTOL_LAND {str(wp)}")
+        land_at_pos = self.server._so.land_at_pos_get()
+        if land_at_pos != None:
+            wp = Waypoint(land_at_pos['id'], land_at_pos['name'], land_at_pos['latitude'], land_at_pos['longitude'], land_at_pos['altitude'])
+            self.server._instructions.push(f"LAND_AT_POS {str(wp)}")
 
         # Check takeoff altitude
         takeoffalt = self.server._so.mps_takeoffalt_get()

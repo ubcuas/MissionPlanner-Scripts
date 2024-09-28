@@ -87,15 +87,15 @@ class GCOM_Server():
 
             return "Returning to Launch", 200
 
-        # VTOL LAND ENDPOINT
+        # LAND ENDPOINT
 
         @app.route("/land", methods=["POST"])
-        def vtol_land():
+        def post_land():
             land = request.get_json()
             if not 'latitude' in land or not 'longitude' in land:
                 return "Latitude and Longitude cannot be null", 400
             
-            self._so.gcom_vtol_land_set(land)
+            self._so.land_at_pos_set(land)
 
             return "Landing at specified location", 200
 
@@ -373,7 +373,7 @@ class GCOM_Server():
             if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
                 self._so.flightmode_set(input['mode'])
                 return f"OK! Changed mode: {input['mode']}", 200
-            elif input['mode'] in ['vtol', 'plane']:
+            elif input['mode'] in ['copter', 'plane']:
                 print("changing mode")
                 self._so.flightConfig_set(input['mode'])
                 return f"OK! Changed mode: {input['mode']}", 200

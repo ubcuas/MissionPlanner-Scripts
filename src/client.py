@@ -246,7 +246,7 @@ while 1:
                 # TODO: drone can't be in Auto on the ground when sending the initial takeoff mission - if it is, it won't take off
                 # Confirmed in SITL and live drone. We should switch the mode here to something safe. 'loiter'?
                 home = create_waypoint(lat = cs.lat, lng = cs.lng, alt = 0)
-                takeoff = create_waypoint(int(MAVLink.MAV_CMD.VTOL_TAKEOFF) if MODE == "plane" else int(MAVLink.MAV_CMD.TAKEOFF), cs.lat, cs.lng, takeoffalt)
+                takeoff = create_waypoint(int(MAVLink.MAV_CMD.TAKEOFF), cs.lat, cs.lng, takeoffalt)
                 loiter_unlim = create_waypoint(int(MAVLink.MAV_CMD.LOITER_UNLIM), cs.lat, cs.lng, 0, p3 = 1)
 
                 MAV.setWPTotal(3)
@@ -306,13 +306,13 @@ while 1:
             MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
             print("LAND - landing in place")
         
-        elif cmd == "VTOL_LAND":
+        elif cmd == "LAND_AT_POS":
             landlat = float(argv[0])
             landlng = float(argv[1])
 
             # Set up landing waypoint
             home = create_waypoint(lat = landlat, lng = landlng)
-            landing = create_waypoint(int(MAVLink.MAV_CMD.VTOL_LAND), landlat, landlng, 0)
+            landing = create_waypoint(int(MAVLink.MAV_CMD.LAND), landlat, landlng, 0)
 
             MAV.setWPTotal(2)
             MAV.setWP(home,0,ALTSTD)
@@ -323,7 +323,7 @@ while 1:
             Script.ChangeMode("Loiter")
             Script.ChangeMode("Auto")
             # MAV.doCommand(MAVLink.MAV_CMD.LAND,0,0,0,0,cs.lat,cs.lng,0)
-            print("VTOL_LAND - landing at {:}, {:}".format(landlat, landlng))
+            print("LAND_AT_POS - landing at {:}, {:}".format(landlat, landlng))
         
         elif cmd == "FLIGHT_MODE":
             if MODE == 'plane' and argv[0] in ['loiter', 'stabilize']:
@@ -348,7 +348,7 @@ while 1:
             rsock.sendto(queue_info, (HOST, RPORT))
         
         elif cmd == "CONFIG":
-            if argv[0] in ["vtol", "plane"]:
+            if argv[0] in ["copter", "plane"]:
                 MODE = argv[0]
         
         elif cmd == "ALTSTD":

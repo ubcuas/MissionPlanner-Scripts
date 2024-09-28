@@ -47,10 +47,10 @@ class SharedObject():
         self._landing_flag = False
         self._rtl_land_lk = Lock()
 
-        # vtol land flags
-        self._vtol_land_flag = False 
-        self._vtol_land_pos = {}
-        self._vtol_land_lk = Lock()
+        # land at position flags
+        self._land_pos_flag: bool = False 
+        self._land_pos: dict = {}
+        self._land_pos_lk = Lock()
 
         # voice flags
         self._voice_flag = False
@@ -304,20 +304,20 @@ class SharedObject():
             return True
         return False
 
-    # vtol landing methods
-    def gcom_vtol_land_set(self, pos):
-        self._vtol_land_lk.acquire()
-        self._vtol_land_pos = pos 
-        self._vtol_land_flag = True 
-        self._vtol_land_lk.release()
+    # land at position methods
+    def land_at_pos_set(self, pos: dict):
+        self._land_pos_lk.acquire()
+        self._land_pos = pos 
+        self._land_pos_flag = True 
+        self._land_pos_lk.release()
     
-    def mps_vtol_land_get(self):
-        if self._vtol_land_flag:
-            self._vtol_land_lk.acquire()
-            ret = self._vtol_land_pos
-            self._vtol_land_flag = False
-            self._vtol_land_pos = None
-            self._vtol_land_lk.release()
+    def land_at_pos_get(self) -> dict:
+        if self._land_pos_flag:
+            self._land_pos_lk.acquire()
+            ret = self._land_pos
+            self._land_pos_flag = False
+            self._land_pos = None
+            self._land_pos_lk.release()
             return ret
         else:
             return None
