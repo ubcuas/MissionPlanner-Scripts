@@ -67,21 +67,18 @@ paths:
           description: successful operation
         "400":
           description: bad request
-  /prepend:
+  /insert:
     post:
       tags:
        - queue
-      summary: Insert a waypoint onto the front of the queue.
-      responses:
-        "200":
-          description: successful operation
-        "400":
-          description: bad request
-  /append:
-    post:
-      tags:
-       - queue
-      summary: Insert a waypoint onto the back of the queue.
+      summary: Inserts waypoints immediately before the current waypoint
+      requestBody:
+        content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Waypoint"
       responses:
         "200":
           description: successful operation
@@ -192,9 +189,9 @@ paths:
     post: 
       tags: 
         - landing 
-      summary: land at designated location (VTOL-compatible)
+      summary: land at designated location
       description: >-
-        VTOL compatible land at the location in the request.
+        Land at the location in the request.
       requestBody:
         content:
           application/json:
@@ -224,47 +221,6 @@ paths:
           description: Successfully set new home position
         "400":
           description: Home position could not be set
-  /vtol/transition: 
-    get:
-      tags:
-        - options
-      summary: return whether the aircraft is in VTOL or fixed wing mode
-      description: >-
-        Returns the current flight mode of the aircraft. The values 
-        correspond to those in the MAV commands, so 3 indicates VTOL flight 
-        while 4 indicates fixed wing flight.
-      responses:
-        "200":
-          description: Returned flight mode 
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: 
-                  mode: 
-                    type: integer
-    post:
-      tags:
-        - options
-      summary: change the aircraft's flight mode
-      description: >-
-        Change the aircraft's flight mode. The mode to change to is 
-        specified by the mode property in the request body. As in 
-        the GET endpoint, use 3 to indicate VTOL and 4 to indicate 
-        fixed wing.
-      requestBody:
-        content:
-          application/json: 
-            schema:
-              type: object 
-              properties: 
-                mode: 
-                  type: integer 
-      responses:
-        "200": 
-          description: Flight mode changed
-        "400":
-          description: Invalid flight mode
   /diversion:
     post: 
       tags: 
@@ -298,7 +254,7 @@ paths:
         - options
       summary: Change flight mode of the aircraft
       description: >-
-        Set the flight mode of the aircraft to Loiter, Stabilize, Auto, or Guided
+        Set the flight mode of the aircraft to Loiter, Stabilize, Auto, or Guided, or set the current aircraft type to Copter or Plane.
       requestBody:
         content:
           application/json:
@@ -307,7 +263,7 @@ paths:
               properties:
                 mode:
                   type: string
-                  enum: ['loiter', 'stabilize', 'auto', 'guided']
+                  enum: ['copter', 'plane', 'loiter', 'stabilize', 'auto', 'guided']
       responses:
         "200":
           description: Operation processed
@@ -372,7 +328,7 @@ components:
           format: float64
         command:
           type: string
-          enum: ['WAYPOINT', 'LOITER_UNLIM', 'DO_VTOL_TRANSITION', 'DO_CHANGE_SPEED']
+          description: "Put the waypoint command here as in MissionPlanner, i.e., `LOITER_UNLIM` or `DO_CHANGE_SPEED`. Default value: `WAYPOINT`"
         param1:
           type: number
           format: integer

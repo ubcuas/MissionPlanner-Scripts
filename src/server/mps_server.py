@@ -132,10 +132,10 @@ class MPS_Handler(socketserver.BaseRequestHandler):
             self.server._instructions.push(f"HOME {str(wp)}")
 
         # Check if we need to land
-        vtol_land = self.server._so.mps_vtol_land_get()
-        if vtol_land != None:
-            wp = Waypoint(vtol_land['id'], vtol_land['name'], vtol_land['latitude'], vtol_land['longitude'], vtol_land['altitude'])
-            self.server._instructions.push(f"VTOL_LAND {str(wp)}")
+        land_at_pos = self.server._so.land_at_pos_get()
+        if land_at_pos != None:
+            wp = Waypoint(land_at_pos['id'], land_at_pos['name'], land_at_pos['latitude'], land_at_pos['longitude'], land_at_pos['altitude'])
+            self.server._instructions.push(f"LAND_AT_POS {str(wp)}")
 
         # Check takeoff altitude
         takeoffalt = self.server._so.mps_takeoffalt_get()
@@ -149,11 +149,6 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         # Check if we should land
         elif self.server._so.mps_landing_get():
             self.server._instructions.push("LAND")
-        
-        # Check if we should change flight mode
-        elif self.server._so.mps_vtol_get() != self.server._flight_mode:
-            self.server._flight_mode = self.server._so.mps_vtol_get()
-            self.server._instructions.push(f"MODE {self.server._flight_mode}")
 
         # Check if we should switch modes
         elif self.server._so._flightmode_flag:
@@ -170,6 +165,19 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         push_wp = self.server._so.append_wp_get()
         if push_wp:
             self.server._instructions.push(f"PUSH {str(push_wp)}")
+
+        # Check for a new insertion
+        insertwpq = self.server._so.mps_newinsert_get()
+        if insertwpq != None:
+            # Place instruction for new insertion onto the queue
+            self.server._instructions.push(f"NEW_INSERT {0}")
+
+            # Prepare packed mission
+            missionbytes = b""
+            while (not insertwpq.empty()):
+                curr: Waypoint = insertwpq.pop()
+                missionbytes += waypoint_encode(curr)
+            self.server._instructions.push(missionbytes)
 
         # Check for a new mission
         nextwpq = self.server._so.mps_newmission_get()
@@ -208,7 +216,6 @@ class MPS_Internal_Server(socketserver.UDPServer):
         self._instructions = Queue()
 
         self._newmc: int = 0
-        self._flight_mode: int = 3
 
         # Superclass constructor
         super().__init__(hptuple, handler)

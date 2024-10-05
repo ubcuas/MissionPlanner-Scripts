@@ -1,7 +1,9 @@
 #from multiprocessing import Lock
 from threading import Lock
+from typing import Optional
 
 from server.common.status import Status
+from server.common.wpqueue import WaypointQueue
 
 class SharedObject():
     def __init__(self):
@@ -13,10 +15,16 @@ class SharedObject():
         self._currentmission_lk = Lock()
 
         # New mission fields
-        self._newmission = []
+        self._newmission: WaypointQueue = []
         self._newmission_lk = Lock()
-        self._newmission_flag = False
+        self._newmission_flag: bool = False
         self._newmission_flag_lk = Lock()
+
+        # New insertion fields
+        self._newinsert: WaypointQueue = []
+        self._newinsert_lk = Lock()
+        self._newinsert_flag: bool = False
+        self._newinsert_flag_lk = Lock()
 
         # Status fields
         self._status: Status = Status()
@@ -39,14 +47,10 @@ class SharedObject():
         self._landing_flag = False
         self._rtl_land_lk = Lock()
 
-        # vtol land flags
-        self._vtol_land_flag = False 
-        self._vtol_land_pos = {}
-        self._vtol_land_lk = Lock()
-
-        # vtol flags
-        self._vtol_mode = 3 #start in VTOL
-        self._vtol_lk = Lock()
+        # land at position flags
+        self._land_pos_flag: bool = False 
+        self._land_pos: dict = {}
+        self._land_pos_lk = Lock()
 
         # voice flags
         self._voice_flag = False
@@ -142,10 +146,10 @@ class SharedObject():
         self._currentmission_lk.release()
 
     # newmission methods
-    def gcom_newmission_flagcheck(self):
+    def gcom_newmission_flagcheck(self) -> bool:
         return self._newmission_flag
     
-    def gcom_newmission_set(self, wpq):
+    def gcom_newmission_set(self, wpq: WaypointQueue) -> bool:
         self._newmission_flag_lk.acquire()
         self._newmission_flag = True
         
@@ -157,7 +161,7 @@ class SharedObject():
     
         return True
 
-    def mps_newmission_get(self): 
+    def mps_newmission_get(self) -> Optional[WaypointQueue]: 
         if self._newmission_flag:
             self._newmission_flag_lk.acquire()
             self._newmission_flag = False
@@ -173,6 +177,37 @@ class SharedObject():
             self._currentmission = ret.aslist()
             self._currentmission_length = ret.size()
             self._currentmission_lk.release()
+
+            return ret
+        else:
+            return None
+    
+    def gcom_newinsert_flagcheck(self) -> bool:
+        return self._newinsert_flag
+
+    def gcom_newinsert_set(self, wpq: WaypointQueue) -> bool:
+        self._newinsert_flag_lk.acquire()
+        self._newinsert_flag = True
+        
+        self._newinsert_lk.acquire()
+        self._newinsert = wpq
+        
+        self._newinsert_lk.release()
+        self._newinsert_flag_lk.release()
+
+        return True
+
+    def mps_newinsert_get(self) -> Optional[WaypointQueue]: 
+        if self._newinsert_flag:
+            self._newinsert_flag_lk.acquire()
+            self._newinsert_flag = False
+
+            self._newinsert_lk.acquire()
+            ret = self._newinsert
+            self._newinsert = []
+            
+            self._newinsert_lk.release()
+            self._newinsert_flag_lk.release()
 
             return ret
         else:
@@ -269,36 +304,23 @@ class SharedObject():
             return True
         return False
 
-    # vtol landing methods
-    def gcom_vtol_land_set(self, pos):
-        self._vtol_land_lk.acquire()
-        self._vtol_land_pos = pos 
-        self._vtol_land_flag = True 
-        self._vtol_land_lk.release()
+    # land at position methods
+    def land_at_pos_set(self, pos: dict):
+        self._land_pos_lk.acquire()
+        self._land_pos = pos 
+        self._land_pos_flag = True 
+        self._land_pos_lk.release()
     
-    def mps_vtol_land_get(self):
-        if self._vtol_land_flag:
-            self._vtol_land_lk.acquire()
-            ret = self._vtol_land_pos
-            self._vtol_land_flag = False
-            self._vtol_land_pos = None
-            self._vtol_land_lk.release()
+    def land_at_pos_get(self) -> dict:
+        if self._land_pos_flag:
+            self._land_pos_lk.acquire()
+            ret = self._land_pos
+            self._land_pos_flag = False
+            self._land_pos = None
+            self._land_pos_lk.release()
             return ret
         else:
             return None
-    
-    # vtol methods
-    def gcom_vtol_set(self, val):
-        self._vtol_lk.acquire()
-        self._vtol_mode = val
-        self._vtol_flag = True
-        self._vtol_lk.release()
-    
-    def mps_vtol_get(self):
-        self._vtol_lk.acquire()
-        ret = self._vtol_mode
-        self._vtol_lk.release()
-        return ret
     
     # flightmode methods
     def flightmode_set(self, mode):

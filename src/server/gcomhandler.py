@@ -9,6 +9,7 @@ from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.sharedobject import SharedObject
+from server.common.encoders import command_string_to_int, command_int_to_string
 
 def plot_shape(points, color, close=False, scatter=True):
     adjust = 0 if close else 1
@@ -86,15 +87,15 @@ class GCOM_Server():
 
             return "Returning to Launch", 200
 
-        # VTOL LAND ENDPOINT
+        # LAND ENDPOINT
 
         @app.route("/land", methods=["POST"])
-        def vtol_land():
+        def post_land():
             land = request.get_json()
             if not 'latitude' in land or not 'longitude' in land:
                 return "Latitude and Longitude cannot be null", 400
             
-            self._so.gcom_vtol_land_set(land)
+            self._so.land_at_pos_set(land)
 
             return "Landing at specified location", 200
 
@@ -116,8 +117,8 @@ class GCOM_Server():
                     altitude = last_altitude
 
                 command = wpdict.get('command', "WAYPOINT") 
-                if command not in ["WAYPOINT", "LOITER_UNLIM", "DO_VTOL_TRANSITION", "DO_CHANGE_SPEED"]:
-                    command = "WAYPOINT"
+                # converts any unknown waypoint types to WAYPOINT
+                command = command_int_to_string(command_string_to_int(command))
 
                 param1 = wpdict.get('param1', 0)
                 param2 = wpdict.get('param2', 0)
@@ -134,43 +135,39 @@ class GCOM_Server():
 
             return "ok", 200
         
-        @app.route("/prepend", methods=['POST'])
+        @app.route("/insert", methods=['POST'])
         def insert_wp():
             payload = request.get_json()
-
-            if not('latitude' in payload) or not('longitude' in payload):
-                return "Latitude and Longitude cannot be null", 400
-            
-            self._so.gcom_currentmission_trigger_update()
-            while self._so._currentmission_flg_ready == False:
-                pass
-            ret = self._so.gcom_currentmission_get()
-            
-            wpno = int(self._so.get_status()._wpn)
-            remaining = ret[wpno-1:]
-            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], payload['altitude'])
-
-            if payload['altitude'] is not None:
-                wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], remaining[-1]._alt)
-
-            remaining.insert(1, wp)
-            self._so.gcom_newmission_set(WaypointQueue(remaining.copy()))
-
-            return "ok", 200
-            
-
-        @app.route("/append", methods=['POST'])
-        def append_wp():
-            payload = request.get_json()
-
-            if not('latitude' in payload) or not('longitude' in payload):
-                return "Latitude and Longitude cannot be null", 400
 
             ret: Status = self._so.get_status()
             last_altitude = ret._alt if ret != () else 50
 
-            wp = Waypoint(0, payload['name'], payload['latitude'], payload['longitude'], last_altitude)
-            self._so.append_wp_set(wp)
+            # gets new waypoints
+            new_waypoints = []
+            for wpdict in payload:
+                altitude = wpdict.get('altitude')
+                if altitude != None:
+                    last_altitude = altitude
+                else:
+                    altitude = last_altitude
+
+                command = wpdict.get('command', "WAYPOINT") 
+                # converts any unknown waypoint types to WAYPOINT
+                command = command_int_to_string(command_string_to_int(command))
+
+                param1 = wpdict.get('param1', 0)
+                param2 = wpdict.get('param2', 0)
+                param3 = wpdict.get('param3', 0)
+                param4 = wpdict.get('param4', 0)
+                
+                wp = Waypoint(wpdict['id'], wpdict['name'], wpdict['latitude'], wpdict['longitude'], last_altitude, 
+                              command, param1, param2, param3, param4)
+                new_waypoints.append(wp)
+            
+            # insert new waypoints start at index
+            self._so.gcom_newinsert_set(WaypointQueue(new_waypoints.copy()))
+            copy = WaypointQueue(new_waypoints.copy()).aslist()
+            new_waypoints.clear()
 
             return "ok", 200
         
@@ -211,23 +208,6 @@ class GCOM_Server():
             self._so.gcom_newhome_set(home)
 
             return "Setting New Home", 200
-        
-        # VTOL endpoints
-        @app.route("/vtol/transition", methods=["GET", "POST"])
-        def vtol_transition():
-            if request.method == "GET":
-                return json.dumps({'mode': self._so.mps_vtol_get()})
-            
-            elif request.method == "POST":
-                payload = request.get_json(silent=True)
-                mode = int(payload['mode'])
-                if mode == 3 or mode == 4:
-                    self._so.gcom_vtol_set(mode)
-                    return "Changing flight mode", 200
-                else:
-                    return "Invalid flight mode", 400
-            
-            return "Bad Request", 400
 
         # FENCE DIVERSION METHOD (BIG BOY)
         @app.route("/diversion", methods=["POST"])
@@ -393,7 +373,7 @@ class GCOM_Server():
             if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
                 self._so.flightmode_set(input['mode'])
                 return f"OK! Changed mode: {input['mode']}", 200
-            elif input['mode'] in ['vtol', 'plane']:
+            elif input['mode'] in ['copter', 'plane']:
                 print("changing mode")
                 self._so.flightConfig_set(input['mode'])
                 return f"OK! Changed mode: {input['mode']}", 200
