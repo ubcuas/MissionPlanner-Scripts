@@ -33,8 +33,6 @@ class SharedObject():
         # Takeoff fields
         self._takeoffalt = 0
         self._takeoffalt_lk = Lock()
-        self._takeoff_result_flag = False
-        self._takeoff_result = 0
 
         # New home fields
         self._newhome = {}
@@ -241,22 +239,6 @@ class SharedObject():
             return ret
         else:
             return 0
-        
-    def takeoff_set_result(self, result):
-        self._takeoffalt_lk.acquire()
-        self._takeoff_result_flag = True
-        self._takeoff_result = result
-        self._takeoffalt_lk.release()
-    
-    def takeoff_get_result(self):
-        if self._takeoff_result_flag:
-            self._takeoffalt_lk.acquire()
-            ret = self._takeoff_result
-            self._takeoff_result_flag = False
-            self._takeoffalt_lk.release()
-            return ret
-        else:
-            return None
     
     # New home methods
     def gcom_newhome_set(self, wp):

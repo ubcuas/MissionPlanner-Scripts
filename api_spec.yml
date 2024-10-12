@@ -130,9 +130,9 @@ paths:
                   format: float64
       responses:
         "200":
-          description: Successful operation
+          description: Takeoff command submitted successfully.
         "400":
-          description: Takeoff unsuccessful or motors disarmed
+          description: Takeoff command was invalid or unsuccessful.
   /rtl:
     get:
       tags:

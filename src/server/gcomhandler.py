@@ -187,16 +187,8 @@ class GCOM_Server():
             altitude = int(payload['altitude'])
             print(f"Taking off to altitude {altitude}")
             self._so.gcom_takeoffalt_set(altitude)
-
-            result = None 
-            while result == None:
-                result = self._so.takeoff_get_result()
-                time.sleep(0.05)
             
-            if result == 1:
-                return "Takeoff command received", 200
-            else:
-                return "Takeoff unsuccessful", 400
+            return "Takeoff command sent. You can check if the takeoff was successful by monitoring the altitude.", 200
 
         @app.route("/home", methods=["POST"])
         def home():

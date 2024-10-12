@@ -68,21 +68,10 @@ class MPS_Handler(socketserver.BaseRequestHandler):
                 print(f"{wp_list[i].get_coords_gps()} {wp_list[i].get_command()}")
 
             self.server._so.mps_currentmission_updatequeue(wp_list)
-        
-        elif data_type == b"ST": #successful takeoff
-            #first byte of payload is indicator
-            result = payload[0]
-            if result == 1:
-                #successful takeoff
-                print("Successful takeoff")
-            else:
-                #unsuccessful
-                print("Unsuccessful takeoff")
-            self.server._so.takeoff_set_result(result)
 
         elif data_type == b"SA": #successful arm
             #first byte of payload is indicator
-            result = payload[0]
+            result = int(payload[0])
             if result == 1:
                 print("Successful arm/disarm")
             else:

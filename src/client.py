@@ -63,6 +63,7 @@ def upload_mission(wp_array):
 
     Parameters:
         - wp_array: ordered list of waypoints (each waypoint is a tuple)
+        - each waypoint tuple is (lat, lng, alt, id, param 1, param 2, param 3, param 4)
     """
     #start = time.monotonic_ns()
 
@@ -239,7 +240,6 @@ while 1:
             if (len(argv) != 1):
                 print("TAKEOFF - invalid command")
 
-                rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
             else:
                 takeoffalt = float(argv[0])
                 # Set up takeoff waypoint
@@ -264,10 +264,8 @@ while 1:
                 if cs.mode == "AUTO":
                     #take off
                     print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
-                    rsock.sendto(bytes("ST1", 'utf-8'), (HOST, RPORT))
                 else:
                     print("TAKEOFF - ERROR, MODE NOT AUTO")
-                    rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
 
 
         elif cmd == "HOME":
