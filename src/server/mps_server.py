@@ -71,7 +71,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
         
         elif data_type == b"ST": #successful takeoff
             #first byte of payload is indicator
-            result = payload[0]
+            result = int(payload[0])
             if result == 1:
                 #successful takeoff
                 print("Successful takeoff")
@@ -82,7 +82,7 @@ class MPS_Handler(socketserver.BaseRequestHandler):
 
         elif data_type == b"SA": #successful arm
             #first byte of payload is indicator
-            result = payload[0]
+            result = int(payload[0])
             if result == 1:
                 print("Successful arm/disarm")
             else:

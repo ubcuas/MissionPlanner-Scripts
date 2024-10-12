@@ -239,12 +239,13 @@ while 1:
             if (len(argv) != 1):
                 print("TAKEOFF - invalid command")
 
-                rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("ST\x00", 'utf-8'), (HOST, RPORT))
             else:
                 takeoffalt = float(argv[0])
                 # Set up takeoff waypoint
                 # TODO: drone can't be in Auto on the ground when sending the initial takeoff mission - if it is, it won't take off
                 # Confirmed in SITL and live drone. We should switch the mode here to something safe. 'loiter'?
+                Script.ChangeMode("Loiter")
                 home = create_waypoint(lat = cs.lat, lng = cs.lng, alt = 0)
                 takeoff = create_waypoint(int(MAVLink.MAV_CMD.TAKEOFF), cs.lat, cs.lng, takeoffalt)
                 loiter_unlim = create_waypoint(int(MAVLink.MAV_CMD.LOITER_UNLIM), cs.lat, cs.lng, 0, p3 = 1)
@@ -264,10 +265,10 @@ while 1:
                 if cs.mode == "AUTO":
                     #take off
                     print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
-                    rsock.sendto(bytes("ST1", 'utf-8'), (HOST, RPORT))
+                    rsock.sendto(bytes("ST\x01", 'utf-8'), (HOST, RPORT))
                 else:
                     print("TAKEOFF - ERROR, MODE NOT AUTO")
-                    rsock.sendto(bytes("ST0", 'utf-8'), (HOST, RPORT))
+                    rsock.sendto(bytes("ST\x00", 'utf-8'), (HOST, RPORT))
 
 
         elif cmd == "HOME":
@@ -287,9 +288,9 @@ while 1:
                 time.sleep(0.1)
 
             if cs.armed == (int(argv[0]) == 1):
-                rsock.sendto(bytes("SA1", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("SA\x01", 'utf-8'), (HOST, RPORT))
             else:
-                rsock.sendto(bytes("SA0", 'utf-8'), (HOST, RPORT))
+                rsock.sendto(bytes("SA\x00", 'utf-8'), (HOST, RPORT))
 
         elif cmd == "RTL":
             rtl_altitude = float(argv[0]) * 100 #argv[0] (meters) -> RTL_ALT param (centimeters)
