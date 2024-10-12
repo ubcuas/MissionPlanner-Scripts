@@ -249,6 +249,19 @@ paths:
         "200":
           description: Diversion processed
   /flightmode:
+    get:
+      tags:
+        - options
+      summary: TODO
+      description: >-
+        TODO
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
     put:
       tags:
         - options
@@ -263,10 +276,45 @@ paths:
               properties:
                 mode:
                   type: string
-                  enum: ['copter', 'plane', 'loiter', 'stabilize', 'auto', 'guided']
+                  enum: ['loiter', 'stabilize', 'auto', 'guided']
       responses:
         "200":
           description: Operation processed
+        "400":
+          description: Unrecognized mode
+  /aircrafttype:
+    get:
+      tags:
+        - options
+      summary: TODO
+      description: >-
+        TODO
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: string
+                enum: ['copter', 'plane']
+    put:
+      tags:
+        - options
+      summary: TODO
+      description: >-
+        TODO
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  enum: ['copter', 'plane']
+      responses:
+        "200":
+          description: Operation processed``
         "400":
           description: Unrecognized mode
   /arm:
