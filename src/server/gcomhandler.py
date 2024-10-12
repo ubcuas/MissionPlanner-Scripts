@@ -194,7 +194,7 @@ class GCOM_Server():
                 time.sleep(0.05)
             
             if result == 1:
-                return "Takeoff command received", 200
+                return "Takeoff has begun", 200
             else:
                 return "Takeoff unsuccessful", 400
 

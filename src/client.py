@@ -138,7 +138,7 @@ while 1:
 
     cmd = argv.pop(0)
     
-    if cs.mode == 'MANUAL': # Safety Manual Mode Switch
+    if cs.mode == 'Manual': # Safety Manual Mode Switch
         print("Entered Manual Mode")
         break
     else:
@@ -258,11 +258,11 @@ while 1:
 
                 DELAY_SECONDS = 15
                 for i in range(0, DELAY_SECONDS * 10):
-                    if cs.mode == "AUTO":
+                    if cs.mode == "Auto":
                         break
                     time.sleep(0.1)
 
-                if cs.mode == "AUTO":
+                if cs.mode == "Auto":
                     #take off
                     print("TAKEOFF - takeoff to {:}m".format(takeoffalt))
                     rsock.sendto(bytes("ST\x01", 'utf-8'), (HOST, RPORT))
