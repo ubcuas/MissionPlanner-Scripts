@@ -3,11 +3,11 @@ import json
 from flask_socketio import SocketIO
 
 from server.operations.takeoff import takeoff
+from server.operations.queue import new_mission
 
 from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
-from server.common.sharedobject import SharedObject
 from server.common.encoders import command_string_to_int, command_int_to_string
 
 class HTTP_Server():
@@ -81,7 +81,7 @@ class HTTP_Server():
                               command, param1, param2, param3, param4)
                 wpq.append(wp)
             
-            # self._so.gcom_newmission_set(WaypointQueue(wpq.copy())) TODO replace with new mission call
+            new_mission(self.mav_connection, WaypointQueue(wpq.copy()))
             copy = WaypointQueue(wpq.copy()).aslist()
             wpq.clear()
 
@@ -117,7 +117,7 @@ class HTTP_Server():
                 new_waypoints.append(wp)
             
             # insert new waypoints start at index
-            #self._so.gcom_newinsert_set(WaypointQueue(new_waypoints.copy())) TODO replace with new mission operation call
+            new_mission(self.mav_connection, WaypointQueue(new_waypoints.copy()))
             copy = WaypointQueue(new_waypoints.copy()).aslist()
             new_waypoints.clear()
 
@@ -125,7 +125,7 @@ class HTTP_Server():
         
         @app.route("/clear", methods=['GET'])
         def get_clear_queue():
-            #self._so.gcom_newmission_set(WaypointQueue([])) #TODO set new empty mission
+            new_mission(self.mav_connection, WaypointQueue([]))
 
             return "Mission has been Cleared", 200
                 
