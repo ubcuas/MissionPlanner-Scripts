@@ -49,3 +49,6 @@ def takeoff(mav_connection, takeoff_altitude, tgt_sys_id: int = 1, tgt_comp_id: 
     print(f"Takeoff ACK:  {takeoff_msg}")
 
     return takeoff_msg.result
+
+def arm_disarm():
+    pass
