@@ -3,10 +3,15 @@
 ## Table of Contents
 
 1. [Instructions](#instructions)
-2. [Endpoints](#endpoints)
-3. [Sockets](#sockets)
+2. [Legacy Instructions](#legacy-instructions)
+3. [Endpoints](#endpoints)
+4. [Sockets](#sockets)
 
 ## Instructions
+
+### MAVProxy stuff here
+
+## Legacy Instructions
 
 ### SITL & MissionPlanner
 

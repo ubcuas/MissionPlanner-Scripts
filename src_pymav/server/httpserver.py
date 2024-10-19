@@ -2,8 +2,7 @@ from flask import Flask, request
 import json
 from flask_socketio import SocketIO
 
-import operations
-import operations.takeoff
+from server.operations.takeoff import takeoff
 
 class HTTP_Server():
     def __init__(self, mav_connection):
@@ -20,7 +19,7 @@ class HTTP_Server():
             return "Server Running", 200
         
         @app.route("/takeoff", methods=["POST"])
-        def takeoff():
+        def endpoint_takeoff():
             payload = request.get_json()
 
             if not('altitude' in payload):
@@ -29,16 +28,13 @@ class HTTP_Server():
             altitude = int(payload['altitude'])
             print(f"Taking off to altitude {altitude}")
             
-            operations.takeoff.takeoff(self.mav_connection, altitude)
-
-            # result = None 
-            # while result == None:
-            #     result = self._so.takeoff_get_result()
-            #     time.sleep(0.05)
-            result = 1
+            try:
+                result = takeoff(self.mav_connection, altitude)
+            except ValueError:
+                result = 1
             
-            if result == 1:
-                return "Takeoff command received", 200
+            if result == 0:
+                return "Takeoff command successful", 200
             else:
                 return "Takeoff unsuccessful", 400
         
