@@ -184,7 +184,7 @@ class HTTP_Server():
             altitude = request.get_json().get('altitude', 50)
 
             print(f"RTL at {altitude}")
-            #self._so.gcom_rtl_set(altitude) #TODO call into RTL operation
+            #self._so.gcom_rtl_set(altitude) #TODO call into change modes operation
 
             return "Returning to Launch", 200
         

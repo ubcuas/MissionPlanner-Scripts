@@ -3,7 +3,8 @@ from utilities.connect_to_sysid import connect_to_sysid
 from utilities.wait_for_position_aiding import wait_until_position_aiding
 from utilities.get_autopilot_info import get_autopilot_info
 
-def takeoff(mav_connection, takeoff_altitude, tgt_sys_id: int = 1, tgt_comp_id: int = 1):
+def takeoff(mav_connection: mavutil.mavlink_connection, takeoff_altitude, tgt_sys_id: int = 1, tgt_comp_id: int = 1) -> int:
+    # TODO: what's the difference between these tgt_sys_id and tgt_comp_id parameters, and mav_connection.target_system & mav_connection.target_component?
     print("Heartbeat from system (system %u component %u)" %
           (mav_connection.target_system, mav_connection.target_component))
 
@@ -50,5 +51,12 @@ def takeoff(mav_connection, takeoff_altitude, tgt_sys_id: int = 1, tgt_comp_id: 
 
     return takeoff_msg.result
 
-def arm_disarm():
-    pass
+def arm_disarm(mav_connection: mavutil.mavlink_connection, arm_disarm: bool) -> int:
+    
+    mav_connection.mav.command_long_send(mav_connection.target_system, mav_connection.target_component,
+                                         mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, 0, 1 if arm_disarm else 0, 0, 0, 0, 0, 0, 0)
+    
+    arm_msg = mav_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=3)
+    print(f"Arm ACK:  {arm_msg}")
+
+    return arm_msg.result

@@ -2,10 +2,24 @@ from pymavlink import mavutil
 
 from server.common.wpqueue import WaypointQueue, Waypoint
 
-def set_home():
-    pass
+def set_home(mavlink_connection: mavutil.mavlink_connection, latitude: float, longitude: float, altitude: float) -> int | None:
+    # Send a set home command
+    mavlink_connection.mav.command_long_send(
+        mavlink_connection.target_system,
+        mavlink_connection.target_component,
+        mavutil.mavlink.MAV_CMD_DO_SET_HOME,
+        0, 0, 0, 0, 0, latitude, longitude, altitude
+    )
 
-def new_mission(mavlink_connection: mavutil.mavlink_connection, waypoint_queue: WaypointQueue):
+    # Wait for the acknowledgment
+    ack = mavlink_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=5)
+    if ack is None:
+        print('No acknowledgment received within the timeout period.')
+        return None
+
+    return ack.result
+
+def new_mission(mavlink_connection: mavutil.mavlink_connection, waypoint_queue: WaypointQueue) -> bool:
     # Clear any existing mission from vehicle
     print('Clearing mission')
     mavlink_connection.mav.mission_clear_all_send(mavlink_connection.target_system, mavlink_connection.target_component)
