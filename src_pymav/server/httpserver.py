@@ -4,6 +4,7 @@ from flask_socketio import SocketIO
 
 from server.operations.takeoff import takeoff
 from server.operations.queue import new_mission
+from server.operations.get_info import get_status
 
 from server.common.conversion import *
 from server.common.wpqueue import WaypointQueue, Waypoint
@@ -130,14 +131,14 @@ class HTTP_Server():
             return "Mission has been Cleared", 200
                 
         @app.route("/status", methods=["GET"])
-        def get_status():
+        def get_status_handler():
             #TODO: ensure that the status has all the fields
             # ret: Status = self._so.get_status()
             # retJSON = json.dumps(ret.as_dictionary())
 
             # print("Status sent to GCOM")
-
-            return "", 200
+            s = get_status(self.mav_connection)
+            return s, 200
         
         @app.route("/takeoff", methods=["POST"])
         def post_takeoff():
