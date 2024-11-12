@@ -11,6 +11,8 @@ production = True
 HOST, PORT, SOCKET_PORT = "localhost", 9000, 9001
 STATUS_HOST, STATUS_PORT = "localhost", 1323
 DISABLE_STATUS = False
+MAVLINK_CONNECTION_STRING = 'udpin:localhost:5760'
+
 if __name__ == "__main__":
     # Extract arguments
     arguments = {}
@@ -42,10 +44,13 @@ if __name__ == "__main__":
 
     if '--disable-status' in arguments.keys():
         DISABLE_STATUS = True
+
+    if '--mavlink-conn' in arguments.keys():
+        MAVLINK_CONNECTION_STRING = arguments['--mavlink-conn'][0]
         
     print(f"Starting... HTTP server listening at {HOST}:{PORT}. " + ("" if DISABLE_STATUS else f"Status WS connecting to {STATUS_HOST}:{STATUS_PORT}."))
 
-    mav_connection = connect_to_sysid('udpin:localhost:5760', 1)
+    mav_connection = connect_to_sysid(MAVLINK_CONNECTION_STRING, 1)
 
     # Create server
     gcmh = HTTP_Server(mav_connection)
