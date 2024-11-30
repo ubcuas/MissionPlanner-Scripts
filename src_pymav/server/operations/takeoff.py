@@ -1,7 +1,7 @@
 from pymavlink import mavutil
-from utilities.connect_to_sysid import connect_to_sysid
-from utilities.wait_for_position_aiding import wait_until_position_aiding
-from utilities.get_autopilot_info import get_autopilot_info
+from server.utilities.connect_to_sysid import connect_to_sysid
+from server.utilities.wait_for_position_aiding import wait_until_position_aiding
+from server.utilities.get_autopilot_info import get_autopilot_info
 
 def takeoff(mav_connection: mavutil.mavlink_connection, takeoff_altitude, tgt_sys_id: int = 1, tgt_comp_id: int = 1) -> int:
     # TODO: what's the difference between these tgt_sys_id and tgt_comp_id parameters, and mav_connection.target_system & mav_connection.target_component?

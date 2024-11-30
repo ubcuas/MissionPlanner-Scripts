@@ -12,6 +12,8 @@ tags:
     description: Access to the waypoint queue
   - name: status
     description: Access to aircraft status
+  - name: feature
+    description: Access to competition-specific behaviour
   - name: takeoff
     description: Access to takeoff and arming motors
   - name: landing
@@ -307,6 +309,36 @@ paths:
       responses:
         "410":
           description: "UNIMPLEMENTED"
+  /aeac_scan:
+    post:
+      tags:
+        - feature
+      summary: Scan a circular target area in a spiral path.
+      description: >-
+        TODO
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                center_lat:
+                  type: number
+                  format: float64
+                center_lng:
+                  type: number
+                  format: float64
+                altitude:
+                  type: number
+                  format: float64
+                target_area_radius:
+                  type: number
+                  format: float64
+      responses:
+        "200":
+          description: "Scan Mission Set"
+        "400":
+          description: "Invalid input"
 components:
   schemas:
     Waypoint:
