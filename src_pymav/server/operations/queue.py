@@ -39,7 +39,7 @@ def new_mission(mavlink_connection: mavutil.mavlink_connection, waypoint_queue: 
     
     # Insert the rest of the waypoints
     for seq in range(1, len(waypoint_queue) + 1):
-        wp: Waypoint = WaypointQueue[seq - 1]
+        wp: Waypoint = waypoint_queue[seq - 1]
 
         wp_list.append(mavutil.mavlink.MAVLink_mission_item_int_message(
         mavlink_connection.target_system, mavlink_connection.target_component, seq, 

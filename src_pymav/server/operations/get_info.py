@@ -1,11 +1,11 @@
-from pymavlink import mavutil
+from pymavlink.mavutil import mavfile
 
 """
     Get current status of a drone
     Type of message can be found on https://mavlink.io/en/messages/common.html
 
 """
-def get_status(mav_connection) -> dict:
+def get_status(mav_connection: mavfile) -> dict:
     status = {}
     # This doesn't seems to get all message
     # status_msg = mav_connection.recv_match(type=['GLOBAL_POSITION_INT', 'ATTITUDE', 'VFR_HUD', 'SYS_STATUS'], blocking=True)

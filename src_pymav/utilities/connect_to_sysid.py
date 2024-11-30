@@ -1,7 +1,8 @@
 from pymavlink import mavutil
+from pymavlink.mavutil import mavfile
 import time
 
-def connect_to_sysid(connection_str : str, sysid : int, timeout: float = 3) -> any:
+def connect_to_sysid(connection_str : str, sysid : int, timeout: float = 3) -> mavfile:
     """
     connect_to_sysid connects to a mavlink stream with a specific sysid
 
