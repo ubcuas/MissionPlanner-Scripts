@@ -79,7 +79,7 @@ class WaypointQueue(Queue):
     
     def __getitem__(self, key) -> Waypoint:
         return self._list.__getitem__(key)
-    
+
     def aslist(self):
         return self._list.copy()
 

@@ -2,7 +2,7 @@ import sys
 #from multiprocessing import Process
 from threading import Thread
 
-from utilities.connect_to_sysid import connect_to_sysid
+from server.utilities.connect_to_sysid import connect_to_sysid
 
 from server.httpserver import HTTP_Server
 
@@ -11,7 +11,7 @@ production = True
 HOST, PORT, SOCKET_PORT = "localhost", 9000, 9001
 STATUS_HOST, STATUS_PORT = "localhost", 1323
 DISABLE_STATUS = False
-MAVLINK_CONNECTION_STRING = 'udpin:localhost:5760'
+MAVLINK_CONNECTION_STRING = 'udpin:localhost:14551'
 
 if __name__ == "__main__":
     # Extract arguments
@@ -51,6 +51,10 @@ if __name__ == "__main__":
     print(f"Starting... HTTP server listening at {HOST}:{PORT}. " + ("" if DISABLE_STATUS else f"Status WS connecting to {STATUS_HOST}:{STATUS_PORT}."))
 
     mav_connection = connect_to_sysid(MAVLINK_CONNECTION_STRING, 1)
+    if mav_connection == None:
+        print(f"MAV connection failed")
+    else:
+        print(f"MAV connection successful")
 
     # Create server
     gcmh = HTTP_Server(mav_connection)

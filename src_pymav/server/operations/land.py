@@ -1,8 +1,6 @@
 from pymavlink import mavutil
 
 def land_in_place(mavlink_connection: mavutil.mavlink_connection, timeout: int = 10) -> int | None:
-    # TODO : blocked until we can retrieve the current position
-
     # Send a land command
     mavlink_connection.mav.command_long_send(
         mavlink_connection.target_system,

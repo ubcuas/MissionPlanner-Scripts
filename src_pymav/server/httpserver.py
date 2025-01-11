@@ -8,6 +8,8 @@ from server.operations.queue import new_mission
 from server.operations.get_info import get_status
 from server.operations.change_modes import change_flight_mode
 
+from server.features.aeac_scan import scan_area
+
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.encoders import command_string_to_int, command_int_to_string
@@ -269,5 +271,20 @@ class HTTP_Server:
             #     return f"OK! Changed mode: {input['mode']}", 200
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
+            
+        @app.route("/aeac_scan", methods=["POST"])
+        def generate_scan_points():
+            input = request.get_json()
+
+            # TODO Trigger CameraVision system to begin scanning
+            if (input["center_lat"] and input["center_lng"] and
+                input["altitude"] and input["target_area_radius"]):
+                wpq = scan_area(center_lat=input["center_lat"], center_lng=input["center_lng"],
+                            altitude=input["altitude"], target_area_radius=input["target_area_radius"])
+                new_mission(self.mav_connection, wpq)
+                return f"Scan Mission Set", 200
+            else:
+                return f"Invalid input, missing a parameter.", 400
+
 
         socketio.run(app, host="0.0.0.0", port=PORT, debug=True, use_reloader=False)
