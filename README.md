@@ -38,18 +38,29 @@ following:
 
 ### Mavproxy
 
-Refer to [Mavproxy documentation](https://ardupilot.org/mavproxy/docs/getting_started/download_and_installation.html#updating) for installation instruction (Installing via pip is recommended).
+Refer to [Mavproxy documentation](https://ardupilot.org/mavproxy/docs/getting_started/download_and_installation.html#updating) for installation instruction (Installing via pip is recommended for Linux systems. Windows installations must use the installer.).
 
-Running mavproxy
+#### Running Mavproxy
+
+Linux:
+
 ```c
 mavproxy.py --master=tcp:127.0.0.1:5760 --out=udp:172.25.32.1:14550 --out=udp:127.0.0.1:14551
 ```
+
+Windows:
+
+```c
+mavproxy --master=tcp:127.0.0.1:5760 --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551
+```
+
 > [!NOTE]
 > Change the IP address according to your networking setup.
 > In the example command, we're running Docker, Mission Planner Script, and mavproxy inside WSL2 with Mission Planner on the host Windows machine. Therefore, I set master to connect to the SITL container and output to another localhost port for Mission Planner Script (pymavlink) to connect to and another output to the IP of Windows host machine.
 > If using WSL2, get the IP of host machine using `ip route show default`
+> If using Windows, make sure to run mavproxy as an Administrator.
 
-When running mavproxy, point master to the SITL instance connection and specify 2 output, one for connecting with Mission Planner for visualization and one to interface with pymavlink. 
+When running mavproxy, point master to the SITL instance connection and specify 2 outputs, one for connecting with Mission Planner for visualization and one to interface with pymavlink.
 
 ### Using MissionPlanner-Scripts
 

@@ -5,7 +5,7 @@ from server.common.conversion import *
 from server.common.wpqueue import Waypoint, WaypointQueue
 
 # ALL UNITS IN METERS UNLESS SPECIFIED
-
+SPLINE_WAYPOINT_TYPE = "SPLINE_WAYPOINT"
 TURNING_RADIUS = 20
 EARTH_RADIUS = 6378 * 1000 # 6378 km
 
@@ -51,7 +51,7 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
     print(scan_radius)
     
     # go to center waypoint (with generous slack)
-    wpq.push(Waypoint(0, "", center_lat, center_lng, altitude))
+    wpq.push(Waypoint(0, "", center_lat, center_lng, altitude, command=SPLINE_WAYPOINT_TYPE))
     count += 1
     record.append((center_we, center_sn))
     # # wpq.append((0, "", center_lat, center_lng, altitude))
@@ -86,15 +86,15 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
         # place waypoint
         record.append((center_we + current_radius * math.cos(current_angle), center_sn + current_radius * math.sin(current_angle)))
         tmp_lat, tmp_lng = convert_utm_to_gps(center_we + current_radius * math.cos(current_angle), center_sn + current_radius * math.sin(current_angle), zone, hemisphere)
-        wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
+        wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude, command=SPLINE_WAYPOINT_TYPE, p2=2))
         count += 1
     
-    plot_shape(record, color="green", close_loop=False, scatter=True)
+    # plot_shape(record, color="green", close_loop=False, scatter=True)
     # plot_shape([(wp._lng, wp._lat) for wp in wpq.aslist()], color="blue", close_loop=False, scatter=True)
-    plt.grid()
-    ax = plt.gca()
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
+    # plt.grid()
+    # ax = plt.gca()
+    # ax.set_aspect('equal', adjustable='box')
+    # plt.show()
 
     return wpq
     

@@ -74,6 +74,12 @@ class Queue():
         return self._list.pop(0)
 
 class WaypointQueue(Queue):
+    def __len__(self):
+        return len(self._list)
+    
+    def __getitem__(self, key) -> Waypoint:
+        return self._list.__getitem__(key)
+
     def aslist(self):
         return self._list.copy()
 

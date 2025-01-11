@@ -1,8 +1,9 @@
 from pymavlink import mavutil
 
 from server.common.wpqueue import WaypointQueue, Waypoint
+from server.common.encoders import command_string_to_int, command_int_to_string
 
-def set_home(mavlink_connection: mavutil.mavlink_connection, latitude: float, longitude: float, altitude: float) -> int | None:
+def set_home(mavlink_connection: mavutil.mavlink_connection, latitude: float, longitude: float, altitude: float): # -> int | None:
     # Send a set home command
     mavlink_connection.mav.command_long_send(
         mavlink_connection.target_system,
@@ -39,13 +40,13 @@ def new_mission(mavlink_connection: mavutil.mavlink_connection, waypoint_queue: 
     
     # Insert the rest of the waypoints
     for seq in range(1, len(waypoint_queue) + 1):
-        wp: Waypoint = WaypointQueue[seq - 1]
+        wp: Waypoint = waypoint_queue[seq - 1]
 
         wp_list.append(mavutil.mavlink.MAVLink_mission_item_int_message(
         mavlink_connection.target_system, mavlink_connection.target_component, seq, 
-        0, wp._com, 0, 1, 
+        0, command_string_to_int(wp._com), 0, 1, 
         float(wp._param1), float(wp._param2), float(wp._param3), 
-        float(wp._param4), int(wp._lat), int(wp._lng), 
+        float(wp._param4), int(wp._lat * 10000000), int(wp._lng * 10000000), 
         int(wp._alt)
     ))
 

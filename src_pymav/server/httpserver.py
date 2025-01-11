@@ -279,7 +279,7 @@ class HTTP_Server:
             # TODO Trigger CameraVision system to begin scanning
             if (input["center_lat"] and input["center_lng"] and
                 input["altitude"] and input["target_area_radius"]):
-                wpq = scan_area(center_lat=["center_lat"], center_lng=input["center_lng"],
+                wpq = scan_area(center_lat=input["center_lat"], center_lng=input["center_lng"],
                             altitude=input["altitude"], target_area_radius=input["target_area_radius"])
                 new_mission(self.mav_connection, wpq)
                 return f"Scan Mission Set", 200
