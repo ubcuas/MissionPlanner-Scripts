@@ -229,7 +229,7 @@ class HTTP_Server:
         @app.route("/land", methods=["POST"])
         def post_land():
             land = request.get_json()
-            if not "latitude" in land or not "longitude" in land:
+            if "latitude" not in land or "longitude" not in land:
                 return "Latitude and Longitude cannot be null", 400
 
             # self._so.land_at_pos_set(land) #TODO call into landing procedure
@@ -255,20 +255,15 @@ class HTTP_Server:
         def put_flight_mode():
             input = request.get_json()
 
-            # if input['mode'] in ['loiter', 'stabilize', 'auto', 'guided']:
-            # TODO: support loiter
-            if input["mode"] in ["stabilize", "auto", "guided"]:
-                change_flight_mode(
-                    self.mav_connection,
-                    self.mav_connection.target_system,
-                    self.mav_connection.target_component,
-                    input["mode"],
-                )
+            success = change_flight_mode(
+                self.mav_connection,
+                self.mav_connection.target_system,
+                self.mav_connection.target_component,
+                input["mode"],
+            )
+
+            if success:
                 return f"OK! Changed mode: {input['mode']}", 200
-            # elif input["mode"] in ["copter", "plane"]:
-            #     print("changing mode")
-            #     # self._so.flightConfig_set(input['mode']) # TODO call into operation
-            #     return f"OK! Changed mode: {input['mode']}", 200
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
             
