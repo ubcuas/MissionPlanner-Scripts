@@ -33,6 +33,7 @@ def change_flight_mode(
 
 
 def change_aircraft_type(mav_connection: mavfile):
+    # TODO investigate whether to deprecate
     pass
 
 def verify_ack(mavlink_connection: mavfile, error_msg: str) -> bool:

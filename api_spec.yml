@@ -265,7 +265,7 @@ paths:
               properties:
                 mode:
                   type: string
-                  enum: ['copter', 'plane', 'loiter', 'stabilize', 'auto', 'guided']
+                  enum: ['loiter', 'stabilize', 'auto', 'guided']
       responses:
         "200":
           description: Operation processed

@@ -138,12 +138,14 @@ following:
 2. Launch the application:
 
     On Windows (Powershell)
-    ```
+
+    ```c
     poetry run python .\src\main.py
     ```
 
     On MacOS
-    ```
+
+    ```c
     poetry run python src/main.py
     ```
 
@@ -160,11 +162,11 @@ following:
 To run tests, you must have the Docker image running (uasitl:copter).
 Then, enter the src directory and run the `pytest` command via Poetry:
 
-```
+```c
     cd src
 ```
 
-```
+```c
     poetry run pytest
 ```
 
