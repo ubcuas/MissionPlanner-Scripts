@@ -3,10 +3,11 @@ from flask_socketio import SocketIO
 
 from pymavlink.mavutil import mavfile
 
-from server.operations.takeoff import takeoff
-from server.operations.queue import new_mission
+from server.operations.takeoff import takeoff, arm_disarm
+from server.operations.queue import new_mission, set_home
 from server.operations.get_info import get_status
 from server.operations.change_modes import change_flight_mode
+from server.operations.land import land_in_place, land_at_position
 
 from server.features.aeac_scan import scan_area
 
@@ -31,7 +32,10 @@ class HTTP_Server:
 
         @app.route("/queue", methods=["GET"])
         def get_queue():
-            # TODO: notes for refactor
+            # TODO: 
+            # BLOCKED by the need to get the current waypoint number from status
+            # 
+            # notes for refactor
             # works by reading the entire queue, and also reading
             # the current waypoint we are on (a part of status)
             # returns only the waypoints we have left in the mission,
@@ -61,9 +65,8 @@ class HTTP_Server:
         def post_queue():
             payload = request.get_json()
 
-            # ret: Status = self._so.get_status() TODO replace with status call
-            ret = {}
-            last_altitude = ret.get("alt", 50)
+            ret = get_status(self.mav_connection)
+            last_altitude = ret.as_dictionary().get("altitude", 50)
 
             wpq = []
             for wpdict in payload:
@@ -156,11 +159,7 @@ class HTTP_Server:
 
         @app.route("/status", methods=["GET"])
         def get_status_handler():
-            # TODO: ensure that the status has all the fields
-            # ret: Status = self._so.get_status()
-            # retJSON = json.dumps(ret.as_dictionary())
-
-            # print("Status sent to GCOM")
+            print("Status sent to GCOM")
             s = get_status(self.mav_connection)
             return s, 200
 
@@ -189,14 +188,15 @@ class HTTP_Server:
             input = request.get_json()
 
             if input["arm"] in [1, 0]:
-                print(f"arming {int(input['arm'])}")
-                # self._so.arm_set(int(input['arm']))
+                arm = bool(input['arm'])
 
-                # result = None
-                # while result == None:
-                #     result = self._so.arm_get_result()
-                #     time.sleep(0.05)
-                result = 0  # TODO change to arm operation call
+                print("ARMING drone" if arm else "DISARMING drone")
+                
+                result = arm_disarm(self.mav_connection, arm)
+
+                # TODO test and then do processing on result
+                result = 0 # TODO TEMPORARY - always return failure for now
+
                 if result == 1:
                     return (
                         f"OK! {'Armed drone' if input['arm'] else 'Disarmed drone'}",
@@ -215,15 +215,15 @@ class HTTP_Server:
             altitude = request.get_json().get("altitude", 50)
 
             print(f"RTL at {altitude}")
-            # self._so.gcom_rtl_set(altitude) #TODO call into change modes operation
+            # self._so.gcom_rtl_set(altitude) # TODO create RTL operation
 
             return "Returning to Launch", 200
 
         @app.route("/land", methods=["GET"])
         def get_land():
             print("Landing")
-            # self._so.flightmode_set("loiter")
-            # self._so.gcom_landing_set(True) #TODO replace with landing procedure
+            change_flight_mode("LOITER")
+            land_in_place(self.mav_connection)
             return "Landing Immediately", 200
 
         @app.route("/land", methods=["POST"])
@@ -232,13 +232,13 @@ class HTTP_Server:
             if "latitude" not in land or "longitude" not in land:
                 return "Latitude and Longitude cannot be null", 400
 
-            # self._so.land_at_pos_set(land) #TODO call into landing procedure
+            land_at_position(self.mav_connection, land.get("latitude"), land.get("longitude"))
 
             return "Landing at Specified Location", 200
 
         @app.route("/home", methods=["POST"])
         def post_home():
-            home = request.get_json()
+            home: dict = request.get_json()
 
             if (
                 "longitude" not in home
@@ -247,7 +247,7 @@ class HTTP_Server:
             ):
                 return "Long/lat/alt cannot be null", 400
 
-            # #self._so.gcom_newhome_set(home) TODO call into set new home operation
+            set_home(self.mav_connection, home.get("latitude"), home.get("longitude"), home.get("altitude"))
 
             return "Setting New Home", 200
 

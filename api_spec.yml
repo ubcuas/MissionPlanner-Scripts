@@ -276,6 +276,10 @@ paths:
       tags:
         - takeoff
       summary: Arm or disarm the motors. Take care.
+      description: >-
+        Call this endpoint to arm or disarm the drone.
+        A value of True in the payload will arm the drone, while False will disarm the drone.
+        If the request returns 200, the drone will be in the requested state.
       requestBody:
         content:
           application/json:
@@ -283,8 +287,7 @@ paths:
               type: object
               properties:
                 arm:
-                  type: integer
-                  enum: [0, 1]
+                  type: boolean
       responses:
         "200":
           description: Arm/disarm successful.
