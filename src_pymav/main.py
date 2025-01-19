@@ -3,6 +3,7 @@ import sys
 from threading import Thread
 
 from server.utilities.connect_to_sysid import connect_to_sysid
+from server.utilities.request_message_streaming import set_message_streaming_rates
 
 from server.httpserver import HTTP_Server
 
@@ -55,6 +56,8 @@ if __name__ == "__main__":
         print(f"MAV connection failed")
     else:
         print(f"MAV connection successful")
+    
+    # set_message_streaming_rates(mav_connection) # optional - set update rate (applies to both MissionPlanner and this server)
 
     # Create server
     gcmh = HTTP_Server(mav_connection)

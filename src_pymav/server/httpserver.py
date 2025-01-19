@@ -160,7 +160,7 @@ class HTTP_Server:
         @app.route("/status", methods=["GET"])
         def get_status_handler():
             print("Status sent to GCOM")
-            s = get_status(self.mav_connection)
+            s = get_status(self.mav_connection).as_dictionary()
             return s, 200
 
         @app.route("/takeoff", methods=["POST"])
@@ -194,10 +194,7 @@ class HTTP_Server:
                 
                 result = arm_disarm(self.mav_connection, arm)
 
-                # TODO test and then do processing on result
-                result = 0 # TODO TEMPORARY - always return failure for now
-
-                if result == 1:
+                if result == 0:
                     return (
                         f"OK! {'Armed drone' if input['arm'] else 'Disarmed drone'}",
                         200,
