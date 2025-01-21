@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request
 from flask_socketio import SocketIO
 
@@ -5,7 +6,7 @@ from pymavlink.mavutil import mavfile
 
 from server.operations.takeoff import takeoff, arm_disarm
 from server.operations.queue import new_mission, set_home
-from server.operations.get_info import get_status
+from server.operations.get_info import get_status, get_current_mission
 from server.operations.change_modes import change_flight_mode
 from server.operations.land import land_in_place, land_at_position
 
@@ -32,34 +33,21 @@ class HTTP_Server:
 
         @app.route("/queue", methods=["GET"])
         def get_queue():
-            # TODO: 
-            # BLOCKED by the need to get the current waypoint number from status
-            # 
-            # notes for refactor
-            # works by reading the entire queue, and also reading
-            # the current waypoint we are on (a part of status)
-            # returns only the waypoints we have left in the mission,
-            # not the ones already traveled to
+            curr = get_status(self.mav_connection)._wpn 
+            wpq = get_current_mission(self.mav_connection)
 
-            # self._so.gcom_currentmission_trigger_update()
-            # while self._so._currentmission_flg_ready == False:
-            #     #time.sleep(0.01)
-            #     pass
+            formatted = []
+            for wp in wpq:
+                wp_dict = wp.get_asdict()
+                wp_dict.update(wp.get_command())
 
-            # ret = self._so.gcom_currentmission_get() # This is a dict of wpq (hopefully)
-            # formatted = []
-            # for wp in ret:
-            #     wp_dict = wp.get_asdict()
-            #     wp_dict.update(wp.get_command())
-            #     formatted.append(wp_dict)
+                formatted.append(wp_dict)
+            
+            remaining = json.dumps(formatted[curr - 1:])
 
-            # wpno = int(self._so.get_status()._wpn)
-            # remaining = formatted[wpno-1:]
-            # retJSON = json.dumps(remaining) # This should convert the dict to JSON
+            print("Queue sent to GCOM")
 
-            # print("Queue sent to GCOM")
-
-            return "", 200
+            return remaining, 200
 
         @app.route("/queue", methods=["POST"])
         def post_queue():
@@ -99,17 +87,20 @@ class HTTP_Server:
                 )
                 wpq.append(wp)
 
-            new_mission(self.mav_connection, WaypointQueue(wpq.copy()))
+            success = new_mission(self.mav_connection, WaypointQueue(wpq.copy()))
             copy = WaypointQueue(wpq.copy()).aslist()
             wpq.clear()
 
-            return "ok", 200
+            if success:
+                return "ok", 200
+            else:
+                return "Error uploading mission", 400
 
         @app.route("/insert", methods=["POST"])
         def post_insert_wp():
             payload = request.get_json()
 
-            ret: Status = self._so.get_status()
+            ret: Status = get_status(self.mav_connection)
             last_altitude = ret._alt if ret != () else 50
 
             # gets new waypoints

@@ -154,8 +154,8 @@ def request_messages(connection, message_types: list) -> bool:
             0,       # param3 (unused)
             0,       # param4 (unused)
             0,       # param5 (unused)
-            0,       # param5 (unused)
-            0        # param6 (unused)
+            0,       # param6 (unused)
+            0        # param7: Response Target (0 - default, 1 - requestor, 2 - broadcast)
         )
         
         connection.mav.send(message)
