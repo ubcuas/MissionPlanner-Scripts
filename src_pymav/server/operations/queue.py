@@ -93,10 +93,19 @@ def verify_ack(mavlink_connection: mavutil.mavlink_connection, error_msg: str) -
     """
     ack = mavlink_connection.recv_match(type='MISSION_ACK', blocking=True, timeout=3)
     print(ack)
-    if ack.type != 0:
+    if ack is None or ack.type != 0:
         print(f'{error_msg}: {ack.type}')
         return False
     return True
+
+def clear_mission(mavlink_connection: mavutil.mavlink_connection) -> bool:
+    mavlink_connection.mav.mission_clear_all_send(
+        mavlink_connection.target_system,
+        mavlink_connection.target_component,
+        mavutil.mavlink.MAV_MISSION_TYPE_MISSION
+    )
+
+    return verify_ack(mavlink_connection, "")
 
 def insert_wp():
     pass

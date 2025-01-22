@@ -5,7 +5,7 @@ from flask_socketio import SocketIO
 from pymavlink.mavutil import mavfile
 
 from server.operations.takeoff import takeoff, arm_disarm
-from server.operations.queue import new_mission, set_home
+from server.operations.queue import new_mission, set_home, clear_mission
 from server.operations.get_info import get_status, get_current_mission
 from server.operations.change_modes import change_flight_mode
 from server.operations.land import land_in_place, land_at_position
@@ -43,7 +43,7 @@ class HTTP_Server:
 
                 formatted.append(wp_dict)
             
-            remaining = json.dumps(formatted[curr - 1:])
+            remaining = json.dumps(formatted[curr:])
 
             print("Queue sent to GCOM")
 
@@ -144,9 +144,12 @@ class HTTP_Server:
 
         @app.route("/clear", methods=["GET"])
         def get_clear_queue():
-            new_mission(self.mav_connection, WaypointQueue([]))
+            result = clear_mission(self.mav_connection)
 
-            return "Mission has been Cleared", 200
+            if result:
+                return "Mission has been Cleared", 200
+            else:
+                return "Failed to clear mission", 400
 
         @app.route("/status", methods=["GET"])
         def get_status_handler():

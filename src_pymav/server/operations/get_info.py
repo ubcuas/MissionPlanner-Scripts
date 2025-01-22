@@ -108,7 +108,7 @@ def get_current_mission(mav_connection: mavutil.mavfile) -> WaypointQueue:
         if msg and msg.get_type() != "BAD_DATA":
             # print(f"Recieved the {current}th Mission Item: {msg}")
         
-            ret.push(Waypoint(0, f"Mission Waypoint {msg.seq}", 
+            ret.push(Waypoint(0, f"Mission Waypoint {msg.seq}" if msg.seq != 0 else "Home Waypoint", 
                             msg.x / 10000000,
                             msg.y / 10000000,
                             msg.z,
