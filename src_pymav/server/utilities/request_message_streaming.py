@@ -165,3 +165,41 @@ def request_messages(connection, message_types: list) -> bool:
             print(f"Request for Message of type {message_type} ACCEPTED")
         else:
             print(f"Request for Message of type {message_type} DENIED")
+
+
+def set_parameter(connection, param_id, param_value) -> bool:
+    param_id = bytes(param_id, "ascii")
+    # obtain parameter type
+    connection.mav.param_request_read_send(
+        connection.target_system,
+        connection.target_component,
+        param_id,
+        -1
+    )
+
+    param_value_msg = connection.recv_match(type='PARAM_VALUE', blocking=True, timeout=3)
+    print(param_value_msg)
+
+    if param_value_msg is None:
+        return False
+    before = param_value_msg.param_value
+    param_type = param_value_msg.param_type
+
+    connection.mav.param_set_send(
+        connection.target_system,
+        connection.target_component,
+        param_id,
+        param_value,
+        param_type
+    )
+
+    param_value_msg = connection.recv_match(type='PARAM_VALUE', blocking=True, timeout=3)
+    print(param_value_msg)
+
+    if param_value_msg is None:
+        return False
+    after = param_value_msg.param_value
+
+    print(f"Value of parameter {param_id} changed from {before} to {after}")
+    
+    return before != after and after == param_value

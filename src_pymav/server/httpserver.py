@@ -12,6 +12,8 @@ from server.operations.land import land_in_place, land_at_position
 
 from server.features.aeac_scan import scan_area
 
+from server.utilities.request_message_streaming import set_parameter
+
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.encoders import command_string_to_int, command_int_to_string
@@ -204,12 +206,30 @@ class HTTP_Server:
 
         @app.route("/rtl", methods=["GET", "POST"])
         def get_post_rtl():
-            altitude = request.get_json().get("altitude", 50)
+            if request.method == "GET":
+                altitude = 50
+            else:
+                altitude = request.get_json().get("altitude", 50)
 
             print(f"RTL at {altitude}")
-            # self._so.gcom_rtl_set(altitude) # TODO create RTL operation
+            
+            # set RTL altitude parameter
+            alt_cm = altitude * 100
 
-            return "Returning to Launch", 200
+            if not set_parameter(self.mav_connection, "RTL_ALT", alt_cm):
+                return "Failed to set RTL altitude parameter", 400
+
+            success = change_flight_mode(
+                self.mav_connection,
+                self.mav_connection.target_system,
+                self.mav_connection.target_component,
+                "RTL",
+            )
+
+            if success:
+                return "Returning to Launch", 200
+            else:
+                return "Failed to RTL", 400
 
         @app.route("/land", methods=["GET"])
         def get_land():
