@@ -224,11 +224,18 @@ class HTTP_Server:
 
         @app.route("/land", methods=["POST"])
         def post_land():
+            # land_at_position does not seem to work for a copter
+            # land_at_position(self.mav_connection, land.get("latitude"), land.get("longitude")) == 0:
+
             land = request.get_json()
             if "latitude" not in land or "longitude" not in land:
                 return "Latitude and Longitude cannot be null", 400
+            
+            landing_mission = WaypointQueue()
+            landing_mission.push(Waypoint(0, "Approach", land.get('latitude'), land.get('longitude'), land.get('altitude', 35)))
+            landing_mission.push(Waypoint(1, "Landing", land.get('latitude'), land.get('longitude'), 0, "LAND"))
 
-            if land_at_position(self.mav_connection, land.get("latitude"), land.get("longitude")) == 0:
+            if new_mission(self.mav_connection, landing_mission):
                 return "Landing at Specified Location", 200
             else:
                 return "Landing failed", 400

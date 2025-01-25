@@ -193,7 +193,8 @@ paths:
         - landing 
       summary: land at designated location
       description: >-
-        Land at the location in the request.
+        Land at the location in the request, approaching at the altitude specified in the request body
+        before descending to the ground.
       requestBody:
         content:
           application/json:
