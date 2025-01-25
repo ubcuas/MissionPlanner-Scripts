@@ -1,6 +1,7 @@
 from pymavlink import mavutil
 
-def land_in_place(mavlink_connection: mavutil.mavlink_connection, timeout: int = 10) -> int | None:
+# return value of 0 indicates success
+def land_in_place(mavlink_connection: mavutil.mavlink_connection, timeout: int = 10) -> int:
     # Send a land command
     mavlink_connection.mav.command_long_send(
         mavlink_connection.target_system,
@@ -13,11 +14,12 @@ def land_in_place(mavlink_connection: mavutil.mavlink_connection, timeout: int =
     ack = mavlink_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=timeout)
     if ack is None:
         print('No acknowledgment received within the timeout period.')
-        return None
+        return -1
 
     return ack.result
 
-def land_at_position(mavlink_connection: mavutil.mavlink_connection, latitude: float, longitude: float, timeout: int = 10) -> int | None:
+# return value of 0 indicates success
+def land_at_position(mavlink_connection: mavutil.mavlink_connection, latitude: float, longitude: float, timeout: int = 10) -> int:
     # Send a land command
     mavlink_connection.mav.command_long_send(
         mavlink_connection.target_system,
@@ -30,6 +32,8 @@ def land_at_position(mavlink_connection: mavutil.mavlink_connection, latitude: f
     ack = mavlink_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=timeout)
     if ack is None:
         print('No acknowledgment received within the timeout period.')
-        return None
+        return -1
+
+    print(f"land at position command ack: {ack}")
 
     return ack.result

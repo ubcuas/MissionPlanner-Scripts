@@ -34,14 +34,13 @@ def takeoff(mav_connection: mavutil.mavlink_connection, takeoff_altitude, tgt_sy
                                 0, mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, mode_id, 0, 0, 0, 0, 0)
     ack_msg = mav_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=3)
     print(f"Change Mode ACK:  {ack_msg}")
+    if ack_msg.result != 0:
+        return ack_msg.result
 
     # Arm the UAS
-    mav_connection.mav.command_long_send(tgt_sys_id, tgt_comp_id,
-                                         mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, 0, 1, 0, 0, 0, 0, 0, 0)
-
-    arm_msg = mav_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=3)
-    print(f"Arm ACK:  {arm_msg}")
-
+    if arm_disarm(mav_connection, True) != 0:
+        return 1
+    
     # Command Takeoff
     mav_connection.mav.command_long_send(tgt_sys_id, tgt_comp_id,
                                          mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, takeoff_params[0], takeoff_params[1], takeoff_params[2], takeoff_params[3], takeoff_params[4], takeoff_params[5], takeoff_params[6])

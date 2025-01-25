@@ -136,7 +136,8 @@ class HTTP_Server:
                 new_waypoints.append(wp)
 
             # insert new waypoints start at index
-            new_mission(self.mav_connection, WaypointQueue(new_waypoints.copy()))
+            if new_mission(self.mav_connection, WaypointQueue(new_waypoints.copy())) != 0:
+                return "Failed to set new mission", 400
             copy = WaypointQueue(new_waypoints.copy()).aslist()
             new_waypoints.clear()
 
@@ -213,9 +214,13 @@ class HTTP_Server:
         @app.route("/land", methods=["GET"])
         def get_land():
             print("Landing")
-            change_flight_mode("LOITER")
-            land_in_place(self.mav_connection)
-            return "Landing Immediately", 200
+            if not change_flight_mode(self.mav_connection, "LOITER"):
+                return "Failed to set drone into LOITER mode", 400
+
+            if land_in_place(self.mav_connection) == 0:
+                return "Landing Immediately", 200
+            else:
+                return "Landing failed", 400
 
         @app.route("/land", methods=["POST"])
         def post_land():
@@ -223,9 +228,10 @@ class HTTP_Server:
             if "latitude" not in land or "longitude" not in land:
                 return "Latitude and Longitude cannot be null", 400
 
-            land_at_position(self.mav_connection, land.get("latitude"), land.get("longitude"))
-
-            return "Landing at Specified Location", 200
+            if land_at_position(self.mav_connection, land.get("latitude"), land.get("longitude")) == 0:
+                return "Landing at Specified Location", 200
+            else:
+                return "Landing failed", 400
 
         @app.route("/home", methods=["POST"])
         def post_home():
@@ -238,9 +244,10 @@ class HTTP_Server:
             ):
                 return "Long/lat/alt cannot be null", 400
 
-            set_home(self.mav_connection, home.get("latitude"), home.get("longitude"), home.get("altitude"))
-
-            return "Setting New Home", 200
+            if set_home(self.mav_connection, home.get("latitude"), home.get("longitude"), home.get("altitude")) == 0:
+                return "Setting New Home", 200
+            else:
+                return "New Home NOT set", 400
 
         @app.route("/flightmode", methods=["PUT"])
         def put_flight_mode():
@@ -267,8 +274,11 @@ class HTTP_Server:
                 input["altitude"] and input["target_area_radius"]):
                 wpq = scan_area(center_lat=input["center_lat"], center_lng=input["center_lng"],
                             altitude=input["altitude"], target_area_radius=input["target_area_radius"])
-                new_mission(self.mav_connection, wpq)
-                return f"Scan Mission Set", 200
+                
+                if new_mission(self.mav_connection, wpq):
+                    return f"Scan Mission Set", 200
+                else:
+                    return "Mission request failed", 400
             else:
                 return f"Invalid input, missing a parameter.", 400
 
