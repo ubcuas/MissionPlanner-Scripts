@@ -105,6 +105,9 @@ class HTTP_Server:
             ret: Status = get_status(self.mav_connection)
             last_altitude = ret._alt if ret != () else 50
 
+            curr = max(ret._wpn, 1)
+            curr_wpq = get_current_mission(self.mav_connection)
+
             # gets new waypoints
             new_waypoints = []
             for wpdict in payload:
@@ -136,14 +139,18 @@ class HTTP_Server:
                     param4,
                 )
                 new_waypoints.append(wp)
+            
+            # start list with new waypoints, extend with current mission at the end
+            new_waypoints.extend(curr_wpq.aslist()[curr:])
 
-            # insert new waypoints start at index
-            if new_mission(self.mav_connection, WaypointQueue(new_waypoints.copy())) != 0:
-                return "Failed to set new mission", 400
+            success = new_mission(self.mav_connection, WaypointQueue(new_waypoints.copy()))
             copy = WaypointQueue(new_waypoints.copy()).aslist()
             new_waypoints.clear()
-
-            return "Waypoint Inserted", 200
+            
+            if success:
+                return "Waypoint(s) Inserted", 200
+            else:
+                return "Failed to set new mission", 400
 
         @app.route("/clear", methods=["GET"])
         def get_clear_queue():
@@ -212,7 +219,7 @@ class HTTP_Server:
                 altitude = request.get_json().get("altitude", 50)
 
             print(f"RTL at {altitude}")
-            
+
             # set RTL altitude parameter
             alt_cm = altitude * 100
 
