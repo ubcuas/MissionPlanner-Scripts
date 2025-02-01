@@ -11,6 +11,7 @@ from server.operations.change_modes import change_flight_mode
 from server.operations.land import land_in_place, land_at_position
 
 from server.features.aeac_scan import scan_area
+from server.features.camera import configure_camera, trigger_camera
 
 from server.utilities.request_message_streaming import set_parameter
 
@@ -315,6 +316,33 @@ class HTTP_Server:
                     return "Mission request failed", 400
             else:
                 return f"Invalid input, missing a parameter.", 400
-
+            
+        @app.route("/camera/immediate_trigger", methods=["GET"])
+        def camera_immediate_trigger():
+            if configure_camera(self.mav_connection, "IMMEDIATE", trigger_time=0, trigger_dist=0) != 0:
+                return "Failed to configure camera", 400
+            
+            if trigger_camera(self.mav_connection, enable=1) != 0:
+                return "Failed to trigger camera", 400
+                
+            return "Successfully triggered camera once", 200
+        
+        @app.route("/camera/sustained_trigger", methods=["POST"])
+        def camera_sustained_trigger():
+            input = request.get_json()
+            if input["trigger_mode"] == "INTERVAL":
+                result = configure_camera(self.mav_connection, "INTERVAL", trigger_time=input["trigger_cycle_time"], trigger_dist=0)
+            elif input["trigger_mode"] == "DIST":
+                result = configure_camera(self.mav_connection, "DIST", trigger_time=0, trigger_dist=input["trigger_distance"])
+            else:
+                return "Invalid trigger mode", 400
+            
+            if result != 0:
+                return "Failed to configure camera", 400
+            
+            if trigger_camera(self.mav_connection, enable=1) != 0:
+                return "Failed to trigger camera", 400
+                
+            return "Successfully started sustained triggering", 200
 
         socketio.run(app, host="0.0.0.0", port=PORT, debug=True, use_reloader=False)
