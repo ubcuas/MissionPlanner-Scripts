@@ -44,10 +44,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Waypoint"
-    post: 
+    post:
       tags:
         - queue
-      summary: Overwrite the queue with a new list of waypoints 
+      summary: Overwrite the queue with a new list of waypoints
       description: >-
         POST request containing a list of waypoints with names and longitude, 
         latitude, and altitude values. If the altitude for a waypoint is null, 
@@ -59,11 +59,11 @@ paths:
         latitude in degrees, altitude in meters.
       requestBody:
         content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Waypoint"
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Waypoint"
       responses:
         "200":
           description: successful operation
@@ -72,15 +72,15 @@ paths:
   /insert:
     post:
       tags:
-       - queue
+        - queue
       summary: Inserts waypoints immediately before the current waypoint
       requestBody:
         content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Waypoint"
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Waypoint"
       responses:
         "200":
           description: successful operation
@@ -90,7 +90,7 @@ paths:
     get:
       tags:
         - queue
-      summary: Clear the waypoint queue. 
+      summary: Clear the waypoint queue.
       description: >-
         Idempotent with POST'ing an empty queue to /queue.
       responses:
@@ -188,9 +188,9 @@ paths:
           description: Successful, drone has started landing procedure
         "400":
           description: Could not initiate landing
-    post: 
-      tags: 
-        - landing 
+    post:
+      tags:
+        - landing
       summary: land at designated location
       description: >-
         Land at the location in the request, approaching at the altitude specified in the request body
@@ -198,13 +198,13 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: 
+            schema:
               $ref: "#/components/schemas/Waypoint"
       responses:
         "200":
-          description: Successful, drone has started landing procedure 
+          description: Successful, drone has started landing procedure
         "400":
-          description: Invalid coordinates - latitude and/or longitude value was null 
+          description: Invalid coordinates - latitude and/or longitude value was null
   /home:
     post:
       tags:
@@ -225,8 +225,8 @@ paths:
         "400":
           description: Home position could not be set
   /diversion:
-    post: 
-      tags: 
+    post:
+      tags:
         - queue
       summary: divert the aircraft around an exclusion zone
       description: >-
@@ -240,14 +240,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object 
+              type: object
               properties:
                 exclude:
                   type: array
                   items:
-                    $ref: '#/components/schemas/Waypoint'
+                    $ref: "#/components/schemas/Waypoint"
                 rejoin_at:
-                  $ref: '#/components/schemas/Waypoint'
+                  $ref: "#/components/schemas/Waypoint"
       responses:
         "200":
           description: Diversion processed
@@ -266,7 +266,36 @@ paths:
               properties:
                 mode:
                   type: string
-                  enum: ['STABILIZE', 'ACRO', 'ALT_HOLD', 'AUTO', 'GUIDED', 'LOITER', 'RTL', 'CIRCLE', 'POSITION', 'LAND', 'OF_LOITER', 'DRIFT', 'SPORT', 'FLIP', 'AUTOTUNE', 'POSHOLD', 'BRAKE', 'THROW', 'AVOID_ADSB', 'GUIDED_NOGPS', 'SMART_RTL', 'FLOWHOLD', 'FOLLOW', 'ZIGZAG', 'SYSTEMID', 'AUTOROTATE', 'AUTO_RTL']
+                  enum:
+                    [
+                      "STABILIZE",
+                      "ACRO",
+                      "ALT_HOLD",
+                      "AUTO",
+                      "GUIDED",
+                      "LOITER",
+                      "RTL",
+                      "CIRCLE",
+                      "POSITION",
+                      "LAND",
+                      "OF_LOITER",
+                      "DRIFT",
+                      "SPORT",
+                      "FLIP",
+                      "AUTOTUNE",
+                      "POSHOLD",
+                      "BRAKE",
+                      "THROW",
+                      "AVOID_ADSB",
+                      "GUIDED_NOGPS",
+                      "SMART_RTL",
+                      "FLOWHOLD",
+                      "FOLLOW",
+                      "ZIGZAG",
+                      "SYSTEMID",
+                      "AUTOROTATE",
+                      "AUTO_RTL",
+                    ]
       responses:
         "200":
           description: Operation processed
@@ -304,12 +333,12 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: 
+            schema:
               type: object
               properties:
                 standard:
                   type: string
-                  enum: ['AGL', 'MSL']
+                  enum: ["AGL", "MSL"]
       responses:
         "410":
           description: "UNIMPLEMENTED"
@@ -323,7 +352,7 @@ paths:
       requestBody:
         content:
           application/json:
-            schema: 
+            schema:
               type: object
               properties:
                 center_lat:
@@ -343,6 +372,40 @@ paths:
           description: "Scan Mission Set"
         "400":
           description: "Invalid input"
+  /camera/immediate_trigger:
+    get:
+      tags:
+        - camera
+      summary: Immediately trigger the camera
+      responses:
+        "200":
+          description: "Camera successfully triggered"
+        "400":
+          description: "Could not trigger camera"
+  /camera/sustained_trigger:
+    post:
+      tags:
+        - "camera"
+      summary: "Start continuous camera triggering base on INTERVAL or DIST"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                trigger_mode:
+                  type: string
+                  enum: ["INTERVAL", "DIST"]
+                trigger_cycle_time:
+                  type: integer
+                trigger_distance:
+                  type: number
+      responses:
+        "200":
+          description: "Successfully setup continuous trigger"
+        "400":
+          description: "Bad request params"
+
 components:
   schemas:
     Waypoint:
