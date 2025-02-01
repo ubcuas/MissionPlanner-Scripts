@@ -3,10 +3,86 @@
 ## Table of Contents
 
 1. [Instructions](#instructions)
-2. [Endpoints](#endpoints)
-3. [Sockets](#sockets)
+2. [Legacy Instructions](#legacy-instructions)
+3. [Endpoints](#endpoints)
+4. [Sockets](#sockets)
 
 ## Instructions
+
+### SITL
+
+1. In order to run SITL on your local machine, you will need to have Docker installed. For installation instructions, refer to the
+following:
+
+    - [Windows Installation](https://docs.docker.com/desktop/install/windows-install/)
+    - [MacOS Installation](https://docs.docker.com/desktop/install/mac-install/)
+
+2. You will also need to have MissionPlanner installed on your system. Refer to installation steps [here](https://ardupilot.org/planner/docs/mission-planner-installation.html).
+
+3. Once you have Docker, you will need to pull the [SITL image from DockerHub](https://hub.docker.com/r/ubcuas/uasitl/tags). To do this, run the Docker application then run the following command (where `X.X.X` is the desired ArduPilot version - this should match what is/will be running on the drone):
+
+    - ArduPlane (VTOL):
+        - x86: `docker pull ubcuas/uasitl:plane-X.X.X`
+        - ARM64: `docker pull ubcuas/uasitl:plane-arm-X.X.X`
+    - ArduCopter (Quadcopter):
+        - x86: `docker pull ubcuas/uasitl:copter-X.X.X`
+        - ARM64: `docker pull ubcuas/uasitl:copter-arm-X.X.X`
+
+    If everything goes correctly, running `docker image ls` should contain an entry for `ubcuas/uasitl`.
+
+4. Run one of the following commands to get SITL running. Refer to [the documentation](https://github.com/ubcuas/UASITL) for more customization:
+
+    x86: `docker run --rm -d -p 5760:5760 --name acom-sitl ubcuas/uasitl:[plane/copter]-X.X.X`
+
+    ARM64: `docker run --rm -d -p 5760:5760 --name acom-sitl ubcuas/uasitl:[plane/copter]-arm-X.X.X`
+
+### Mavproxy
+
+Refer to [Mavproxy documentation](https://ardupilot.org/mavproxy/docs/getting_started/download_and_installation.html#updating) for installation instruction (Installing via pip is recommended for Linux systems. Windows installations must use the installer.).
+
+#### Running Mavproxy
+
+Linux:
+
+```c
+mavproxy.py --master=tcp:127.0.0.1:5760 --out=udp:172.25.32.1:14550 --out=udp:127.0.0.1:14551
+```
+
+Windows:
+
+```c
+mavproxy --master=tcp:127.0.0.1:5760 --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551
+```
+
+> [!NOTE]
+> Change the IP address according to your networking setup.
+> In the example command, we're running Docker, Mission Planner Script, and mavproxy inside WSL2 with Mission Planner on the host Windows machine. Therefore, I set master to connect to the SITL container and output to another localhost port for Mission Planner Script (pymavlink) to connect to and another output to the IP of Windows host machine.
+> If using WSL2, get the IP of host machine using `ip route show default`
+> If using Windows, make sure to run mavproxy as an Administrator.
+
+When running mavproxy, point master to the SITL instance connection and specify 2 outputs, one for connecting with Mission Planner for visualization and one to interface with pymavlink.
+
+### Using MissionPlanner-Scripts
+
+1. Install required dependencies:
+
+    ```c
+    poetry install --no-root
+    ```
+
+2. Launch the application:
+
+    ```c
+    poetry run python src/main.py
+    ```
+
+    The server will listen on the specified port (default 9000) for HTTP requests.
+
+### Visualization
+
+Connect Mission Planner to one of output of mavproxy.
+
+## Legacy Instructions
 
 ### SITL & MissionPlanner
 
@@ -62,12 +138,14 @@ following:
 2. Launch the application:
 
     On Windows (Powershell)
-    ```
+
+    ```c
     poetry run python .\src\main.py
     ```
 
     On MacOS
-    ```
+
+    ```c
     poetry run python src/main.py
     ```
 
@@ -84,11 +162,11 @@ following:
 To run tests, you must have the Docker image running (uasitl:copter).
 Then, enter the src directory and run the `pytest` command via Poetry:
 
-```
+```c
     cd src
 ```
 
-```
+```c
     poetry run pytest
 ```
 

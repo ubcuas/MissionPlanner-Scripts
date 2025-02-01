@@ -56,7 +56,7 @@ def convert_gps_to_utm(latitude, longitude):
 def convert_gps_to_utm_zone(longitude):
     return ((longitude + 180) // 6) % 60 + 1
 
-def convert_utm_to_gps(easting, northing, zone: int, hemisphere: int):
+def convert_utm_to_gps(easting, northing, zone, hemisphere):
     """
     easting - meters East
     northing - meters North

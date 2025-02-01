@@ -79,8 +79,8 @@ class WaypointQueue(Queue):
     
     def __getitem__(self, key) -> Waypoint:
         return self._list.__getitem__(key)
-    
-    def aslist(self) -> list[Waypoint]:
+
+    def aslist(self):
         return self._list.copy()
 
 if __name__ == "__main__":

@@ -12,6 +12,8 @@ tags:
     description: Access to the waypoint queue
   - name: status
     description: Access to aircraft status
+  - name: feature
+    description: Access to competition-specific behaviour
   - name: takeoff
     description: Access to takeoff and arming motors
   - name: landing
@@ -191,7 +193,8 @@ paths:
         - landing 
       summary: land at designated location
       description: >-
-        Land at the location in the request.
+        Land at the location in the request, approaching at the altitude specified in the request body
+        before descending to the ground.
       requestBody:
         content:
           application/json:
@@ -263,7 +266,7 @@ paths:
               properties:
                 mode:
                   type: string
-                  enum: ['copter', 'plane', 'loiter', 'stabilize', 'auto', 'guided']
+                  enum: ['STABILIZE', 'ACRO', 'ALT_HOLD', 'AUTO', 'GUIDED', 'LOITER', 'RTL', 'CIRCLE', 'POSITION', 'LAND', 'OF_LOITER', 'DRIFT', 'SPORT', 'FLIP', 'AUTOTUNE', 'POSHOLD', 'BRAKE', 'THROW', 'AVOID_ADSB', 'GUIDED_NOGPS', 'SMART_RTL', 'FLOWHOLD', 'FOLLOW', 'ZIGZAG', 'SYSTEMID', 'AUTOROTATE', 'AUTO_RTL']
       responses:
         "200":
           description: Operation processed
@@ -274,6 +277,10 @@ paths:
       tags:
         - takeoff
       summary: Arm or disarm the motors. Take care.
+      description: >-
+        Call this endpoint to arm or disarm the drone.
+        A value of True in the payload will arm the drone, while False will disarm the drone.
+        If the request returns 200, the drone will be in the requested state.
       requestBody:
         content:
           application/json:
@@ -281,8 +288,7 @@ paths:
               type: object
               properties:
                 arm:
-                  type: integer
-                  enum: [0, 1]
+                  type: boolean
       responses:
         "200":
           description: Arm/disarm successful.
@@ -307,6 +313,36 @@ paths:
       responses:
         "410":
           description: "UNIMPLEMENTED"
+  /aeac_scan:
+    post:
+      tags:
+        - feature
+      summary: Scan a circular target area in a spiral path.
+      description: >-
+        TODO
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                center_lat:
+                  type: number
+                  format: float64
+                center_lng:
+                  type: number
+                  format: float64
+                altitude:
+                  type: number
+                  format: float64
+                target_area_radius:
+                  type: number
+                  format: float64
+      responses:
+        "200":
+          description: "Scan Mission Set"
+        "400":
+          description: "Invalid input"
 components:
   schemas:
     Waypoint:
