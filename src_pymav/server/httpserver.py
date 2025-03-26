@@ -11,6 +11,7 @@ from server.operations.change_modes import change_flight_mode
 from server.operations.land import land_in_place, land_at_position
 
 from server.features.aeac_scan import scan_area
+from server.features.aeac_water_delivery import generate_water_wps
 
 from server.utilities.request_message_streaming import set_parameter
 
@@ -311,6 +312,29 @@ class HTTP_Server:
                 
                 if new_mission(self.mav_connection, wpq):
                     return f"Scan Mission Set", 200
+                else:
+                    return "Mission request failed", 400
+            else:
+                return f"Invalid input, missing a parameter.", 400
+        
+        @app.route("/aeac_deliver", methods=["POST"])
+        def deliver_water_down():
+            input = request.get_json()
+
+            if ("current_alt" in input and "deliver_alt" in input and 
+                "deliver_duration_secs" in input and "curr_lat" in input and "curr_lon" in input):
+        
+                # Extract values from JSON input
+                current_alt = input["current_alt"]
+                deliver_alt = input["deliver_alt"]
+                deliver_duration_secs = input["deliver_duration_secs"]
+                curr_lat = input["curr_lat"]
+                curr_lon = input["curr_lon"]
+                wpq = generate_water_wps(current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
+                
+                
+                if new_mission(self.mav_connection, wpq):
+                    return f"Commencing Deliver operation", 200
                 else:
                     return "Mission request failed", 400
             else:

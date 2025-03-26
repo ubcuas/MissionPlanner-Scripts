@@ -343,6 +343,39 @@ paths:
           description: "Scan Mission Set"
         "400":
           description: "Invalid input"
+  /aeac_deliver:
+    post:
+      tags:
+        - delivery
+      summary: Deliver water operation
+      description: >
+        For AEAC 2025, while in autonomous mode, hovers down to specific altitude for 'deliver_duration' seconds, and then returns to original altitude ready for reentering manual control.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                current_alt:
+                  type: number
+                  description: Current altitude of the drone
+                deliver_alt:
+                  type: number
+                  description: Altitude to lower to for delivery
+                deliver_duration_secs:
+                  type: number
+                  description: Duration in seconds to stay at the delivery altitude
+                curr_lat:
+                  type: number
+                  description: Current latitude of the drone
+                curr_lon:
+                  type: number
+                  description: Current longitude of the drone
+      responses:
+        "200":
+          description: Commencing Deliver operation
+        "400":
+          description: Invalid input, missing a parameter or Mission request failed
 components:
   schemas:
     Waypoint:
