@@ -1,5 +1,4 @@
 from pymavlink import mavutil
-from server.utilities.connect_to_sysid import connect_to_sysid
 from server.utilities.wait_for_position_aiding import wait_until_position_aiding
 from server.utilities.get_autopilot_info import get_autopilot_info
 

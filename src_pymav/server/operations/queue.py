@@ -44,7 +44,8 @@ def new_mission(mavlink_connection: mavutil.mavlink_connection, waypoint_queue: 
 
         wp_list.append(mavutil.mavlink.MAVLink_mission_item_int_message(
         mavlink_connection.target_system, mavlink_connection.target_component, seq, 
-        0, command_string_to_int(wp._com), 0, 1, 
+        0, command_string_to_int(wp._com), # MAV_FRAME, MAV_CMD
+        0, 1, # current=0, autocontinue=1
         float(wp._param1), float(wp._param2), float(wp._param3), 
         float(wp._param4), int(wp._lat * 10000000), int(wp._lng * 10000000), 
         int(wp._alt)

@@ -51,15 +51,75 @@ def trigger_camera(mav_connection: mavutil.mavfile, enable: int, reset: int = -1
 
     mav_connection.mav.command_long_send(
         mav_connection.target_system,
-        mav_connection.target_component,
+        mav_connection.target_component, # TODO: probably different component than autopilot
         mavutil.mavlink.MAV_CMD_DO_TRIGGER_CONTROL,
         enable, reset, pause, target_camera_id, 0, 0, 0
     )
 
-    # Wait for the acknowledgment
+    # Wait for the acknowledgement
     ack = mav_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=5)
     if ack is None:
         print('No acknowledgment received within the timeout period.')
         return -1
 
+    return ack.result
+
+# TODO: we may need to mess with gimbal managers/config, see https://mavlink.io/en/services/gimbal_v2.html
+def retract_camera(mav_connection: mavutil.mavfile):
+
+    mav_connection.mav.command_long_send(
+        mav_connection.target_system,
+        mav_connection.target_component, # TODO: probably different component than autopilot
+        mavutil.mavlink.MAV_CMD_DO_MOUNT_CONTROL,
+        0, 0, 0, 0, 0, 0, 0 # 0 = Retract
+    )
+
+    # Wait for the acknowledgement
+    ack = mav_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=5)
+    if ack is None:
+        print('No acknowledgment received within the timeout period.')
+        return -1
+    
+    return ack.result
+
+def camera_location_point(mav_connection: mavutil.mavfile, lat: float, long: float, alt: float):
+
+    mav_connection.mav.command_int_send(
+        mav_connection.target_system,
+        mav_connection.target_component, # TODO: probably different component than autopilot
+        0, # MAV_FRAME
+        mavutil.mavlink.MAV_CMD_DO_SET_ROI_LOCATION,
+        0, 0,
+        0, 0, 0, 0, int(lat * 10000000), int(long * 10000000), alt 
+    )
+
+    # Wait for the acknowledgement
+    ack = mav_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=5)
+    if ack is None:
+        print('No acknowledgment received within the timeout period.')
+        return -1
+    
+    return ack.result
+
+def camera_gimbal_pitchyaw(mav_connection: mavutil.mavfile, pitch: float, yaw: float, lock: bool):
+    """
+    if parameter `lock` is True, the gimbal's yaw will remain fixed and will not rotate with the vehicle.
+    """
+    
+    mav_connection.mav.command_long_send(
+        mav_connection.target_system,
+        mav_connection.target_component, # TODO: probably different component than autopilot
+        mavutil.mavlink.MAV_CMD_DO_GIMBAL_MANAGER_PITCHYAW,
+        0, pitch, yaw, 
+        0, 0, # pitch/yaw rate to 0
+        16 if lock else 0,
+        0, 0 # primary gimbal
+    )
+
+    # Wait for the acknowledgement
+    ack = mav_connection.recv_match(type='COMMAND_ACK', blocking=True, timeout=5)
+    if ack is None:
+        print('No acknowledgment received within the timeout period.')
+        return -1
+    
     return ack.result
