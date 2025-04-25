@@ -11,7 +11,7 @@ from server.operations.change_modes import change_flight_mode
 from server.operations.land import land_in_place, land_at_position
 
 from server.features.aeac_scan import scan_area
-from server.features.aeac_water_delivery import generate_water_wps
+from server.features.aeac_water_delivery import generate_water_wps, set_payload_mode
 
 from server.utilities.request_message_streaming import set_parameter
 
@@ -330,13 +330,33 @@ class HTTP_Server:
                 deliver_duration_secs = input["deliver_duration_secs"]
                 curr_lat = input["curr_lat"]
                 curr_lon = input["curr_lon"]
-                wpq = generate_water_wps(current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
+                wpq = generate_water_wps(self.mav_connection, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
                 
                 
                 if new_mission(self.mav_connection, wpq):
                     return f"Commencing Deliver operation", 200
                 else:
                     return "Mission request failed", 400
+            else:
+                return f"Invalid input, missing a parameter.", 400
+        
+        @app.route("/aeac_payload", methods=["POST"])
+        def change_aeac_payload():
+            input = request.get_json()
+
+            if ("valve_one_open" in input and "valve_two_open" in input and "pump_on" in input):
+
+                # Extract values from JSON input
+                valve_one_open = input["valve_one_open"]
+                valve_two_open = input["valve_two_open"]
+                pump_on = input["pump_on"]
+               
+                result = set_payload_mode(self.mav_connection, valve_one_open, valve_two_open, pump_on)
+                
+                if result != -1:
+                    return f"Payload mode changed", 200
+                else:
+                    return "Payload mode failed to change", 400
             else:
                 return f"Invalid input, missing a parameter.", 400
 

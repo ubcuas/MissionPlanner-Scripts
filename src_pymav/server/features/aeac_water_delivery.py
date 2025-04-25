@@ -1,7 +1,19 @@
 from server.common.wpqueue import WaypointQueue, Waypoint
+from server.operations.rc_channel_cmd import send_rc_channel_value
+from pymavlink import mavutil
 
 
+AEAC_PUMP_CHANNEL = 7
+
+'''
+Generates a water delivery mission with the following waypoints:
+1. Start at current location
+2. Loiter down to delivery altitude for a specified duration (deliver_duration_secs)
+3. Send signal to deliver water
+3. Return to previous location altitude
+'''
 def generate_water_wps(
+    mav_connection: mavutil.mavfile,
     current_alt: float,
     deliver_alt: float,
     deliver_duration_secs: int,
@@ -10,6 +22,7 @@ def generate_water_wps(
 ) -> WaypointQueue:
     landing_mission = WaypointQueue()
 
+    # Set the current altitude to the current location
     wp_1 = Waypoint(
         "Start",
         "curr_wp",
@@ -18,6 +31,7 @@ def generate_water_wps(
         current_alt,
     )
 
+    # TODO how do we send a message here?
     wp_2 = Waypoint(
         "stay",
         "curr_wp",
@@ -42,3 +56,57 @@ def generate_water_wps(
     landing_mission.push(wp_3)
 
     return landing_mission
+
+def send_payload_command(mav_connection: mavutil.mavfile, value: int, command: str):
+    channel = AEAC_PUMP_CHANNEL 
+    result = send_rc_channel_value(mav_connection=mav_connection, channel=channel, value=value)
+
+    if result == -1:
+        print(f"Failed to send command '{command}' to channel {channel}.")
+        return -1
+    else:
+        print(f"Successfully sent command '{command}' to channel {channel}.")
+        return 1
+
+def set_payload_mode(mav_connection: mavutil.mavfile, valve_one_open: bool, 
+                     valve_two_open: bool, pump_on: bool):
+
+    # Two switches are used on the payload
+    # SWITCH 1 represents the state of valve one and valve two
+    # Three possible states:
+    # 1. UP   (100) - Valve one open and valve two closed
+    # 2. MID  (300) - Both valves closed
+    # 3. DOWN (500) - Valve one closed and valve two open
+
+    # SWITCH 2 represents the state of the pump
+    # Two possible states:
+    # 1. ON   (1)   - Pump on
+    # 2. OFF  (-1)  - Pump off
+
+    # value = 1500 + SWITCH 1 * SWITCH 2 
+    
+    print(f"Setting payload mode with valve_one_open: {valve_one_open}, "
+          f"valve_two_open: {valve_two_open}, pump_on: {pump_on}")
+
+    if pump_on and valve_one_open and not valve_two_open:
+        print("PAYLOAD: Set to intake water")
+        value = 1500 + 100 * 1
+    elif not pump_on and not valve_one_open and not valve_two_open:
+        print("PAYLOAD: Set to transport water")
+        value = 1500 + 300 * -1
+    elif not pump_on and not valve_one_open and valve_two_open:
+        print("PAYLOAD: Set to release water")
+        value = 1500 + 500 * -1
+    elif not pump_on and valve_one_open and valve_two_open:
+        print("PAYLOAD: Set to refill reservoir")
+        value = 1500 + 100 * -1
+    else:
+        print("Invalid combination of valve and pump states.")
+        return -1
+    
+    result = send_rc_channel_value(mav_connection=mav_connection, channel=AEAC_PUMP_CHANNEL, value=value)
+
+    if result == -1:
+        print(f"Failed to set payload value to {value}")
+    else:
+        print(f"Sucessfully set payload value to {value}")
