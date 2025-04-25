@@ -349,7 +349,7 @@ paths:
         - delivery
       summary: Deliver water operation
       description: >
-        For AEAC 2025, while in autonomous mode, hovers down to specific altitude for 'deliver_duration' seconds, and then returns to original altitude ready for reentering manual control.
+        For AEAC 2025, while in autonomous mode, hovers down to specific altitude for 'deliver_duration' seconds and then returns to original altitude ready for reentering manual control.
       requestBody:
         content:
           application/json:
@@ -376,6 +376,27 @@ paths:
           description: Commencing Deliver operation
         "400":
           description: Invalid input, missing a parameter or Mission request failed
+      tags:
+        - delivery
+  /aeac_payload:
+      summary: Control AEAC Pump and water payload
+      description: >
+        For AEAC 2025 allows controlling pump, valve 1 and valve 2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pump_on:
+                  type: boolean
+                  description: Turn the pump on or off
+                valve_one_open:
+                  type: boolean
+                  description: Open/Close valve one
+                valve_two_open:
+                  type: boolean
+                  description: Open/Close valve two
 components:
   schemas:
     Waypoint:
