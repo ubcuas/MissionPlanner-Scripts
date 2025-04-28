@@ -18,11 +18,17 @@ from server.utilities.request_message_streaming import set_parameter
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.encoders import command_string_to_int, command_int_to_string
+from server.common.callback import CallbackSystem
 
 
 class HTTP_Server:
     def __init__(self, mav_connection):
         self.mav_connection: mavfile = mav_connection
+        self.miscellaneous_state = {}
+
+        self.callback_sys = CallbackSystem(self.mav_connection, self.miscellaneous_state)
+
+        # TODO Handle Camera Protocol via Callbacks?
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         print("GCOM HTTP Server starting...")
@@ -330,7 +336,7 @@ class HTTP_Server:
                 deliver_duration_secs = input["deliver_duration_secs"]
                 curr_lat = input["curr_lat"]
                 curr_lon = input["curr_lon"]
-                wpq = generate_water_wps(self.mav_connection, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
+                wpq = generate_water_wps(self.mav_connection, self.callback_sys, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
                 
                 
                 if new_mission(self.mav_connection, wpq):
