@@ -5,14 +5,16 @@ from pymavlink import mavutil
 from server.common.status import Status
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.encoders import command_int_to_string
+from server.common.callback import CallbackSystem
 from server.utilities.request_message_streaming import request_messages
+
 
 """
     Get current status of a drone
     Type of message can be found on https://mavlink.io/en/messages/common.html
 
 """
-def get_status(mav_connection: mavutil.mavfile) -> Status:
+def get_status(mav_connection: mavutil.mavfile, callback_sys: CallbackSystem = None) -> Status:
 
     # trigger an update
     # mav_connection.recv_match(blocking=True)
@@ -56,6 +58,9 @@ def get_status(mav_connection: mavutil.mavfile) -> Status:
     # wind calculations in the horizontal plane TODO determine if vertical windspeed is needed
     winddirection = math.degrees(math.atan(status_wind.wind_x / status_wind.wind_y)) if status_wind.wind_y != 0 else (0 if status_wind.wind_x > 0 else 180)
     windvelocity = math.sqrt(status_wind.wind_x * status_wind.wind_x + status_wind.wind_y * status_wind.wind_y)
+
+    # trigger / callback mechanism
+    callback_sys.update_and_check(mav_connection.messages)
 
     return Status(
         system_time.time_unix_usec / 1000000, # seconds

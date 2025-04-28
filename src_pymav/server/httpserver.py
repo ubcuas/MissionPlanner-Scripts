@@ -18,11 +18,17 @@ from server.utilities.request_message_streaming import set_parameter
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.encoders import command_string_to_int, command_int_to_string
+from server.common.callback import CallbackSystem
 
 
 class HTTP_Server:
     def __init__(self, mav_connection):
         self.mav_connection: mavfile = mav_connection
+        self.miscellaneous_state = {}
+
+        self.callback_sys = CallbackSystem(self.mav_connection, self.miscellaneous_state)
+
+        # TODO Handle Camera Protocol via Callbacks?
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
         print("GCOM HTTP Server starting...")
@@ -36,7 +42,7 @@ class HTTP_Server:
 
         @app.route("/queue", methods=["GET"])
         def get_queue():
-            curr = get_status(self.mav_connection)._wpn 
+            curr = get_status(self.mav_connection, self.callback_sys)._wpn 
             wpq = get_current_mission(self.mav_connection)
 
             formatted = []
@@ -56,7 +62,7 @@ class HTTP_Server:
         def post_queue():
             payload = request.get_json()
 
-            ret = get_status(self.mav_connection)
+            ret = get_status(self.mav_connection, self.callback_sys)
             last_altitude = ret.as_dictionary().get("altitude", 50)
 
             wpq = []
@@ -103,7 +109,7 @@ class HTTP_Server:
         def post_insert_wp():
             payload = request.get_json()
 
-            ret: Status = get_status(self.mav_connection)
+            ret: Status = get_status(self.mav_connection, self.callback_sys)
             last_altitude = ret._alt if ret != () else 50
 
             curr = max(ret._wpn, 1)
@@ -165,7 +171,7 @@ class HTTP_Server:
         @app.route("/status", methods=["GET"])
         def get_status_handler():
             print("Status sent to GCOM")
-            s = get_status(self.mav_connection).as_dictionary()
+            s = get_status(self.mav_connection, self.callback_sys).as_dictionary()
             return s, 200
 
         @app.route("/takeoff", methods=["POST"])
@@ -330,7 +336,7 @@ class HTTP_Server:
                 deliver_duration_secs = input["deliver_duration_secs"]
                 curr_lat = input["curr_lat"]
                 curr_lon = input["curr_lon"]
-                wpq = generate_water_wps(self.mav_connection, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
+                wpq = generate_water_wps(self.mav_connection, self.callback_sys, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
                 
                 
                 if new_mission(self.mav_connection, wpq):

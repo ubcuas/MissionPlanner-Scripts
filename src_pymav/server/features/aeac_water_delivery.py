@@ -1,4 +1,5 @@
 from server.common.wpqueue import WaypointQueue, Waypoint
+from server.common.callback import CallbackSystem, Callback
 from server.operations.rc_channel_cmd import send_rc_channel_value
 from pymavlink import mavutil
 
@@ -14,6 +15,7 @@ Generates a water delivery mission with the following waypoints:
 '''
 def generate_water_wps(
     mav_connection: mavutil.mavfile,
+    callback_sys: CallbackSystem,
     current_alt: float,
     deliver_alt: float,
     deliver_duration_secs: int,
@@ -32,6 +34,16 @@ def generate_water_wps(
     )
 
     # TODO how do we send a message here?
+    
+    # TODO test: setting up a callback to trigger on waypoint 2
+    callback_sys.register_callback(Callback(
+        "Water Delivery Callback",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq == 2),
+        lambda msg, conn, state: send_payload_command(conn, 0, 'TODO'), # TODO !!!
+        True
+    ))
+
     wp_2 = Waypoint(
         "stay",
         "curr_wp",
