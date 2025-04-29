@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from pymavlink import mavutil
 
 class Callback():
@@ -5,8 +7,8 @@ class Callback():
             self, 
             name: str,
             trigger_message_type: str, 
-            trigger_condition: function = (lambda curr_msg, prev_msg: True), 
-            payload: function = (lambda msg, conn, state: print(msg)),
+            trigger_condition: Callable = (lambda curr_msg, prev_msg: True), 
+            payload: Callable = (lambda msg, conn, state: print(msg)),
             only_once: bool = True
         ):
         """
@@ -51,6 +53,7 @@ class CallbackSystem():
     
     def update_and_check(self, latest_messages: dict):
         # traverse through all callbacks and check each of their triggers
+        print(f"DEBUG: update_and_check called")
         for callback_type, callback_list in self.callbacks.items():
             prev_msg = self.prev_messages.get(callback_type, None)
             curr_msg = latest_messages.get(callback_type, None)
@@ -60,6 +63,7 @@ class CallbackSystem():
                 continue
 
             for callback in callback_list:
+                print(f"DEBUG: testing callback {callback.name}")
                 if callback.trigger_condition(curr_msg, prev_msg):
 
                     if callback.only_once:
@@ -75,7 +79,10 @@ class CallbackSystem():
         self.prev_messages.update(latest_messages)
 
     def register_callback(self, callback: Callback):
-        self.callbacks[callback.trigger_message_type].append(callback)
+        print(f"DEBUG: registering {callback.name}")
+        if callback.trigger_message_type not in self.callbacks.keys():
+            self.callbacks[callback.trigger_message_type] = []
+        self.callbacks.get(callback.trigger_message_type).append(callback)
 
     # def unregister_callback(self, name: str, trigger_message_type: int):
     #     pass

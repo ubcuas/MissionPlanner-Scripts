@@ -327,15 +327,16 @@ class HTTP_Server:
         def deliver_water_down():
             input = request.get_json()
 
-            if ("current_alt" in input and "deliver_alt" in input and 
-                "deliver_duration_secs" in input and "curr_lat" in input and "curr_lon" in input):
+            if ("deliver_alt" in input and "deliver_duration_secs" in input):
+
+                ret: Status = get_status(self.mav_connection, self.callback_sys)
         
                 # Extract values from JSON input
-                current_alt = input["current_alt"]
+                current_alt = ret._alt
                 deliver_alt = input["deliver_alt"]
                 deliver_duration_secs = input["deliver_duration_secs"]
-                curr_lat = input["curr_lat"]
-                curr_lon = input["curr_lon"]
+                curr_lat = ret._lat
+                curr_lon = ret._lng
                 wpq = generate_water_wps(self.mav_connection, self.callback_sys, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
                  
                 if new_mission(self.mav_connection, wpq):

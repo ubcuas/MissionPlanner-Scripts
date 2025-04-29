@@ -356,29 +356,19 @@ paths:
             schema:
               type: object
               properties:
-                current_alt:
-                  type: number
-                  description: Current altitude of the drone
                 deliver_alt:
                   type: number
                   description: Altitude to lower to for delivery
                 deliver_duration_secs:
                   type: number
                   description: Duration in seconds to stay at the delivery altitude
-                curr_lat:
-                  type: number
-                  description: Current latitude of the drone
-                curr_lon:
-                  type: number
-                  description: Current longitude of the drone
       responses:
         "200":
           description: Commencing Deliver operation
         "400":
           description: Invalid input, missing a parameter or Mission request failed
-      tags:
-        - delivery
   /aeac_payload:
+    post:
       summary: Control AEAC Pump and water payload
       description: >
         For AEAC 2025 allows controlling pump, valve 1 and valve 2
@@ -400,6 +390,12 @@ paths:
                 reset:
                   type: boolean
                   description: Reset channel back to operator control, if true ignores other parameters
+      responses:
+        "200":
+          description: Payload mode changed
+        "400":
+          description: Invalid input, missing a parameter or Payload mode failed to change
+
 components:
   schemas:
     Waypoint:
