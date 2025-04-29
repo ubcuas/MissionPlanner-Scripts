@@ -30,7 +30,7 @@ def send_rc_channel_value(mav_connection: mavutil.mavfile, channel: int, value: 
         print(f"Value {value} is out of range. Must be between 0 and 65535, inclusive.")
         return -1
     
-    channel_values = [0] * 18
+    channel_values = [65535] * 18
     channel_values[channel - 1] = value
 
     print(f"DEBUG: channel_values: {channel_values}")
@@ -49,6 +49,5 @@ def send_rc_channel_value(mav_connection: mavutil.mavfile, channel: int, value: 
 
     print(f"RC Channel value of {value} sent to channel {channel} successfully.")
     return 1
-
 
 

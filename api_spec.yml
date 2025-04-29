@@ -397,6 +397,9 @@ paths:
                 valve_two_open:
                   type: boolean
                   description: Open/Close valve two
+                reset:
+                  type: boolean
+                  description: Reset channel back to operator control, if true ignores other parameters
 components:
   schemas:
     Waypoint:

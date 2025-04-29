@@ -33,18 +33,30 @@ def generate_water_wps(
         current_alt,
     )
 
-    # TODO how do we send a message here?
-    
-    # TODO test: setting up a callback to trigger on waypoint 2
+    wp_2 = Waypoint(
+        "pre-loiter",
+        "curr_wp",
+        curr_lat,
+        curr_lon,
+        deliver_alt,
+    )
+
+    # Add a callback to set the payload mode to release water after getting to loiter wp 
     callback_sys.register_callback(Callback(
-        "Water Delivery Callback",
+        "Water Delivery - Release water",
         'MISSION_CURRENT',
-        lambda curr_msg, prev_msg: (curr_msg.seq == 2),
-        lambda msg, conn, state: send_payload_command(conn, 0, 'TODO'), # TODO !!!
-        True
+        lambda curr_msg, prev_msg: (curr_msg.seq == 3),
+        lambda msg, conn, state: set_payload_mode(
+            mav_connection=conn,
+            valve_one_open=False,
+            valve_two_open=True,
+            pump_on=False,
+            reset=False
+        ),
+        only_once=True
     ))
 
-    wp_2 = Waypoint(
+    wp_3 = Waypoint(
         "stay",
         "curr_wp",
         curr_lat,
@@ -53,8 +65,32 @@ def generate_water_wps(
         command="LOITER_TIME",
         p1=deliver_duration_secs,
     )
+    
 
-    wp_3 = Waypoint(
+    wp_4 = Waypoint(
+        "post-loiter",
+        "curr_wp",
+        curr_lat,
+        curr_lon,
+        deliver_alt,
+    )
+
+    # Add a callback to set the payload mode to stop releasing water after getting to loiter wp 
+    callback_sys.register_callback(Callback(
+        "Water Delivery - Stop releasing water",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq == 5),
+        lambda msg, conn, state: set_payload_mode(
+            mav_connection=conn,
+            valve_one_open=False,
+            valve_two_open=False,
+            pump_on=False,
+            reset=False
+        ),
+        only_once=True
+    ))
+
+    wp_5 = Waypoint(
         "Return",
         "curr_wp",
         curr_lat,
@@ -66,22 +102,13 @@ def generate_water_wps(
     landing_mission.push(wp_1)
     landing_mission.push(wp_2)
     landing_mission.push(wp_3)
+    landing_mission.push(wp_4)
+    landing_mission.push(wp_5)
 
     return landing_mission
 
-def send_payload_command(mav_connection: mavutil.mavfile, value: int, command: str):
-    channel = AEAC_PUMP_CHANNEL 
-    result = send_rc_channel_value(mav_connection=mav_connection, channel=channel, value=value)
-
-    if result == -1:
-        print(f"Failed to send command '{command}' to channel {channel}.")
-        return -1
-    else:
-        print(f"Successfully sent command '{command}' to channel {channel}.")
-        return 1
-
 def set_payload_mode(mav_connection: mavutil.mavfile, valve_one_open: bool, 
-                     valve_two_open: bool, pump_on: bool):
+                     valve_two_open: bool, pump_on: bool, reset: bool = False) -> int:
 
     # Two switches are used on the payload
     # SWITCH 1 represents the state of valve one and valve two
@@ -96,10 +123,13 @@ def set_payload_mode(mav_connection: mavutil.mavfile, valve_one_open: bool,
     # 2. OFF  (-1)  - Pump off
 
     # value = 1500 + SWITCH 1 * SWITCH 2 
-    
+
     print(f"Setting payload mode with valve_one_open: {valve_one_open}, "
           f"valve_two_open: {valve_two_open}, pump_on: {pump_on}")
 
+    if reset:
+        print("PAYLOAD: Resetting channel back to pilot control")
+        value = 0
     if pump_on and valve_one_open and not valve_two_open:
         print("PAYLOAD: Set to intake water")
         value = 1500 + 100 * 1

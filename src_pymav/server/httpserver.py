@@ -337,8 +337,7 @@ class HTTP_Server:
                 curr_lat = input["curr_lat"]
                 curr_lon = input["curr_lon"]
                 wpq = generate_water_wps(self.mav_connection, self.callback_sys, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
-                
-                
+                 
                 if new_mission(self.mav_connection, wpq):
                     return f"Commencing Deliver operation", 200
                 else:
@@ -350,14 +349,15 @@ class HTTP_Server:
         def change_aeac_payload():
             input = request.get_json()
 
-            if ("valve_one_open" in input and "valve_two_open" in input and "pump_on" in input):
+            if ("valve_one_open" in input and "valve_two_open" in input and "pump_on" in input and "reset" in input):
 
                 # Extract values from JSON input
                 valve_one_open = input["valve_one_open"]
                 valve_two_open = input["valve_two_open"]
                 pump_on = input["pump_on"]
+                reset = input["reset"]
                
-                result = set_payload_mode(self.mav_connection, valve_one_open, valve_two_open, pump_on)
+                result = set_payload_mode(self.mav_connection, valve_one_open, valve_two_open, pump_on, reset)
                 
                 if result != -1:
                     return f"Payload mode changed", 200
