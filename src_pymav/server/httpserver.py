@@ -9,6 +9,7 @@ from server.operations.queue import new_mission, set_home, clear_mission
 from server.operations.get_info import get_status, get_current_mission
 from server.operations.change_modes import change_flight_mode
 from server.operations.land import land_in_place, land_at_position
+from server.operations.camera import activate_camera, deactivate_camera
 
 from server.features.aeac_scan import scan_area
 from server.features.aeac_water_delivery import generate_water_wps, set_payload_mode
@@ -38,7 +39,7 @@ class HTTP_Server:
         )
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
-        print("GCOM HTTP Server starting...")
+        print("GCOM HTTP Server running...")
         app = Flask(__name__)
         socketio = SocketIO(app)
 
@@ -312,6 +313,44 @@ class HTTP_Server:
                 return f"OK! Changed mode: {input['mode']}", 200
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
+
+        @app.route("/activate_camera", methods=["POST"])
+        def activate_cam():
+            response: dict = request.get_json()
+
+            if ("cam_id" not in response 
+                or "time_between_pics_secs" not in response
+                or "num_of_pics" not in response
+                ):
+                return "Missing params", 400
+
+            cam_id = response["cam_id"]
+            time_between_pics_secs = response["time_between_pics_secs"]
+            num_of_pics = response["num_of_pics"]
+            
+            if activate_camera(mav_connection=self.mav_connection, cam_id=cam_id, 
+                                time_between_pics_secs=time_between_pics_secs,
+                                num_of_pics=num_of_pics):
+                return "Activated Camera", 200
+            else:
+                return "Failed to Activate Camera", 400
+        
+        @app.route("/deactivate_camera", methods=["POST"])
+        def deactivate_cam():
+            response: dict = request.get_json()
+
+            if ("cam_id" not in response):
+                return "Missing params", 400
+            cam_id = response["cam_id"]
+            
+            if deactivate_camera(mav_connection=self.mav_connection, cam_id=cam_id) 
+                return "Deactivated Camera", 200
+            else:
+                return "Failed to Deactivate Camera", 400
+
+        @app.route("/flightmode", methods=["PUT"])
+        
+        ### AEAC 2025 COMMANDS ###
             
         @app.route("/aeac_scan", methods=["POST"])
         def generate_scan_points():
@@ -320,8 +359,21 @@ class HTTP_Server:
             # TODO Trigger CameraVision system to begin scanning
             if (input["center_lat"] and input["center_lng"] and
                 input["altitude"] and input["target_area_radius"]):
-                wpq = scan_area(center_lat=input["center_lat"], center_lng=input["center_lng"],
-                            altitude=input["altitude"], target_area_radius=input["target_area_radius"])
+
+                center_lat = input["center_lat"]
+                center_lon = input["center_lon"]
+                altitude = input["altitude"]
+                target_area_radius = input["target_area_radius"]
+
+                ret: Status = get_status(self.mav_connection, self.callback_sys)
+
+                # If given lat lon is 0, then base spiral off of current lat lon
+                if (center_lat == 0 and center_lon == 0):
+                    center_lat = ret._lat
+                    center_lon = ret._lon
+
+                wpq = scan_area(self.mav_connection, self.callback_sys, 
+                                center_lat, center_lon, altitude, target_area_radius)
                 
                 if new_mission(self.mav_connection, wpq):
                     return f"Scan Mission Set", 200

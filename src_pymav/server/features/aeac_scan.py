@@ -3,6 +3,9 @@ from matplotlib import pyplot as plt
 
 from server.common.conversion import *
 from server.common.wpqueue import Waypoint, WaypointQueue
+from server.common.callback import CallbackSystem, Callback
+
+from server.operations.camera import activate_camera, deactivate_camera
 
 # ALL UNITS IN METERS UNLESS SPECIFIED
 SPLINE_WAYPOINT_TYPE = "SPLINE_WAYPOINT"
@@ -38,7 +41,7 @@ def plot_shape(points, color, close_loop=False, scatter=True) -> None:
         next = points[(i + 1) % len(points)]
         plt.plot([curr[0], next[0]], [curr[1], next[1]], color=color, alpha=0.7, linewidth=1, zorder=2)
 
-def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQueue:
+def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, target_area_radius) -> WaypointQueue:
     wpq = WaypointQueue()
     center_we, center_sn = convert_gps_to_utm(center_lat, center_lng)
     zone = convert_gps_to_utm_zone(center_lng)
@@ -56,6 +59,20 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
     record.append((center_we, center_sn))
     # # wpq.append((0, "", center_lat, center_lng, altitude))
 
+    callback_sys.register_callback(Callback(
+        "Scan Mission - Start Camera",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq == 1),
+        lambda msg, conn, state: activate_camera(
+            mav_connection=mav_connection,
+            cam_id=0,
+            time_between_pics_secs=0.5,
+            num_of_pics=0
+            )
+        ),
+        only_once=True
+    )
+
     # transit from center to edge, turning gently so that drone is tangent when reaching the edge
     tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius / 2, center_sn - target_area_radius / 2, zone, hemisphere)
     record.append((center_we + target_area_radius / 2, center_sn - target_area_radius / 2))
@@ -66,6 +83,18 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
     record.append((center_we + target_area_radius, center_sn))
     wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
     count += 1
+
+    callback_sys.register_callback(Callback(
+        "Scan Mission - Stop Camera",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq < count - 1),
+        lambda msg, conn, state: deactivate_camera(
+            mav_connection=mav_connection,
+            cam_id=0,
+            )
+        ),
+        only_once=True
+    )
     
     # generate spiral
     decrease_per_radian = 0.75 * (scan_radius) / (2 * math.pi)
@@ -99,6 +128,7 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
     return wpq
     
     # TODO handle deadzone
+
 
 if __name__ == '__main__':
     scan_area(0,0,100, 100)
