@@ -60,7 +60,7 @@ mavproxy --master=tcp:127.0.0.1:5760 --out=udp:127.0.0.1:14550 --out=udp:127.0.0
 > If using WSL2, get the IP of host machine using `ip route show default`
 > If using Windows, make sure to run mavproxy as an Administrator.
 
-When running mavproxy, point master to the SITL instance connection and specify 2 outputs, one for connecting with Mission Planner for visualization and one to interface with pymavlink.
+When running mavproxy, point master to the SITL instance connection and specify 2 outputs, one for connecting with Mission Planner for visualization and one to interface with pymavlink. If connecting to an actual drone, set the `--baudrate=xxx` option as well.
 
 ### Using MissionPlanner-Scripts
 
@@ -73,10 +73,13 @@ When running mavproxy, point master to the SITL instance connection and specify 
 2. Launch the application:
 
     ```c
-    poetry run python src/main.py
+    poetry run python src_pymav/main.py
     ```
 
     The server will listen on the specified port (default 9000) for HTTP requests.
+
+> [!IMPORTANT]
+> Parameter RC_OVERRIDE_TIME should be set to -1 (so overrides never expire)
 
 ### Visualization
 
