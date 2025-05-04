@@ -11,7 +11,7 @@ from server.httpserver import HTTP_Server
 production = True
 HOST, PORT, SOCKET_PORT = "localhost", 9000, 9001
 STATUS_HOST, STATUS_PORT = "localhost", 1323
-DISABLE_STATUS = False
+DISABLE_STATUS = True
 MAVLINK_CONNECTION_STRING = 'udpin:localhost:14551'
 
 if __name__ == "__main__":

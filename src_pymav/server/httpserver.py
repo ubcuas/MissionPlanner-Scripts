@@ -343,22 +343,21 @@ class HTTP_Server:
                 return "Missing params", 400
             cam_id = response["cam_id"]
             
-            if deactivate_camera(mav_connection=self.mav_connection, cam_id=cam_id) 
+            if deactivate_camera(mav_connection=self.mav_connection, cam_id=cam_id): 
                 return "Deactivated Camera", 200
             else:
                 return "Failed to Deactivate Camera", 400
-
-        @app.route("/flightmode", methods=["PUT"])
         
         ### AEAC 2025 COMMANDS ###
             
         @app.route("/aeac_scan", methods=["POST"])
         def generate_scan_points():
             input = request.get_json()
+            print(input)
 
             # TODO Trigger CameraVision system to begin scanning
-            if (input["center_lat"] and input["center_lng"] and
-                input["altitude"] and input["target_area_radius"]):
+            if ("center_lat" in input and"center_lon" in input and
+                "altitude" in input and "target_area_radius" in input):
 
                 center_lat = input["center_lat"]
                 center_lon = input["center_lon"]
@@ -370,7 +369,7 @@ class HTTP_Server:
                 # If given lat lon is 0, then base spiral off of current lat lon
                 if (center_lat == 0 and center_lon == 0):
                     center_lat = ret._lat
-                    center_lon = ret._lon
+                    center_lon = ret._lng
 
                 wpq = scan_area(self.mav_connection, self.callback_sys, 
                                 center_lat, center_lon, altitude, target_area_radius)

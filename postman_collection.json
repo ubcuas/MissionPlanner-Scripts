@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "20ebd461-c68a-4ab5-99d5-5a4b03c40827",
+		"_postman_id": "69e0a2f4-ba23-4182-91c7-ea3290f0fd81",
 		"name": "MissionPlannerScripts",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "30667343"
+		"_exporter_id": "26491029"
 	},
 	"item": [
 		{
@@ -427,6 +427,149 @@
 				}
 			],
 			"description": "Access to flight options."
+		},
+		{
+			"name": "aeac",
+			"item": [
+				{
+					"name": "start_cam",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cam_id\": 0,\r\n    \"time_between_pics_secs\": 0.5,\r\n    \"num_of_pics\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/activate_camera",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"activate_camera"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "stop_cam",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cam_id\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/deactivate_camera",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"deactivate_camera"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "aeac_scan",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"center_lat\": 0,\r\n    \"center_lon\": 0,\r\n    \"altitude\": 50,\r\n    \"target_area_radius\": 110\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/aeac_scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"aeac_scan"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "aeac_deliver",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"deliver_alt\": 1,\r\n    \"deliver_duration_secs\": 20\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/aeac_deliver",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"aeac_deliver"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "aeac_payload_OFF",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"valve_one_open\": false,\r\n    \"valve_two_open\": false,\r\n    \"pump_on\": false,\r\n    \"reset\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/aeac_payload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"aeac_payload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Test Endpoint",

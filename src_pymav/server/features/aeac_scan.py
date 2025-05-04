@@ -70,7 +70,7 @@ def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, ta
             num_of_pics=0
             )
         ),
-        only_once=True
+        True
     )
 
     # transit from center to edge, turning gently so that drone is tangent when reaching the edge
@@ -93,7 +93,7 @@ def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, ta
             cam_id=0,
             )
         ),
-        only_once=True
+        True
     )
     
     # generate spiral

@@ -1,6 +1,5 @@
 from pymavlink.mavutil import mavfile, mavlink
 
-
 """
 
 cam_id: 0 is all cameras, 1 is camera 1, 2 is camera 2
@@ -8,13 +7,14 @@ num_of_pics: 0 is unlimited pictures, else limit to num_of_pics
 """
 
 def activate_camera(mav_connection: mavfile, cam_id: int = 0, time_between_pics_secs: float = 1.0, num_of_pics: int = 0,
-                    timeout: int = 5, tgt_sys_id: int = 1, tgt_comp_id: int = 1) -> int:
+                    timeout: int = 5, tgt_sys_id: int = 0, tgt_comp_id: int = 0) -> int:
     
     mav_connection.mav.command_long_send(
         tgt_sys_id,
         tgt_comp_id,
-        mavfile.mavlink.MAV_CMD_IMAGE_START_CAPTURE,
-        cam_id, time_between_pics_secs, num_of_pics
+        mavlink.MAV_CMD_IMAGE_START_CAPTURE,
+        0, cam_id, time_between_pics_secs, num_of_pics,
+        0, 0, 0, 0
     )
 
     # Wait for the acknowledgment
@@ -27,14 +27,15 @@ def activate_camera(mav_connection: mavfile, cam_id: int = 0, time_between_pics_
 
     return ack.result
 
-def deactivate_camera(mav_connection: mavfile, tgt_sys_id: int = 1, tgt_comp_id: int = 1, 
+def deactivate_camera(mav_connection: mavfile, tgt_sys_id: int = 0, tgt_comp_id: int = 0, 
                     cam_id: int = 0, timeout: int = 5) -> int:
     
     mav_connection.mav.command_long_send(
         tgt_sys_id,
         tgt_comp_id,
-        mavfile.mavlink.MAV_CMD_IMAGE_STOP_CAPTURE,
-        cam_id
+        mavlink.MAV_CMD_IMAGE_STOP_CAPTURE,
+        0, cam_id,
+        0, 0, 0, 0, 0, 0
     )
 
     # Wait for the acknowledgment
