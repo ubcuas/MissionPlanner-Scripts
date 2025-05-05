@@ -70,10 +70,9 @@ def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, ta
                 cam_id=0,
                 time_between_pics_secs=0.5,
                 num_of_pics=0
-                )
             ),
-            True
-        )
+            only_once=True
+        ))
 
     # transit from center to edge, turning gently so that drone is tangent when reaching the edge
     tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius / 2, center_sn - target_area_radius / 2, zone, hemisphere)
@@ -94,10 +93,9 @@ def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, ta
             lambda msg, conn, state: deactivate_camera(
                 mav_connection=mav_connection,
                 cam_id=0,
-                )
             ),
-            True
-        )
+            only_once=True
+        ))
     
     # generate spiral
     decrease_per_radian = 0.75 * (scan_radius) / (2 * math.pi)

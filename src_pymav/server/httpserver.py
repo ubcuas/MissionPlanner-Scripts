@@ -356,12 +356,12 @@ class HTTP_Server:
             print(input)
 
             # TODO Trigger CameraVision system to begin scanning
-            if ("center_lat" in input and"center_lon" in input and
+            if ("center_lat" in input and"center_lng" in input and
                 "altitude" in input and "target_area_radius" in input and
                 "enable_camera" in input):
 
                 center_lat = input["center_lat"]
-                center_lon = input["center_lon"]
+                center_lng = input["center_lng"]
                 altitude = input["altitude"]
                 target_area_radius = input["target_area_radius"]
                 enable_camera = input["enable_camera"]
@@ -369,12 +369,12 @@ class HTTP_Server:
                 ret: Status = get_status(self.mav_connection, self.callback_sys)
 
                 # If given lat lon is 0, then base spiral off of current lat lon
-                if (center_lat == 0 and center_lon == 0):
+                if (center_lat == 0 and center_lng == 0):
                     center_lat = ret._lat
-                    center_lon = ret._lng
+                    center_lng = ret._lng
 
                 wpq = scan_area(self.mav_connection, self.callback_sys, 
-                                center_lat, center_lon, altitude, target_area_radius, enable_camera)
+                                center_lat, center_lng, altitude, target_area_radius, enable_camera)
                 
                 if new_mission(self.mav_connection, wpq):
                     return f"Scan Mission Set", 200
@@ -396,8 +396,8 @@ class HTTP_Server:
                 deliver_alt = input["deliver_alt"]
                 deliver_duration_secs = input["deliver_duration_secs"]
                 curr_lat = ret._lat
-                curr_lon = ret._lng
-                wpq = generate_water_wps(self.mav_connection, self.callback_sys, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
+                curr_lng = ret._lng
+                wpq = generate_water_wps(self.mav_connection, self.callback_sys, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lng)
                  
                 if new_mission(self.mav_connection, wpq):
                     return f"Commencing Deliver operation", 200
