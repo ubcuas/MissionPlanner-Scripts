@@ -1,0 +1,19 @@
+meta {
+  name: queue
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{ base_url }}/queue
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: multipart/form-data
+}
+
+docs {
+  Returns the current list of queue of waypoints to hit. Passed or removed waypoints are not displayed.
+}

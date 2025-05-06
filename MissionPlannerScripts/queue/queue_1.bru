@@ -1,0 +1,88 @@
+meta {
+  name: queue_1
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{ base_url }}/queue
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  [
+      {
+          "id": 0,
+          "name": "Alpha",
+          "latitude": 38.3143531,
+          "longitude": -76.5594292,
+          "altitude": 100
+      },
+      {
+          "id": 6,
+          "name": "Alpha",
+          "latitude": 38.3012197,
+          "longitude": -76.5467262,
+          "altitude": 100,
+          "command":"DO_CHANGE_SPEED",
+          "param1":1,
+          "param2":10
+      },
+      {
+          "id": 1,
+          "name": "Alpha",
+          "latitude": 38.3180233,
+          "longitude": -76.5576053,
+          "altitude": 100,
+          "command":"WAYPOINT",
+          "param1":3,
+          "param2":4,
+          "param3":5,
+          "param4":6
+      },
+      {
+          "id": 5,
+          "name": "Alpha",
+          "latitude": 38.3035098,
+          "longitude": -76.5376282,
+          "altitude": 100,
+          "command":"DO_VTOL_TRANSITION",
+          "param1":3,
+          "param4":4
+      },
+      {
+          "id": 2,
+          "name": "Alpha",
+          "latitude": 38.3200772,
+          "longitude": -76.5527773,
+          "altitude": 100,
+          "command":"LOITER_UNLIM",
+          "param3":0
+      },
+      {
+          "id": 3,
+          "name": "Alpha",
+          "latitude": 38.3195385,
+          "longitude": -76.5394735,
+          "altitude": 100
+      },
+      {
+          "id": 4,
+          "name": "Alpha",
+          "latitude": 38.3112889,
+          "longitude": -76.5240669,
+          "altitude": 100,
+          "param3":-1
+      }
+      
+  ]
+}
+
+docs {
+  Overwrite the queue with a new list of waypoints.
+}

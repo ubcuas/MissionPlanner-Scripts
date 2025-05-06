@@ -1,0 +1,19 @@
+meta {
+  name: clear
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{ base_url }}/clear
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+docs {
+  Clear the waypoint queue.
+}

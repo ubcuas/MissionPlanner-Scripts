@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "MissionPlannerScripts",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

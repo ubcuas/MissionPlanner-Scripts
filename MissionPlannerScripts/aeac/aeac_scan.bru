@@ -1,0 +1,21 @@
+meta {
+  name: aeac_scan
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/aeac_scan
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "center_lat": 0,
+      "center_lon": 0,
+      "altitude": 50,
+      "target_area_radius": 110,
+      "enable_camera": false
+  }
+}

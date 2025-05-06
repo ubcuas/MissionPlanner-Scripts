@@ -1,0 +1,25 @@
+meta {
+  name: insert
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{ base_url }}/insert
+  body: json
+  auth: none
+}
+
+body:json {
+  [{
+      "id": 0,
+      "name": "Inserted",
+      "latitude": 38.3096384,
+      "longitude": -76.5514048,
+      "altitude": 100
+  }]
+}
+
+docs {
+  Insert a waypoint onto the front of the queue.
+}

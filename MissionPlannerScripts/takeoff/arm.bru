@@ -1,0 +1,21 @@
+meta {
+  name: arm
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{ base_url }}/arm
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "arm": 1
+  }
+}
+
+docs {
+  Arm or disarm the motors.
+}

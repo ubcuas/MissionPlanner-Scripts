@@ -1,0 +1,25 @@
+meta {
+  name: land_1
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{ base_url }}/land
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+  		"id": 0,
+  		"name": "string",
+  		"latitude": 38.3171058,
+  		"longitude": -76.5517151,
+  		"altitude": 100
+  }
+}
+
+docs {
+  Land at designated location.
+}

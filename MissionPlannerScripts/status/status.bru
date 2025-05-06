@@ -1,0 +1,32 @@
+meta {
+  name: status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/status
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "airspeed": 0,
+    "groundspeed": 0,
+    "latitude": 0,
+    "longitude": 0,
+    "altitude": 0,
+    "heading": 0,
+    "batteryvoltage": 0,
+    "winddirection": 0,
+    "windvelocity": 0,
+    "current_wpn": 0,
+    "date": 0,
+    "time": 0
+  }
+}
+
+docs {
+  Obtain the aircraft status.
+}

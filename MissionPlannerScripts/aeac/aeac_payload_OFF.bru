@@ -1,0 +1,20 @@
+meta {
+  name: aeac_payload_OFF
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/aeac_payload
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "valve_one_open": false,
+      "valve_two_open": false,
+      "pump_on": false,
+      "reset": false
+  }
+}
