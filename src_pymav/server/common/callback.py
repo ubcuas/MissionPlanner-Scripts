@@ -50,10 +50,31 @@ class CallbackSystem():
 
         self.callbacks: dict[str, list[Callback]] = {}
         self.prev_messages: dict[str, object] = {}
+
+    def __check_exec_indicate_removal(self, callback: Callback, curr_msg, prev_msg) -> bool:
+        """
+        Checks the callback's trigger condition and executes if it passes.
+        Returns a boolean that indicates if the callback should be removed.
+        """
+        print(f"DEBUG: testing callback {callback.name}")
+
+        keep = True
+
+        if callback.trigger_condition(curr_msg, prev_msg):
+
+            if callback.only_once:
+                # remove callback before firing it
+                keep = False
+
+            # fire callback
+            callback.payload(curr_msg, self.conn, self.state)
+
+            print(f"DEBUG: Fired Callback {callback.name}")
+        
+        return keep
     
     def update_and_check(self, latest_messages: dict):
         # traverse through all callbacks and check each of their triggers
-        print(f"DEBUG: update_and_check called")
         for callback_type, callback_list in self.callbacks.items():
             prev_msg = self.prev_messages.get(callback_type, None)
             curr_msg = latest_messages.get(callback_type, None)
@@ -62,18 +83,11 @@ class CallbackSystem():
                 # no point testing
                 continue
 
-            for callback in callback_list:
-                print(f"DEBUG: testing callback {callback.name}")
-                if callback.trigger_condition(curr_msg, prev_msg):
-
-                    if callback.only_once:
-                        # remove callback before firing it
-                        self.callbacks[callback_type].remove(callback)
-
-                    # fire callback
-                    callback.payload(curr_msg, self.conn, self.state)
-
-                    print(f"DEBUG: Fired Callback {callback.name}")
+            # check every callback in the list, filtering out those that get removed
+            self.callbacks[callback_type] = list(filter(
+                lambda callback: self.__check_exec_indicate_removal(callback, curr_msg, prev_msg), 
+                callback_list
+            ))
 
         # update prev_messages
         self.prev_messages.update(latest_messages)
@@ -84,5 +98,8 @@ class CallbackSystem():
             self.callbacks[callback.trigger_message_type] = []
         self.callbacks.get(callback.trigger_message_type).append(callback)
 
-    # def unregister_callback(self, name: str, trigger_message_type: int):
-    #     pass
+    def deregister_callback(self, name: str):
+        self.deregister_callback_by_condition(lambda callback: (name == callback.name))
+
+    def deregister_callback_by_condition(self, condition: Callable = (lambda callback: False)):
+        pass
