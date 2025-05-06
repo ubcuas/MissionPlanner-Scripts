@@ -60,7 +60,8 @@ def get_status(mav_connection: mavutil.mavfile, callback_sys: CallbackSystem = N
     windvelocity = math.sqrt(status_wind.wind_x * status_wind.wind_x + status_wind.wind_y * status_wind.wind_y)
 
     # trigger / callback mechanism
-    callback_sys.update_and_check(mav_connection.messages)
+    if callback_sys is not None:
+        callback_sys.update_and_check(mav_connection.messages)
 
     return Status(
         system_time.time_unix_usec / 1000000, # seconds

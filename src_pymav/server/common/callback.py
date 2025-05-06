@@ -9,7 +9,11 @@ class Callback():
             trigger_message_type: str, 
             trigger_condition: Callable = (lambda curr_msg, prev_msg: True), 
             payload: Callable = (lambda msg, conn, state: print(msg)),
-            only_once: bool = True
+            removable_flags: dict[str, bool] = {
+                "on_payload_fired": True,
+                "on_mission_switched": True,
+                "on_deregister_called": True,
+            }
         ):
         """
         A callback instance. Callbacks are composed of two components - the trigger, which controls
@@ -33,15 +37,30 @@ class Callback():
             a state dictionary owned by the MPS server instance itself (for passing information
             back to the wider server context.) 
             If unspecified, a default function will be used that simply prints the message.
-        `only_once`: indicates that the callback should only execute once, i.e. it will be removed
-            after being triggered for the first and only time.
+        `removable`: a dictionary with boolean flags indicating the conditions under which the 
+            callback can be deleted/removed/deregistered.
+            `on_payload_fired`: indicates that the callback will be removed after being triggered
+                for the first and only time, i.e., it will only execute once.
+            `on_mission_switched`: indicates that the callback will be removed when the mission
+                is switched/updated, i.e., the callback is mission-specific and it would be 
+                invalid for that callback to persist if the mission was switched before it was
+                executed.
+            `on_deregister_called`: indicates that the callback can be removed through the
+                Callback System's deregistration functions.
+            A Callback with all three of these flags set to `False` will be effectively permanent.
         """
 
         self.name = name
         self.trigger_message_type = trigger_message_type
         self.trigger_condition = trigger_condition
         self.payload = payload
-        self.only_once = only_once
+
+        self.removable_flags = {
+            "on_payload_fired": True,
+            "on_mission_switched": True,
+            "on_deregister_called": True,
+        }
+        self.removable_flags.update(removable_flags)
 
 class CallbackSystem():
     def __init__(self, mav_connection: mavutil.mavfile, state: dict):
@@ -62,7 +81,7 @@ class CallbackSystem():
 
         if callback.trigger_condition(curr_msg, prev_msg):
 
-            if callback.only_once:
+            if callback.removable_flags.get("on_payload_fired"):
                 # remove callback before firing it
                 keep = False
 
@@ -102,4 +121,24 @@ class CallbackSystem():
         self.deregister_callback_by_condition(lambda callback: (name == callback.name))
 
     def deregister_callback_by_condition(self, condition: Callable = (lambda callback: False)):
-        pass
+        for callback_type, callback_list in self.callbacks.items():
+            # filter the list of callbacks, keeping only those who cannot be deregistered directly
+            # through methods and those for whom the condition evaluates to False.
+            self.callbacks[callback_type] = list(filter(
+                lambda callback: (callback.removable_flags.get("on_deregister_called") and not condition(callback)),
+                callback_list
+            ))
+    
+    def mission_switched(self):
+        """
+        The mission switched, so deregister all callbacks for which `self.removable_flags["on_mission_switched"]` is `True`.
+        """
+
+        print("DEBUG: Clearing Callbacks on Mission Switch")
+
+        for callback_type, callback_list in self.callbacks.items():
+            # filter out all callbacks that are set to expire on mission switch
+            self.callbacks[callback_type] = list(filter(
+                lambda callback: not callback.removable_flags.get("on_mission_switched"),
+                callback_list
+            ))

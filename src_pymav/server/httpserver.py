@@ -34,7 +34,11 @@ class HTTP_Server:
             Callback(
                 "Print all CAMERA_FEEDBACK messages",
                 'CAMERA_FEEDBACK',
-                only_once=False
+                removable_flags={
+                    "on_payload_fired": False,
+                    "on_mission_switched": False,
+                    "on_deregister_called": True,
+                }
             )
         )
 
@@ -104,7 +108,7 @@ class HTTP_Server:
                 )
                 wpq.append(wp)
 
-            success = new_mission(self.mav_connection, WaypointQueue(wpq.copy()))
+            success = new_mission(self.mav_connection, self.callback_sys, WaypointQueue(wpq.copy()))
             copy = WaypointQueue(wpq.copy()).aslist()
             wpq.clear()
 
@@ -158,7 +162,7 @@ class HTTP_Server:
             # start list with new waypoints, extend with current mission at the end
             new_waypoints.extend(curr_wpq.aslist()[curr:])
 
-            success = new_mission(self.mav_connection, WaypointQueue(new_waypoints.copy()))
+            success = new_mission(self.mav_connection, self.callback_sys, WaypointQueue(new_waypoints.copy()))
             copy = WaypointQueue(new_waypoints.copy()).aslist()
             new_waypoints.clear()
             
@@ -277,7 +281,7 @@ class HTTP_Server:
             landing_mission.push(Waypoint(0, "Approach", land.get('latitude'), land.get('longitude'), land.get('altitude', 35)))
             landing_mission.push(Waypoint(1, "Landing", land.get('latitude'), land.get('longitude'), 0, "LAND"))
 
-            if new_mission(self.mav_connection, landing_mission):
+            if new_mission(self.mav_connection, self.callback_sys, landing_mission):
                 return "Landing at Specified Location", 200
             else:
                 return "Landing failed", 400
@@ -373,10 +377,9 @@ class HTTP_Server:
                     center_lat = ret._lat
                     center_lng = ret._lng
 
-                wpq = scan_area(self.mav_connection, self.callback_sys, 
-                                center_lat, center_lng, altitude, target_area_radius, enable_camera)
+                wpq, callbacks = scan_area(center_lat, center_lng, altitude, target_area_radius, enable_camera)
                 
-                if new_mission(self.mav_connection, wpq):
+                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks):
                     return f"Scan Mission Set", 200
                 else:
                     return "Mission request failed", 400
@@ -397,9 +400,9 @@ class HTTP_Server:
                 deliver_duration_secs = input["deliver_duration_secs"]
                 curr_lat = ret._lat
                 curr_lng = ret._lng
-                wpq = generate_water_wps(self.mav_connection, self.callback_sys, current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lng)
+                wpq, callbacks = generate_water_wps(current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lng)
                  
-                if new_mission(self.mav_connection, wpq):
+                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks):
                     return f"Commencing Deliver operation", 200
                 else:
                     return "Mission request failed", 400

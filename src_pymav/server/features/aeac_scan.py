@@ -41,8 +41,10 @@ def plot_shape(points, color, close_loop=False, scatter=True) -> None:
         next = points[(i + 1) % len(points)]
         plt.plot([curr[0], next[0]], [curr[1], next[1]], color=color, alpha=0.7, linewidth=1, zorder=2)
 
-def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, target_area_radius, enable_cam) -> WaypointQueue:
+def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) -> tuple[WaypointQueue, list[Callback]]:
     wpq = WaypointQueue()
+    callbacks = []
+
     center_we, center_sn = convert_gps_to_utm(center_lat, center_lng)
     zone = convert_gps_to_utm_zone(center_lng)
     hemisphere = 1 # +1 for North, -1 for South
@@ -61,17 +63,20 @@ def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, ta
 
 
     if (enable_cam):
-        callback_sys.register_callback(Callback(
+        callbacks.append(Callback(
             "Scan Mission - Start Camera",
             'MISSION_CURRENT',
             lambda curr_msg, prev_msg: (curr_msg.seq == 1),
             lambda msg, conn, state: activate_camera(
-                mav_connection=mav_connection,
+                mav_connection=conn,
                 cam_id=0,
                 time_between_pics_secs=0.5,
                 num_of_pics=0
             ),
-            only_once=True
+            removable_flags = {
+                "on_payload_fired": True,
+                "on_mission_switched": True,
+            }
         ))
 
     # transit from center to edge, turning gently so that drone is tangent when reaching the edge
@@ -86,15 +91,18 @@ def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, ta
     count += 1
 
     if (enable_cam):
-        callback_sys.register_callback(Callback(
+        callbacks.append(Callback(
             "Scan Mission - Stop Camera",
             'MISSION_CURRENT',
             lambda curr_msg, prev_msg: (curr_msg.seq < count - 1),
             lambda msg, conn, state: deactivate_camera(
-                mav_connection=mav_connection,
+                mav_connection=conn,
                 cam_id=0,
             ),
-            only_once=True
+            removable_flags = {
+                "on_payload_fired": True,
+                "on_mission_switched": True,
+            }
         ))
     
     # generate spiral
@@ -126,7 +134,7 @@ def scan_area(mav_connection, callback_sys, center_lat, center_lng, altitude, ta
     # ax.set_aspect('equal', adjustable='box')
     # plt.show()
 
-    return wpq
+    return wpq, callbacks
     
     # TODO handle deadzone
 

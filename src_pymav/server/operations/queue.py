@@ -2,6 +2,7 @@ from pymavlink import mavutil
 
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.encoders import command_string_to_int, command_int_to_string
+from server.common.callback import CallbackSystem, Callback
 
 def set_home(mavlink_connection: mavutil.mavlink_connection, latitude: float, longitude: float, altitude: float): # -> int | None:
     # Send a set home command
@@ -20,13 +21,18 @@ def set_home(mavlink_connection: mavutil.mavlink_connection, latitude: float, lo
 
     return ack.result
 
-def new_mission(mavlink_connection: mavutil.mavlink_connection, waypoint_queue: WaypointQueue) -> bool:
+def new_mission(mavlink_connection: mavutil.mavlink_connection, callback_sys: CallbackSystem, waypoint_queue: WaypointQueue, callbacks: list[Callback] = []) -> bool:
     # Clear any existing mission from vehicle
     print('Clearing mission')
     mavlink_connection.mav.mission_clear_all_send(mavlink_connection.target_system, mavlink_connection.target_component)
 
     if not verify_ack(mavlink_connection, 'Error clearing mission'):
         return False
+    
+    # register callbacks after mission is cleared
+    callback_sys.mission_switched()
+    for callback in callbacks:
+        callback_sys.register_callback(callback)
     
     # Insert the home waypoint
     wp_list = []

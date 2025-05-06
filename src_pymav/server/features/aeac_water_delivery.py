@@ -14,15 +14,14 @@ Generates a water delivery mission with the following waypoints:
 3. Return to previous location altitude
 '''
 def generate_water_wps(
-    mav_connection: mavutil.mavfile,
-    callback_sys: CallbackSystem,
     current_alt: float,
     deliver_alt: float,
     deliver_duration_secs: int,
     curr_lat: float,
     curr_lon: float,
-) -> WaypointQueue:
+) -> tuple[WaypointQueue, list[Callback]]:
     landing_mission = WaypointQueue()
+    callbacks = []
 
     # Set the current altitude to the current location
     wp_1 = Waypoint(
@@ -42,7 +41,7 @@ def generate_water_wps(
     )
 
     # Add a callback to set the payload mode to release water after getting to loiter wp 
-    callback_sys.register_callback(Callback(
+    callbacks.append(Callback(
         "Water Delivery - Release water",
         'MISSION_CURRENT',
         lambda curr_msg, prev_msg: (curr_msg.seq == 3),
@@ -53,7 +52,10 @@ def generate_water_wps(
             pump_on=False,
             reset=False
         ),
-        only_once=True
+        removable_flags = {
+            "on_payload_fired": True,
+            "on_mission_switched": True,
+        }
     ))
 
     wp_3 = Waypoint(
@@ -76,7 +78,7 @@ def generate_water_wps(
     )
 
     # Add a callback to set the payload mode to stop releasing water after getting to loiter wp 
-    callback_sys.register_callback(Callback(
+    callbacks.append(Callback(
         "Water Delivery - Stop releasing water",
         'MISSION_CURRENT',
         lambda curr_msg, prev_msg: (curr_msg.seq == 5),
@@ -87,7 +89,10 @@ def generate_water_wps(
             pump_on=False,
             reset=False
         ),
-        only_once=True
+        removable_flags = {
+            "on_payload_fired": True,
+            "on_mission_switched": True,
+        }
     ))
 
     wp_5 = Waypoint(
@@ -105,7 +110,7 @@ def generate_water_wps(
     landing_mission.push(wp_4)
     landing_mission.push(wp_5)
 
-    return landing_mission
+    return landing_mission, callbacks
 
 def set_payload_mode(mav_connection: mavutil.mavfile, valve_one_open: bool, 
                      valve_two_open: bool, pump_on: bool, reset: bool = False) -> int:
