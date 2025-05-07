@@ -182,7 +182,7 @@ class HTTP_Server:
 
         @app.route("/status", methods=["GET"])
         def get_status_handler():
-            print("Status sent to GCOM")
+            # print("Status sent to GCOM")
             s = get_status(self.mav_connection, self.callback_sys).as_dictionary()
             return s, 200
 
@@ -374,12 +374,13 @@ class HTTP_Server:
 
                 # If given lat lon is 0, then base spiral off of current lat lon
                 if (center_lat == 0 and center_lng == 0):
+                    print(f"{ret._lat} {ret._lng}")
                     center_lat = ret._lat
                     center_lng = ret._lng
 
                 wpq, callbacks = scan_area(center_lat, center_lng, altitude, target_area_radius, enable_camera)
                 
-                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks):
+                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks, frame=3): # frame - RELATIVE TO HOME ALT
                     return f"Scan Mission Set", 200
                 else:
                     return "Mission request failed", 400
@@ -400,9 +401,9 @@ class HTTP_Server:
                 deliver_duration_secs = input["deliver_duration_secs"]
                 curr_lat = ret._lat
                 curr_lng = ret._lng
-                wpq, callbacks = generate_water_wps(current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lng)
+                wpq, callbacks = generate_water_wps(deliver_alt, deliver_duration_secs, curr_lat, curr_lng)
                  
-                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks):
+                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks, frame=3): # frame - RELATIVE TO HOME ALT
                     return f"Commencing Deliver operation", 200
                 else:
                     return "Mission request failed", 400

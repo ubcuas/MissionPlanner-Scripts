@@ -2,7 +2,7 @@ import time
 import requests
 
 # Configuration
-HTTP_SERVER = "http://localhost:8000"  # Replace with your actual server URL
+HTTP_SERVER = "http://localhost:9000"  # Replace with your actual server URL
 INTERVAL = 0.5  # Time in seconds between requests
 
 def check_status():

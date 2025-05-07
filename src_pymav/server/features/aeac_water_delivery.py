@@ -14,7 +14,6 @@ Generates a water delivery mission with the following waypoints:
 3. Return to previous location altitude
 '''
 def generate_water_wps(
-    current_alt: float,
     deliver_alt: float,
     deliver_duration_secs: int,
     curr_lat: float,
@@ -29,7 +28,7 @@ def generate_water_wps(
         "curr_wp",
         curr_lat,
         curr_lon,
-        current_alt,
+        deliver_alt + 5,
     )
 
     wp_2 = Waypoint(
@@ -100,7 +99,7 @@ def generate_water_wps(
         "curr_wp",
         curr_lat,
         curr_lon,
-        current_alt,
+        deliver_alt + 5,
         command="LOITER_UNLIM",
     )
 

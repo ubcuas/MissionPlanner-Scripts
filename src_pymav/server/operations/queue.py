@@ -21,7 +21,7 @@ def set_home(mavlink_connection: mavutil.mavlink_connection, latitude: float, lo
 
     return ack.result
 
-def new_mission(mavlink_connection: mavutil.mavlink_connection, callback_sys: CallbackSystem, waypoint_queue: WaypointQueue, callbacks: list[Callback] = []) -> bool:
+def new_mission(mavlink_connection: mavutil.mavlink_connection, callback_sys: CallbackSystem, waypoint_queue: WaypointQueue, callbacks: list[Callback] = [], frame = 0) -> bool:
     # Clear any existing mission from vehicle
     print('Clearing mission')
     mavlink_connection.mav.mission_clear_all_send(mavlink_connection.target_system, mavlink_connection.target_component)
@@ -29,16 +29,11 @@ def new_mission(mavlink_connection: mavutil.mavlink_connection, callback_sys: Ca
     if not verify_ack(mavlink_connection, 'Error clearing mission'):
         return False
     
-    # register callbacks after mission is cleared
-    callback_sys.mission_switched()
-    for callback in callbacks:
-        callback_sys.register_callback(callback)
-    
     # Insert the home waypoint
     wp_list = []
     seq = 0
     wp_list.append(mavutil.mavlink.MAVLink_mission_item_int_message(
-        0, 0, seq, 0, 16, 0, 0, 0, 0, 0, 0,
+        0, 0, seq, frame, 16, 0, 0, 0, 0, 0, 0,
         0, 
         0, 
         0
@@ -50,7 +45,7 @@ def new_mission(mavlink_connection: mavutil.mavlink_connection, callback_sys: Ca
 
         wp_list.append(mavutil.mavlink.MAVLink_mission_item_int_message(
         mavlink_connection.target_system, mavlink_connection.target_component, seq, 
-        0, command_string_to_int(wp._com), 0, 1, 
+        frame, command_string_to_int(wp._com), 0, 1, 
         float(wp._param1), float(wp._param2), float(wp._param3), 
         float(wp._param4), int(wp._lat * 10000000), int(wp._lng * 10000000), 
         int(wp._alt)
@@ -60,7 +55,14 @@ def new_mission(mavlink_connection: mavutil.mavlink_connection, callback_sys: Ca
     mavlink_connection.waypoint_count_send(len(wp_list))
 
     # Upload waypoints to the UAV
-    return send_waypoints(mavlink_connection, wp_list)
+    ret = send_waypoints(mavlink_connection, wp_list)
+
+    # register callbacks after mission is cleared
+    callback_sys.mission_switched()
+    for callback in callbacks:
+        callback_sys.register_callback(callback)
+    
+    return ret
 
 def send_waypoints(mavlink_connection: mavutil.mavlink_connection, wp_list: list) -> bool:
     """

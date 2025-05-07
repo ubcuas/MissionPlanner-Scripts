@@ -53,7 +53,7 @@ def get_status(mav_connection: mavutil.mavfile, callback_sys: CallbackSystem = N
     status_wind = mav_connection.messages.get('WIND_COV', Object(wind_x = 0, wind_y = 0))
     latency_wind = mav_connection.time_since('WIND_COV')
 
-    print(f"Latencies: {latency_time:2f}s, {latency_gps:2f}s, {latency_att:2f}s, {latency_vfr:2f}s, {latency_sys:2f}s, {latency_wpn:2f}s, {latency_wind:2f}s")
+    # print(f"Latencies: {latency_time:2f}s, {latency_gps:2f}s, {latency_att:2f}s, {latency_vfr:2f}s, {latency_sys:2f}s, {latency_wpn:2f}s, {latency_wind:2f}s")
 
     # wind calculations in the horizontal plane TODO determine if vertical windspeed is needed
     winddirection = math.degrees(math.atan(status_wind.wind_x / status_wind.wind_y)) if status_wind.wind_y != 0 else (0 if status_wind.wind_x > 0 else 180)
