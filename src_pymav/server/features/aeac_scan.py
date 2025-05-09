@@ -6,11 +6,13 @@ from server.common.wpqueue import Waypoint, WaypointQueue
 from server.common.callback import CallbackSystem, Callback
 
 from server.operations.camera import activate_camera, deactivate_camera
+from server.operations.change_modes import change_speed
 
 # ALL UNITS IN METERS UNLESS SPECIFIED
 SPLINE_WAYPOINT_TYPE = "SPLINE_WAYPOINT"
 TURNING_RADIUS = 20
 EARTH_RADIUS = 6378 * 1000 # 6378 km
+SPEED = 4 # m/s
 
 def calculate_scan_radius(altitude, vertical_fov_deg, horizontal_fov_deg) -> int:
     # Convert FOV angles from degrees to radians
@@ -54,6 +56,17 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
 
     scan_radius = calculate_scan_radius(altitude, 44, 57) # from v1226-mpz 20MP Lens (12 mm focal)
     print(scan_radius)
+
+    callbacks.append(Callback(
+        "Scan Mission - Set Speed",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq == 1),
+        lambda msg, conn, state: change_speed(conn, speed=SPEED),
+        removable_flags={
+            "on_payload_fired": True,
+            "on_mission_switched": True,
+        }
+    ))
     
     # go to center waypoint (with generous slack)
     wpq.push(Waypoint(0, "", center_lat, center_lng, altitude, command=SPLINE_WAYPOINT_TYPE))
@@ -97,7 +110,7 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
         callbacks.append(Callback(
             "Scan Mission - Stop Camera",
             'MISSION_CURRENT',
-            lambda curr_msg, prev_msg: (curr_msg.seq < count - 1),
+            lambda curr_msg, prev_msg: (curr_msg.seq < count - 1), # TODO check this? will it just fire immediately?
             lambda msg, conn, state: deactivate_camera(
                 mav_connection=conn,
                 cam_id=0,
@@ -134,6 +147,17 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
     spiral_wps.reverse()
     for wp in spiral_wps:
         wpq.push(wp)
+    
+    callbacks.append(Callback(
+        "Scan Mission - Unset Speed",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq >= count - 1),
+        lambda msg, conn, state: change_speed(conn, speed=-2),
+        removable_flags={
+            "on_payload_fired": True,
+            "on_mission_switched": True,
+        }
+    ))
     
     # plot_shape(record, color="green", close_loop=False, scatter=True)
     # plot_shape([(wp._lng, wp._lat) for wp in wpq.aslist()], color="blue", close_loop=False, scatter=True)
