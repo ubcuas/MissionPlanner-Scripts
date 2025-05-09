@@ -1,0 +1,36 @@
+meta {
+  name: diversion
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{ base_url }}/diversion
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "exclude": [
+      {
+        "id": 0,
+        "name": "string",
+        "longitude": 0,
+        "latitude": 0,
+        "altitude": 0
+      }
+    ],
+    "rejoin_at": {
+      "id": 0,
+      "name": "string",
+      "longitude": 0,
+      "latitude": 0,
+      "altitude": 0
+    }
+  }
+}
+
+docs {
+  Divert the aircraft around an exclusion zone.
+}

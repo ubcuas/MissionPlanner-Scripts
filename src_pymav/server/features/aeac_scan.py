@@ -3,11 +3,16 @@ from matplotlib import pyplot as plt
 
 from server.common.conversion import *
 from server.common.wpqueue import Waypoint, WaypointQueue
+from server.common.callback import CallbackSystem, Callback
+
+from server.operations.camera import activate_camera, deactivate_camera
+from server.operations.change_modes import change_speed
 
 # ALL UNITS IN METERS UNLESS SPECIFIED
 SPLINE_WAYPOINT_TYPE = "SPLINE_WAYPOINT"
 TURNING_RADIUS = 20
 EARTH_RADIUS = 6378 * 1000 # 6378 km
+SPEED = 4 # m/s
 
 def calculate_scan_radius(altitude, vertical_fov_deg, horizontal_fov_deg) -> int:
     # Convert FOV angles from degrees to radians
@@ -38,8 +43,10 @@ def plot_shape(points, color, close_loop=False, scatter=True) -> None:
         next = points[(i + 1) % len(points)]
         plt.plot([curr[0], next[0]], [curr[1], next[1]], color=color, alpha=0.7, linewidth=1, zorder=2)
 
-def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQueue:
+def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) -> tuple[WaypointQueue, list[Callback]]:
     wpq = WaypointQueue()
+    callbacks = []
+
     center_we, center_sn = convert_gps_to_utm(center_lat, center_lng)
     zone = convert_gps_to_utm_zone(center_lng)
     hemisphere = 1 # +1 for North, -1 for South
@@ -48,7 +55,19 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
     count = 0
 
     scan_radius = calculate_scan_radius(altitude, 44, 57) # from v1226-mpz 20MP Lens (12 mm focal)
+    scan_radius += 5 # fudge radius
     print(scan_radius)
+
+    callbacks.append(Callback(
+        "Scan Mission - Set Speed",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq == 1),
+        lambda msg, conn, state: change_speed(conn, speed=SPEED),
+        removable_flags={
+            "on_payload_fired": True,
+            "on_mission_switched": True,
+        }
+    ))
     
     # go to center waypoint (with generous slack)
     wpq.push(Waypoint(0, "", center_lat, center_lng, altitude, command=SPLINE_WAYPOINT_TYPE))
@@ -56,16 +75,52 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
     record.append((center_we, center_sn))
     # # wpq.append((0, "", center_lat, center_lng, altitude))
 
+
+    if (enable_cam):
+        callbacks.append(Callback(
+            "Scan Mission - Start Camera",
+            'MISSION_CURRENT',
+            lambda curr_msg, prev_msg: (curr_msg.seq == 1),
+            lambda msg, conn, state: activate_camera(
+                mav_connection=conn,
+                cam_id=0,
+                time_between_pics_secs=0.5,
+                num_of_pics=0
+            ),
+            removable_flags = {
+                "on_payload_fired": True,
+                "on_mission_switched": True,
+            }
+        ))
+
     # transit from center to edge, turning gently so that drone is tangent when reaching the edge
-    tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius / 2, center_sn - target_area_radius / 2, zone, hemisphere)
-    record.append((center_we + target_area_radius / 2, center_sn - target_area_radius / 2))
-    wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
-    count += 1
+    # tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius / 2, center_sn - target_area_radius / 2, zone, hemisphere)
+    # record.append((center_we + target_area_radius / 2, center_sn - target_area_radius / 2))
+    # wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
+    # count += 1
+
+    spiral_wps = []
 
     tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius, center_sn, zone, hemisphere)
     record.append((center_we + target_area_radius, center_sn))
-    wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
+    # wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
+    spiral_wps.append(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
     count += 1
+
+    if (enable_cam):
+        callbacks.append(Callback(
+            "Scan Mission - Stop Camera",
+            'MISSION_CURRENT',
+            lambda curr_msg, prev_msg: (curr_msg.seq < count - 1), # TODO check this? will it just fire immediately?
+            lambda msg, conn, state: deactivate_camera(
+                mav_connection=conn,
+                cam_id=0,
+            ),
+            removable_flags = {
+                "on_payload_fired": True,
+                "on_mission_switched": True,
+            }
+        ))
     
     # generate spiral
     decrease_per_radian = 0.75 * (scan_radius) / (2 * math.pi)
@@ -86,8 +141,32 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
         # place waypoint
         record.append((center_we + current_radius * math.cos(current_angle), center_sn + current_radius * math.sin(current_angle)))
         tmp_lat, tmp_lng = convert_utm_to_gps(center_we + current_radius * math.cos(current_angle), center_sn + current_radius * math.sin(current_angle), zone, hemisphere)
-        wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude, command=SPLINE_WAYPOINT_TYPE, p2=2))
+        # wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude, command=SPLINE_WAYPOINT_TYPE, p2=2))
+        spiral_wps.append(Waypoint(count, "", tmp_lat, tmp_lng, altitude, command=SPLINE_WAYPOINT_TYPE, p2=2))
         count += 1
+    
+    spiral_wps.reverse()
+
+    # duplicate last waypoint
+    last_wp = spiral_wps[-1]
+    spiral_wps.append(last_wp)
+    count += 1
+
+    for wp in spiral_wps:
+        wpq.push(wp)
+    
+    callbacks.append(Callback(
+        "Scan Mission - Unset Speed",
+        'MISSION_CURRENT',
+        lambda curr_msg, prev_msg: (curr_msg.seq >= count),
+        lambda msg, conn, state: change_speed(conn, speed=-2),
+        removable_flags={
+            "on_payload_fired": True,
+            "on_mission_switched": True,
+        }
+    ))
+
+    print(f"DEBUG: {count = }")
     
     # plot_shape(record, color="green", close_loop=False, scatter=True)
     # plot_shape([(wp._lng, wp._lat) for wp in wpq.aslist()], color="blue", close_loop=False, scatter=True)
@@ -96,9 +175,10 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius) -> WaypointQ
     # ax.set_aspect('equal', adjustable='box')
     # plt.show()
 
-    return wpq
+    return wpq, callbacks
     
     # TODO handle deadzone
+
 
 if __name__ == '__main__':
     scan_area(0,0,100, 100)

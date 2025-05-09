@@ -1,0 +1,18 @@
+meta {
+  name: aeac_deliver
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/aeac_deliver
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "deliver_alt": 1,
+      "deliver_duration_secs": 20
+  }
+}

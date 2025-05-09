@@ -1,0 +1,29 @@
+meta {
+  name: home
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{ base_url }}/home
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": 0,
+    "name": "Alpha",
+    "latitude": -35.3627798,
+    "longitude": 149.1651830,
+    "altitude": 583
+  }
+}
+
+docs {
+  Set the home waypoint of the drone.
+}

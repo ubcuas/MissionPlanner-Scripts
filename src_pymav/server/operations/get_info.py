@@ -5,14 +5,16 @@ from pymavlink import mavutil
 from server.common.status import Status
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.encoders import command_int_to_string
+from server.common.callback import CallbackSystem
 from server.utilities.request_message_streaming import request_messages
+
 
 """
     Get current status of a drone
     Type of message can be found on https://mavlink.io/en/messages/common.html
 
 """
-def get_status(mav_connection: mavutil.mavfile) -> Status:
+def get_status(mav_connection: mavutil.mavfile, callback_sys: CallbackSystem = None) -> Status:
 
     # trigger an update
     # mav_connection.recv_match(blocking=True)
@@ -51,11 +53,15 @@ def get_status(mav_connection: mavutil.mavfile) -> Status:
     status_wind = mav_connection.messages.get('WIND_COV', Object(wind_x = 0, wind_y = 0))
     latency_wind = mav_connection.time_since('WIND_COV')
 
-    print(f"Latencies: {latency_time:2f}s, {latency_gps:2f}s, {latency_att:2f}s, {latency_vfr:2f}s, {latency_sys:2f}s, {latency_wpn:2f}s, {latency_wind:2f}s")
+    # print(f"Latencies: {latency_time:2f}s, {latency_gps:2f}s, {latency_att:2f}s, {latency_vfr:2f}s, {latency_sys:2f}s, {latency_wpn:2f}s, {latency_wind:2f}s")
 
     # wind calculations in the horizontal plane TODO determine if vertical windspeed is needed
     winddirection = math.degrees(math.atan(status_wind.wind_x / status_wind.wind_y)) if status_wind.wind_y != 0 else (0 if status_wind.wind_x > 0 else 180)
     windvelocity = math.sqrt(status_wind.wind_x * status_wind.wind_x + status_wind.wind_y * status_wind.wind_y)
+
+    # trigger / callback mechanism
+    if callback_sys is not None:
+        callback_sys.update_and_check(mav_connection.messages)
 
     return Status(
         system_time.time_unix_usec / 1000000, # seconds

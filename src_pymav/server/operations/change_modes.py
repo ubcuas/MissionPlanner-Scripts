@@ -29,6 +29,24 @@ def change_flight_mode(
 
     return True
 
+def change_speed(mav_connection: mavfile, tgt_sys_id=1, tgt_comp_id=1, speed: float = -2):
+    mav_connection.mav.command_long_send(
+        target_system=tgt_sys_id,
+        target_component=tgt_comp_id,
+        command=mavlink.MAV_CMD_DO_CHANGE_SPEED,
+        confirmation=0,
+        param1=0, # SPEED_TYPE_AIRSPEED
+        param2=speed, # -2 is default
+        param3=-1, # -1 indicates no change
+        param4=0,
+        param5=0,
+        param6=0,
+        param7=0,
+    )
+
+    verify_ack(mav_connection, "Failed ACK after change_speed")
+
+    return True
 
 def change_aircraft_type(mav_connection: mavfile):
     # TODO investigate whether to deprecate

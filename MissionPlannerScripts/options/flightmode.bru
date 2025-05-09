@@ -1,0 +1,21 @@
+meta {
+  name: flightmode
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{ base_url }}/flightmode
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "mode": "loiter"
+  }
+}
+
+docs {
+  Change flight mode ofm the aircraft to Loiter, Stabilize, Auto or Guided.
+}

@@ -1,0 +1,19 @@
+meta {
+  name: start_cam
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/activate_camera
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "cam_id": 0,
+      "time_between_pics_secs": 0.5,
+      "num_of_pics": 0
+  }
+}

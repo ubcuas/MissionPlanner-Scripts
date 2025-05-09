@@ -162,7 +162,8 @@ def request_messages(connection, message_types: list) -> bool:
 
         response = connection.recv_match(type='COMMAND_ACK', blocking=True)
         if (response and response.command == mavutil.mavlink.MAV_CMD_REQUEST_MESSAGE and response.result == mavutil.mavlink.MAV_RESULT_ACCEPTED):
-            print(f"Request for Message of type {message_type} ACCEPTED")
+            # print(f"Request for Message of type {message_type} ACCEPTED")
+            pass
         else:
             print(f"Request for Message of type {message_type} DENIED")
 

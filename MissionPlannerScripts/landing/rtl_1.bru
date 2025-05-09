@@ -1,0 +1,21 @@
+meta {
+  name: rtl_1
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{ base_url }}/rtl
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "altitude": 0
+  }
+}
+
+docs {
+  Return to launch at specified altitude.
+}

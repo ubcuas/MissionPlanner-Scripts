@@ -9,23 +9,41 @@ from server.operations.queue import new_mission, set_home, clear_mission
 from server.operations.get_info import get_status, get_current_mission
 from server.operations.change_modes import change_flight_mode
 from server.operations.land import land_in_place, land_at_position
+from server.operations.camera import activate_camera, deactivate_camera
 
 from server.features.aeac_scan import scan_area
-from server.features.aeac_water_delivery import generate_water_wps
+from server.features.aeac_water_delivery import generate_water_wps, set_payload_mode
 
 from server.utilities.request_message_streaming import set_parameter
 
 from server.common.wpqueue import WaypointQueue, Waypoint
 from server.common.status import Status
 from server.common.encoders import command_string_to_int, command_int_to_string
+from server.common.callback import CallbackSystem, Callback
 
 
 class HTTP_Server:
     def __init__(self, mav_connection):
         self.mav_connection: mavfile = mav_connection
+        self.miscellaneous_state = {}
+
+        self.callback_sys = CallbackSystem(self.mav_connection, self.miscellaneous_state)
+
+        # TODO Handle Camera Protocol via Callbacks?
+        self.callback_sys.register_callback(
+            Callback(
+                "Print all CAMERA_FEEDBACK messages",
+                'CAMERA_FEEDBACK',
+                removable_flags={
+                    "on_payload_fired": False,
+                    "on_mission_switched": False,
+                    "on_deregister_called": True,
+                }
+            )
+        )
 
     def serve_forever(self, production=True, HOST="localhost", PORT=9000):
-        print("GCOM HTTP Server starting...")
+        print("GCOM HTTP Server running...")
         app = Flask(__name__)
         socketio = SocketIO(app)
 
@@ -36,7 +54,7 @@ class HTTP_Server:
 
         @app.route("/queue", methods=["GET"])
         def get_queue():
-            curr = get_status(self.mav_connection)._wpn 
+            curr = get_status(self.mav_connection, self.callback_sys)._wpn 
             wpq = get_current_mission(self.mav_connection)
 
             formatted = []
@@ -56,7 +74,7 @@ class HTTP_Server:
         def post_queue():
             payload = request.get_json()
 
-            ret = get_status(self.mav_connection)
+            ret = get_status(self.mav_connection, self.callback_sys)
             last_altitude = ret.as_dictionary().get("altitude", 50)
 
             wpq = []
@@ -90,7 +108,7 @@ class HTTP_Server:
                 )
                 wpq.append(wp)
 
-            success = new_mission(self.mav_connection, WaypointQueue(wpq.copy()))
+            success = new_mission(self.mav_connection, self.callback_sys, WaypointQueue(wpq.copy()))
             copy = WaypointQueue(wpq.copy()).aslist()
             wpq.clear()
 
@@ -103,7 +121,7 @@ class HTTP_Server:
         def post_insert_wp():
             payload = request.get_json()
 
-            ret: Status = get_status(self.mav_connection)
+            ret: Status = get_status(self.mav_connection, self.callback_sys)
             last_altitude = ret._alt if ret != () else 50
 
             curr = max(ret._wpn, 1)
@@ -144,7 +162,7 @@ class HTTP_Server:
             # start list with new waypoints, extend with current mission at the end
             new_waypoints.extend(curr_wpq.aslist()[curr:])
 
-            success = new_mission(self.mav_connection, WaypointQueue(new_waypoints.copy()))
+            success = new_mission(self.mav_connection, self.callback_sys, WaypointQueue(new_waypoints.copy()))
             copy = WaypointQueue(new_waypoints.copy()).aslist()
             new_waypoints.clear()
             
@@ -164,8 +182,8 @@ class HTTP_Server:
 
         @app.route("/status", methods=["GET"])
         def get_status_handler():
-            print("Status sent to GCOM")
-            s = get_status(self.mav_connection).as_dictionary()
+            # print("Status sent to GCOM")
+            s = get_status(self.mav_connection, self.callback_sys).as_dictionary()
             return s, 200
 
         @app.route("/takeoff", methods=["POST"])
@@ -263,7 +281,7 @@ class HTTP_Server:
             landing_mission.push(Waypoint(0, "Approach", land.get('latitude'), land.get('longitude'), land.get('altitude', 35)))
             landing_mission.push(Waypoint(1, "Landing", land.get('latitude'), land.get('longitude'), 0, "LAND"))
 
-            if new_mission(self.mav_connection, landing_mission):
+            if new_mission(self.mav_connection, self.callback_sys, landing_mission):
                 return "Landing at Specified Location", 200
             else:
                 return "Landing failed", 400
@@ -299,18 +317,70 @@ class HTTP_Server:
                 return f"OK! Changed mode: {input['mode']}", 200
             else:
                 return f"Unrecognized mode: {input['mode']}", 400
+
+        @app.route("/activate_camera", methods=["POST"])
+        def activate_cam():
+            response: dict = request.get_json()
+
+            if ("cam_id" not in response 
+                or "time_between_pics_secs" not in response
+                or "num_of_pics" not in response
+                ):
+                return "Missing params", 400
+
+            cam_id = response["cam_id"]
+            time_between_pics_secs = response["time_between_pics_secs"]
+            num_of_pics = response["num_of_pics"]
+            
+            if activate_camera(mav_connection=self.mav_connection, cam_id=cam_id, 
+                                time_between_pics_secs=time_between_pics_secs,
+                                num_of_pics=num_of_pics):
+                return "Activated Camera", 200
+            else:
+                return "Failed to Activate Camera", 400
+        
+        @app.route("/deactivate_camera", methods=["POST"])
+        def deactivate_cam():
+            response: dict = request.get_json()
+
+            if ("cam_id" not in response):
+                return "Missing params", 400
+            cam_id = response["cam_id"]
+            
+            if deactivate_camera(mav_connection=self.mav_connection, cam_id=cam_id): 
+                return "Deactivated Camera", 200
+            else:
+                return "Failed to Deactivate Camera", 400
+        
+        ### AEAC 2025 COMMANDS ###
             
         @app.route("/aeac_scan", methods=["POST"])
         def generate_scan_points():
             input = request.get_json()
+            print(input)
 
             # TODO Trigger CameraVision system to begin scanning
-            if (input["center_lat"] and input["center_lng"] and
-                input["altitude"] and input["target_area_radius"]):
-                wpq = scan_area(center_lat=input["center_lat"], center_lng=input["center_lng"],
-                            altitude=input["altitude"], target_area_radius=input["target_area_radius"])
+            if ("center_lat" in input and"center_lng" in input and
+                "altitude" in input and "target_area_radius" in input and
+                "enable_camera" in input):
+
+                center_lat = input["center_lat"]
+                center_lng = input["center_lng"]
+                altitude = input["altitude"]
+                target_area_radius = input["target_area_radius"]
+                enable_camera = input["enable_camera"]
+
+                ret: Status = get_status(self.mav_connection, self.callback_sys)
+
+                # If given lat lon is 0, then base spiral off of current lat lon
+                if (center_lat == 0 and center_lng == 0):
+                    print(f"{ret._lat} {ret._lng}")
+                    center_lat = ret._lat
+                    center_lng = ret._lng
+
+                wpq, callbacks = scan_area(center_lat, center_lng, altitude, target_area_radius, enable_camera)
                 
-                if new_mission(self.mav_connection, wpq):
+                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks, frame=3): # frame - RELATIVE TO HOME ALT
                     return f"Scan Mission Set", 200
                 else:
                     return "Mission request failed", 400
@@ -321,22 +391,43 @@ class HTTP_Server:
         def deliver_water_down():
             input = request.get_json()
 
-            if ("current_alt" in input and "deliver_alt" in input and 
-                "deliver_duration_secs" in input and "curr_lat" in input and "curr_lon" in input):
+            if ("deliver_alt" in input and "deliver_duration_secs" in input):
+
+                ret: Status = get_status(self.mav_connection, self.callback_sys)
         
                 # Extract values from JSON input
-                current_alt = input["current_alt"]
+                current_alt = ret._alt
                 deliver_alt = input["deliver_alt"]
                 deliver_duration_secs = input["deliver_duration_secs"]
-                curr_lat = input["curr_lat"]
-                curr_lon = input["curr_lon"]
-                wpq = generate_water_wps(current_alt, deliver_alt, deliver_duration_secs, curr_lat, curr_lon)
-                
-                
-                if new_mission(self.mav_connection, wpq):
+                curr_lat = ret._lat
+                curr_lng = ret._lng
+                wpq, callbacks = generate_water_wps(deliver_alt, deliver_duration_secs, curr_lat, curr_lng)
+                 
+                if new_mission(self.mav_connection, self.callback_sys, wpq, callbacks, frame=3): # frame - RELATIVE TO HOME ALT
                     return f"Commencing Deliver operation", 200
                 else:
                     return "Mission request failed", 400
+            else:
+                return f"Invalid input, missing a parameter.", 400
+        
+        @app.route("/aeac_payload", methods=["POST"])
+        def change_aeac_payload():
+            input = request.get_json()
+
+            if ("valve_one_open" in input and "valve_two_open" in input and "pump_on" in input and "reset" in input):
+
+                # Extract values from JSON input
+                valve_one_open = input["valve_one_open"]
+                valve_two_open = input["valve_two_open"]
+                pump_on = input["pump_on"]
+                reset = input["reset"]
+               
+                result = set_payload_mode(self.mav_connection, valve_one_open, valve_two_open, pump_on, reset)
+                
+                if result != -1:
+                    return f"Payload mode changed", 200
+                else:
+                    return "Payload mode failed to change", 400
             else:
                 return f"Invalid input, missing a parameter.", 400
 

@@ -1,0 +1,17 @@
+meta {
+  name: stop_cam
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/deactivate_camera
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "cam_id": 0
+  }
+}
