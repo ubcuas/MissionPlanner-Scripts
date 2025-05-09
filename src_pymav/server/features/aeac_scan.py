@@ -146,13 +146,19 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
         count += 1
     
     spiral_wps.reverse()
+
+    # duplicate last waypoint
+    last_wp = spiral_wps[-1]
+    spiral_wps.append(last_wp)
+    count += 1
+
     for wp in spiral_wps:
         wpq.push(wp)
     
     callbacks.append(Callback(
         "Scan Mission - Unset Speed",
         'MISSION_CURRENT',
-        lambda curr_msg, prev_msg: (curr_msg.seq >= count - 1),
+        lambda curr_msg, prev_msg: (curr_msg.seq >= count),
         lambda msg, conn, state: change_speed(conn, speed=-2),
         removable_flags={
             "on_payload_fired": True,
