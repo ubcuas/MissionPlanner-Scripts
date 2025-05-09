@@ -55,6 +55,7 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
     count = 0
 
     scan_radius = calculate_scan_radius(altitude, 44, 57) # from v1226-mpz 20MP Lens (12 mm focal)
+    scan_radius += 5 # fudge radius
     print(scan_radius)
 
     callbacks.append(Callback(
@@ -158,6 +159,8 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
             "on_mission_switched": True,
         }
     ))
+
+    print(f"DEBUG: {count = }")
     
     # plot_shape(record, color="green", close_loop=False, scatter=True)
     # plot_shape([(wp._lng, wp._lat) for wp in wpq.aslist()], color="blue", close_loop=False, scatter=True)
