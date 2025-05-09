@@ -80,14 +80,17 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
         ))
 
     # transit from center to edge, turning gently so that drone is tangent when reaching the edge
-    tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius / 2, center_sn - target_area_radius / 2, zone, hemisphere)
-    record.append((center_we + target_area_radius / 2, center_sn - target_area_radius / 2))
-    wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
-    count += 1
+    # tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius / 2, center_sn - target_area_radius / 2, zone, hemisphere)
+    # record.append((center_we + target_area_radius / 2, center_sn - target_area_radius / 2))
+    # wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
+    # count += 1
+
+    spiral_wps = []
 
     tmp_lat, tmp_lng = convert_utm_to_gps(center_we + target_area_radius, center_sn, zone, hemisphere)
     record.append((center_we + target_area_radius, center_sn))
-    wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
+    # wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
+    spiral_wps.append(Waypoint(count, "", tmp_lat, tmp_lng, altitude))
     count += 1
 
     if (enable_cam):
@@ -124,8 +127,13 @@ def scan_area(center_lat, center_lng, altitude, target_area_radius, enable_cam) 
         # place waypoint
         record.append((center_we + current_radius * math.cos(current_angle), center_sn + current_radius * math.sin(current_angle)))
         tmp_lat, tmp_lng = convert_utm_to_gps(center_we + current_radius * math.cos(current_angle), center_sn + current_radius * math.sin(current_angle), zone, hemisphere)
-        wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude, command=SPLINE_WAYPOINT_TYPE, p2=2))
+        # wpq.push(Waypoint(count, "", tmp_lat, tmp_lng, altitude, command=SPLINE_WAYPOINT_TYPE, p2=2))
+        spiral_wps.append(Waypoint(count, "", tmp_lat, tmp_lng, altitude, command=SPLINE_WAYPOINT_TYPE, p2=2))
         count += 1
+    
+    spiral_wps.reverse()
+    for wp in spiral_wps:
+        wpq.push(wp)
     
     # plot_shape(record, color="green", close_loop=False, scatter=True)
     # plot_shape([(wp._lng, wp._lat) for wp in wpq.aslist()], color="blue", close_loop=False, scatter=True)
